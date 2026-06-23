@@ -41,9 +41,9 @@
     {
       "name": "oci",
       "source": "./oci",
-      "description": "Oracle Cloud Infrastructure domain. Placeholder for future OCI skills.",
+      "description": "Oracle Cloud Infrastructure guidance for OKE, OCI IoT Platform digital twins and publish flows, Enterprise AI models, agents, RAG, governance, and Oracle platform integrations.",
       "category": "oracle",
-      "keywords": ["oracle", "oci", "cloud-infrastructure"]
+      "keywords": ["oracle", "oci", "cloud-infrastructure", "oke", "iot", "digital-twins", "generative-ai"]
     }
   ]
 }

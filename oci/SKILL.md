@@ -1,11 +1,11 @@
 ---
 name: oci
-description: Oracle Cloud Infrastructure guidance for designing, operating, and troubleshooting OCI services, including OCI Kubernetes Engine (OKE) and Enterprise AI workflows for OCI Generative AI models, Responses API agents, RAG, cost estimation, governance, private endpoints, hosted agentic applications, and Oracle platform integrations. Use when the user asks about OKE cluster design, Terraform or Resource Manager planning, OKE incident troubleshooting, Generic VNIC Attachment, Multus, pod networking, node pools, add-ons, ingress, load balancers, OCIR image pulls, Workload Identity, Kubernetes workloads on OCI, OCI Generative AI, Enterprise AI Models, Enterprise AI Agents, governed GenAI applications, agentic workflows, RAG on Oracle Cloud, or OCI Generative AI pricing.
+description: Oracle Cloud Infrastructure guidance for designing, operating, and troubleshooting OCI services, including OCI Kubernetes Engine (OKE), OCI Internet of Things Platform, and Enterprise AI workflows for OCI Generative AI models, Responses API agents, RAG, cost estimation, governance, private endpoints, hosted agentic applications, and Oracle platform integrations. Use when the user asks about OKE cluster design, Terraform or Resource Manager planning, OKE incident troubleshooting, Generic VNIC Attachment, Multus, pod networking, node pools, add-ons, ingress, load balancers, OCIR image pulls, Workload Identity, Kubernetes workloads on OCI, OCI IoT domains or digital twins, device publish flows, OCI Generative AI, Enterprise AI Models, Enterprise AI Agents, governed GenAI applications, agentic workflows, RAG on Oracle Cloud, or OCI Generative AI pricing.
 ---
 
 # Oracle Cloud Infrastructure Skills
 
-Use this domain for practical Oracle Cloud Infrastructure guidance. Current content covers OCI Kubernetes Engine (OKE): cluster design, operational troubleshooting, Generic VNIC Attachment (GVA), and Multus multi-interface pod validation. It also covers Enterprise AI because that work is built around OCI Generative AI, OCI networking, IAM, cost estimation, hosted applications, and OCI platform integrations.
+Use this domain for practical Oracle Cloud Infrastructure guidance. Current content covers OCI Kubernetes Engine (OKE): cluster design, operational troubleshooting, Generic VNIC Attachment (GVA), and Multus multi-interface pod validation. It covers OCI Internet of Things Platform resource discovery, digital twin lifecycle workflows, device publish flows, and optional MCP-assisted operation. It also covers Enterprise AI because that work is built around OCI Generative AI, OCI networking, IAM, cost estimation, hosted applications, and OCI platform integrations.
 
 ## How to Use This Domain
 
@@ -28,6 +28,13 @@ oci/
 │   ├── data/
 │   ├── cost/
 │   └── integrations/
+├── iot-platform/
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── references/
+│   ├── scripts/
+│   ├── templates/
+│   └── tests/
 └── oke/
     ├── cluster-design.md
     ├── troubleshooting.md
@@ -49,6 +56,7 @@ oci/
 | Troubleshoot OKE workloads, pods, services, DNS, add-ons, ingress, load balancers, image pulls, storage, Workload Identity, or cluster access | Start with `oci/oke/troubleshooting.md`, then load `oci/oke/skills/oke-troubleshooter/SKILL.md` |
 | Configure OKE managed node pools with Generic VNIC Attachment secondary VNIC profiles and Application Resources | Start with `oci/oke/gva-node-pools.md`, then load `oci/oke/skills/oke-gva-deployer/SKILL.md` |
 | Deploy or validate Multus NetworkAttachmentDefinitions and multi-interface pods on OKE | Start with `oci/oke/multus-multihome.md`, then load `oci/oke/skills/oke-multihome-deployer/SKILL.md` |
+| OCI IoT domains, domain groups, digital twin models, adapters, instances, relationships, raw commands, Data API access, or HTTPS publish flows | `oci/iot-platform/SKILL.md` |
 | OCI Generative AI models, custom/imported models, endpoints, or private endpoints | `oci/enterprise-ai/SKILL.md` |
 | OCI Responses API agents, tools, memory, File Search, Code Interpreter, MCP, or SQL Search | `oci/enterprise-ai/SKILL.md` |
 | OCI Generative AI and OCI Generative AI Agents cost estimation | `oci/enterprise-ai/cost/cost-estimation.md` |
@@ -60,6 +68,9 @@ oci/
 - `oci/oke/troubleshooting.md`
 - `oci/oke/gva-node-pools.md`
 - `oci/oke/multus-multihome.md`
+- `oci/iot-platform/SKILL.md`
+- `oci/iot-platform/references/cli-workflows.md`
+- `oci/iot-platform/references/mcp-optional-use.md`
 - `oci/enterprise-ai/SKILL.md`
 - `oci/enterprise-ai/models/enterprise-ai-models.md`
 - `oci/enterprise-ai/agent-workflows/responses-api-agents.md`
@@ -85,11 +96,14 @@ The OKE operational skills include deterministic helper tools under `oci/oke/scr
 | Build a node pool with workload-specific secondary VNIC profiles | `oke/gva-node-pools.md` -> `oke/multus-multihome.md` if pods need multiple interfaces |
 | Validate Multus pod networking on GVA-enabled nodes | `oke/multus-multihome.md` -> `oke/troubleshooting.md` if symptoms remain |
 | Investigate OKE workload access to OCI APIs | `oke/troubleshooting.md` |
+| Explore or update OCI IoT digital twin resources | `iot-platform/SKILL.md` -> `iot-platform/references/cli-workflows.md` -> `iot-platform/references/resilience-guidance.md` |
+| Publish test telemetry to an OCI IoT twin | `iot-platform/SKILL.md` -> `iot-platform/references/cli-workflows.md` -> `iot-platform/templates/publish-curl.template.sh` |
 | Build a governed enterprise assistant | `enterprise-ai/SKILL.md` -> `enterprise-ai/agent-workflows/agent-tools.md` -> `enterprise-ai/data/rag-and-search.md` -> `enterprise-ai/governance/private-endpoints-and-governance.md` |
 
 ## Scope Boundaries
 
 - Keep OCI service, networking, IAM, agent hosting, and cost-estimation guidance in this domain.
+- Route OCI IoT domain, digital twin, adapter, device publish, raw command, and Data API workflows to `oci/iot-platform/`.
 - Route Oracle Database-owned implementation details to `db/features/`.
 - Route APEX artifact generation to `apex/apexlang/`.
 - Prefer official Oracle documentation for OCI service limits, IAM verbs, endpoint formats, regions, and pricing inputs because these change frequently.
@@ -100,5 +114,7 @@ The OKE operational skills include deterministic helper tools under `oci/oke/scr
 - https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengAttaching_Multiple_VNICs.htm
 - https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contenggrantingworkloadaccesstoresources.htm
 - https://github.com/oracle-terraform-modules/terraform-oci-oke
+- https://docs.oracle.com/en-us/iaas/Content/internet-of-things/home.htm
+- https://github.com/oracle-samples/oci-iot-samples
 - https://docs.oracle.com/en-us/iaas/Content/generative-ai/overview.htm
 - https://docs.oracle.com/en-us/iaas/Content/generative-ai/home.htm
