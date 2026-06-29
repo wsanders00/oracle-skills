@@ -1,6 +1,6 @@
 ---
 name: oci-iot-platform
-description: Explore, create, and troubleshoot Oracle Cloud Infrastructure Internet of Things Platform resources, including domains, digital twin models, adapters, instances, relationships, and device publish flows. Use when requests involve OCI IoT bootstrap, digital twin inspection, safe lifecycle operations, or translating OCI IoT docs and samples into concrete commands.
+description: Use when requests involve OCI IoT domains or domain groups; digital twin models, adapters, instances, relationships, or gateway topology; work requests or raw commands; HTTPS or MQTTs connectivity; Data API or OCI CLI operations; or publish and twin-state troubleshooting.
 ---
 
 # OCI IoT Platform
@@ -59,8 +59,9 @@ description: Explore, create, and troubleshoot Oracle Cloud Infrastructure Inter
 - Run [scripts/twin_tools.py](scripts/twin_tools.py) for:
   - `last-known`
   - `offline`
-  - `telemetry-template`
-- Reuse [templates/model.temperature-sensor.template.json](templates/model.temperature-sensor.template.json), [templates/adapter.default.template.json](templates/adapter.default.template.json), [templates/instance.template.json](templates/instance.template.json), and [templates/publish-curl.template.sh](templates/publish-curl.template.sh) as neutral starting points.
+  - `telemetry-template`, which produces a generic, non-adapter-specific payload scaffold
+- Reuse [templates/model.temperature-sensor.template.json](templates/model.temperature-sensor.template.json), [templates/adapter.default.template.json](templates/adapter.default.template.json), and [templates/instance.template.json](templates/instance.template.json) as neutral starting points.
+- For the bundled HTTPS sample, publish with [templates/publish-curl.template.sh](templates/publish-curl.template.sh) because its payload shape matches [templates/adapter.default.template.json](templates/adapter.default.template.json). Do not substitute the generic `telemetry-template` output without adapting the adapter mapping.
 - Use [references/platform-surface.md](references/platform-surface.md) to explain how domains, domain groups, models, adapters, twins, relationships, work requests, raw commands, and data access fit together.
 - Use [references/resilience-guidance.md](references/resilience-guidance.md) to keep operator responses bounded, active-resource focused, and explicit about final-state evidence.
 - Use [references/mcp-optional-use.md](references/mcp-optional-use.md) to recognize optional OCI IoT MCP tool families, gateway-aware helper behavior, Data API wrappers, and safety rules.
@@ -77,19 +78,10 @@ description: Explore, create, and troubleshoot Oracle Cloud Infrastructure Inter
 - Keep MCP guidance optional. Do not make MCP installation or private MCP bootstrap part of the public workflow.
 - When MCP is already available, treat it as an accelerator for joined context, selector resolution, bounded pagination, gateway topology, Data API summaries, and polling; always be ready to fall back to CLI or SDK commands.
 - Treat device publishing auth modes separately:
-  - vault-secret-backed basic auth
-  - certificate-based mTLS
+  - Vault-secret-backed Basic auth is for test validation only.
+  - Oracle recommends mTLS certificate auth for production; see the [official HTTPS connection scenario](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/structured-default-https.htm).
 - Do not imply OCI IoT is a general-purpose MQTT broker.
 - Keep examples redacted and tenant-neutral.
-
-## Authoritative References
-
-- Oracle IoT service docs:
-  - `https://docs.oracle.com/en-us/iaas/Content/internet-of-things/home.htm`
-- OCI CLI IoT command reference:
-  - `https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/cmdref/iot.html`
-- Oracle sample repository:
-  - `https://github.com/oracle-samples/oci-iot-samples`
 
 ## Output Style
 
@@ -98,3 +90,12 @@ For each task, return:
 1. The exact command sequence with placeholders filled or called out.
 2. The key IDs, state, or timestamps that matter.
 3. The next verification step.
+
+## Sources
+
+- Oracle IoT service docs:
+  - `https://docs.oracle.com/en-us/iaas/Content/internet-of-things/home.htm`
+- OCI CLI IoT command reference:
+  - `https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/cmdref/iot.html`
+- Oracle sample repository:
+  - `https://github.com/oracle-samples/oci-iot-samples`

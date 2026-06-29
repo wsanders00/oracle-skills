@@ -20,9 +20,11 @@ required_files=(
   "$ROOT_DIR/references/platform-surface.md"
   "$ROOT_DIR/references/resilience-guidance.md"
   "$ROOT_DIR/references/release-validation.md"
+  "$ROOT_DIR/tests/publish_guidance.sh"
+  "$ROOT_DIR/tests/test_twin_tools.py"
 )
 
-echo "[1/6] required file check"
+echo "[1/8] required file check"
 for path in "${required_files[@]}"; do
   if [[ ! -f "$path" ]]; then
     echo "Missing required file: $path" >&2
@@ -30,11 +32,47 @@ for path in "${required_files[@]}"; do
   fi
 done
 
-echo "[2/6] skill metadata check"
+echo "[2/8] skill metadata check"
 rg -n '^name: oci-iot-platform$' "$ROOT_DIR/SKILL.md" >/dev/null
-rg -n '^description:' "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n '^description: Use when' "$ROOT_DIR/SKILL.md" >/dev/null
+description_line="$(rg -m 1 '^description:' "$ROOT_DIR/SKILL.md")"
+description_patterns=(
+  'OCI IoT'
+  'domain groups?'
+  'models?'
+  'adapters?'
+  'instances?'
+  'relationships?'
+  'gateway'
+  'work requests?'
+  'raw commands?'
+  'HTTPS'
+  'MQTTs'
+  'Data API'
+  'OCI CLI'
+  'publish'
+  'twin-state'
+)
+for pattern in "${description_patterns[@]}"; do
+  if ! printf '%s\n' "$description_line" | rg -i "$pattern" >/dev/null; then
+    echo "Skill description is missing trigger coverage for: $pattern" >&2
+    exit 1
+  fi
+done
+rg -n -F 'publish_guidance.sh' \
+  "$ROOT_DIR/references/release-validation.md" >/dev/null
+rg -n -F 'test_twin_tools.py' \
+  "$ROOT_DIR/references/release-validation.md" >/dev/null
 
-echo "[3/6] resilience guidance coverage check"
+echo "[3/8] installed publish authentication policy check"
+rg -n -i 'Basic[- ]auth.*test validation only' "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n -i 'Oracle recommends.*mTLS.*certificate.*production' \
+  "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n -F \
+  'https://docs.oracle.com/en-us/iaas/Content/internet-of-things/structured-default-https.htm' \
+  "$ROOT_DIR/SKILL.md" >/dev/null
+
+echo "[4/8] resilience guidance coverage check"
 rg -n 'references/resilience-guidance\.md' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n -i 'bounded|pagination|--limit' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
 rg -n -i 'lifecycle' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
@@ -75,10 +113,10 @@ if rg -n 'lastValue' "$ROOT_DIR/templates/adapter.default.template.json" "$ROOT_
   exit 1
 fi
 
-echo "[4/6] bootstrap helper syntax check"
+echo "[5/8] bootstrap helper syntax check"
 bash -n "$ROOT_DIR/scripts/derive_domain_context.sh"
 
-echo "[5/6] twin tool syntax and help checks"
+echo "[6/8] twin tool syntax and help checks"
 python3 -m py_compile "$ROOT_DIR/scripts/twin_tools.py"
 python3 "$ROOT_DIR/scripts/twin_tools.py" --help >/dev/null
 python3 "$ROOT_DIR/scripts/twin_tools.py" telemetry-template \
@@ -86,7 +124,14 @@ python3 "$ROOT_DIR/scripts/twin_tools.py" telemetry-template \
   --twin-id test-twin \
   --metric temperature=21.5 >/dev/null
 
-echo "[6/6] template sanity check"
+echo "[7/8] focused regression checks"
+bash -n "$ROOT_DIR/tests/publish_guidance.sh"
+bash "$ROOT_DIR/tests/publish_guidance.sh"
+python3 -m unittest discover \
+  -s "$ROOT_DIR/tests" \
+  -p 'test_twin_tools.py'
+
+echo "[8/8] template sanity check"
 python3 -m json.tool "$ROOT_DIR/templates/adapter.default.template.json" >/dev/null
 python3 -m json.tool "$ROOT_DIR/templates/instance.template.json" >/dev/null
 python3 -m json.tool "$ROOT_DIR/templates/model.temperature-sensor.template.json" >/dev/null

@@ -77,17 +77,15 @@ def load_json(path: str) -> Any:
 def iter_records(payload: Any) -> Iterable[Dict[str, Any]]:
     if isinstance(payload, list):
         for item in payload:
-            if isinstance(item, dict):
-                yield item
+            if isinstance(item, (dict, list)):
+                yield from iter_records(item)
         return
     if isinstance(payload, dict):
         yield payload
         for key in ("data", "items", "records"):
             value = payload.get(key)
-            if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, dict):
-                        yield item
+            if isinstance(value, (dict, list)):
+                yield from iter_records(value)
 
 
 def get_key_path(data: Dict[str, Any], path: Optional[str]) -> Any:

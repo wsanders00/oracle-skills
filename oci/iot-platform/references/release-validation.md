@@ -4,14 +4,22 @@ Use this checklist before calling the `oci-iot-platform` skill ready to share.
 
 ## Automated Checks
 
-Run:
+From the `oracle-skills` repository root, run:
 
 ```bash
-bash oci-iot-platform/tests/smoke.sh
+bash oci/iot-platform/tests/smoke.sh
+bash oci/iot-platform/tests/redaction_scan.sh
+bash oci/iot-platform/tests/publish_guidance.sh
+python3 -m unittest discover -s oci/iot-platform/tests -p 'test_twin_tools.py'
 ```
 
+From the installed `oci-iot-platform` package root, run the equivalents:
+
 ```bash
-bash oci-iot-platform/tests/redaction_scan.sh
+bash tests/smoke.sh
+bash tests/redaction_scan.sh
+bash tests/publish_guidance.sh
+python3 -m unittest discover -s tests -p 'test_twin_tools.py'
 ```
 
 ## Content Review
@@ -34,8 +42,10 @@ Validate at least one clean or minimally configured operator environment with pu
 4. adapter creation and readback
 5. twin instance creation and readback
 6. test publish flow and content verification using a test-owned auth resource; do not reuse an existing certificate or secret
-7. confirm the HTTPS publish URL includes the adapter `inboundEnvelope.referenceEndpoint`; posting to the bare device host is not a valid publish test
-8. confirm normal publishing-device twins are `DIRECT` unless the validation intentionally covers a gateway/downstream topology
+7. use the bundled publish wrapper, confirm it passes Basic-auth credentials through `curl -u` or `curl --user`, and do not construct an `Authorization: Basic` header
+8. treat `202 Accepted` as ingress acceptance only, then verify the attempt with a fresh twin-content read that includes metadata
+9. confirm the HTTPS publish URL includes the adapter `inboundEnvelope.referenceEndpoint`; posting to the bare device host is not a valid publish test
+10. confirm normal publishing-device twins are `DIRECT` unless the validation intentionally covers a gateway/downstream topology
 
 If Data API or direct DB guidance ships in the release, validate at least one example there too.
 
@@ -49,6 +59,7 @@ Also verify operator-resilience guidance remains public-safe and covers:
 - work-request status, log, and error inspection for asynchronous operations
 - publish rejection triage for topic, auth, schema, domain, and lifecycle-state failures
 - publish endpoint triage for missing or mismatched adapter reference endpoint paths
+- publish-wrapper regressions that preserve response bodies and HTTP status, avoid redirects, and reject unexpected status codes while keeping `curl -u` or `curl --user` as the Basic-auth mechanism
 - raw-command final-state validation after command submission, not only accepted requests
 - cleanup ordering that removes relationships, twins, adapters, and models safely
 - optional MCP guidance that recognizes tool families and fallback rules without requiring MCP install or private bootstrap
@@ -69,6 +80,9 @@ Do not release if any of these are true:
 - newer CLI flags are documented without a `oci ... --help` drift check or SDK fallback
 - raw-command acceptance is treated as final completion evidence
 - publish examples skip final twin-content or rejected-data verification
+- publish examples hand-build a Basic `Authorization` header instead of passing credentials through `curl -u` or `curl --user`
+- publish guidance treats `202 Accepted` as final-state proof instead of ingress acceptance only
+- the focused publish-wrapper regression no longer checks the credential mechanism, response body and status handling, redirect rejection, or unexpected-status failure
 - publish examples omit the adapter reference endpoint path or imply that the bare device host is enough
 - instance creation examples use `INDIRECT` to avoid supplying a direct-auth resource
 - cleanup guidance omits dependency ordering or destructive-operation approval

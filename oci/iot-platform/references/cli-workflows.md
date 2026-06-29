@@ -302,15 +302,19 @@ https://<domain-short-id>.device.iot.<region>.oci.oraclecloud.com/sampletopic
 
 Posting to the bare device host returns `404 Not Found`; that usually means the path is missing or does not match the adapter endpoint.
 
-For vault-secret-backed basic auth, start from:
+Use Basic auth for test validation only. Oracle recommends mTLS certificates for production; see [Connect devices using structured messaging over HTTPS](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/structured-default-https.htm).
+
+For vault-secret-backed basic auth, use the bundled template:
 
 ```bash
 bash templates/publish-curl.template.sh
 ```
 
+Do not hand-build a Basic Authorization header. Credential encoders may emit wrapped or multiline Base64 output, which can corrupt the header; let the template pass the quoted username and secret to `curl -u`.
+
 For certificate-based publishing, switch to an mTLS client flow instead of `curl -u`.
 
-After publishing, verify the twin content again. For basic validation, `digital-twin-instance get-content` with metadata is enough to prove the publish updated the twin:
+A `202 Accepted` response is ingress acceptance only, not final-state or twin-update proof. After publishing, read the twin content with metadata and compare the expected value and timestamp:
 
 ```bash
 oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get-content \

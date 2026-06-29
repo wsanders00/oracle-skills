@@ -27,9 +27,32 @@ PAYLOAD="$(cat <<JSON
 JSON
 )"
 
-curl -sS -u "${DEVICE_USER}:${DEVICE_SECRET}" \
-  -H "Content-Type: application/json" \
-  -d "${PAYLOAD}" \
-  "${URL}"
+RESPONSE_BODY="$(mktemp "${TMPDIR:-/tmp}/oci-iot-publish.XXXXXX")"
+trap 'rm -f "$RESPONSE_BODY"' EXIT
 
-echo
+CURL_EXIT=0
+HTTP_STATUS="$(
+  curl --disable -sS \
+    --output "$RESPONSE_BODY" \
+    --write-out '%{http_code}' \
+    -u "${DEVICE_USER}:${DEVICE_SECRET}" \
+    -H "Content-Type: application/json" \
+    -d "${PAYLOAD}" \
+    "${URL}"
+)" || CURL_EXIT=$?
+
+cat "$RESPONSE_BODY"
+printf '\nHTTP status: %s\n' "${HTTP_STATUS:-unavailable}"
+
+if ((CURL_EXIT != 0)); then
+  printf 'Publish transport failure: curl exit %s.\n' "$CURL_EXIT" >&2
+  exit "$CURL_EXIT"
+fi
+
+if [[ "$HTTP_STATUS" != "202" ]]; then
+  printf 'Unexpected HTTP status %s; expected 202 Accepted.\n' \
+    "${HTTP_STATUS:-unavailable}" >&2
+  exit 1
+fi
+
+echo "HTTP success is ingress evidence only; verify twin content with digital-twin-instance get-content --should-include-metadata true."
