@@ -72,7 +72,10 @@ description: Explore, create, and troubleshoot Oracle Cloud Infrastructure Inter
 - Prefer read-only commands first and verify current state before recommending mutations.
 - When suggesting create, update, or delete operations, include a verification command immediately after the mutation.
 - Bound large reads with filters and `--limit` before using `--all`.
+- Digital twin model, adapter, instance, and relationship creates return the created resource directly; no `opc-work-request-id` response header is returned. Do not invoke work-request APIs for these creates.
+- The returned resource may still be progressing toward `ACTIVE`. `--wait-for-state ACTIVE` is a resource waiter that performs client-side GET polling. After the waiter, use the documented GET/read-back checks; model creation still requires both metadata and stored-spec verification.
 - Treat asynchronous acceptance, including raw-command `202`, as incomplete until final state is verified.
+- A raw-command `202 Accepted` remains incomplete final-state evidence until a response, device-side signal, or resource-state read-back verifies completion.
 - For digital twin instance creation, never use `INDIRECT` as a shortcut to avoid auth setup. Use `INDIRECT` only when the user explicitly asks for a gateway/downstream topology or provides a gateway routing requirement. Otherwise clarify connectivity or proceed with `DIRECT` when a publishing device is implied.
 - Keep MCP guidance optional. Do not make MCP installation or private MCP bootstrap part of the public workflow.
 - When MCP is already available, treat it as an accelerator for joined context, selector resolution, bounded pagination, gateway topology, Data API summaries, and polling; always be ready to fall back to CLI or SDK commands.

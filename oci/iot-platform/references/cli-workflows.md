@@ -133,6 +133,8 @@ python3 scripts/twin_tools.py last-known \
 
 If the content response has metadata but no current values, treat that as incomplete evidence and check publish/rejected-data paths before claiming the twin is healthy.
 
+Digital twin model, adapter, instance, and relationship create commands return the created resource body directly; no `opc-work-request-id` response header is returned. The returned resource may still be progressing toward `ACTIVE`. Each `--wait-for-state ACTIVE` option shown below is a resource waiter that performs client-side GET polling of the returned resource; it does not imply that a work request exists. Keep the resource-specific GET/read-back checks after each create, including model `get` plus `get-spec`, adapter `get`, instance `get`, and relationship filtered list/read-back.
+
 ## Create A Model
 
 Start from the neutral template:
@@ -242,7 +244,8 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-relationship 
   --iot-domain-id <iot_domain_ocid> \
   --source-digital-twin-instance-id <source_twin_ocid> \
   --target-digital-twin-instance-id <target_twin_ocid> \
-  --content-path <relationship_name>
+  --content-path <relationship_name> \
+  --wait-for-state ACTIVE
 ```
 
 Verify with source, target, and content-path filters:
@@ -262,7 +265,7 @@ If no relationship appears, check the reverse direction before creating another 
 
 ## Work Request Inspection
 
-Use work requests for asynchronous failures or long-running operations:
+Use work-request APIs only when the operation documents work-request behavior or the response returns `opc-work-request-id`. Do not search for a work request after digital-twin model, adapter, instance, or relationship creates.
 
 ```bash
 oci iot --profile <oci_profile> --region <oci_region> work-request get \

@@ -7,7 +7,8 @@ Use this reference when an OCI IoT task involves troubleshooting, large fleets, 
 - Read before changing. Capture current resource state before create, update, delete, publish, or command operations.
 - Prefer `ACTIVE` resources unless the user is explicitly auditing deleted or historical resources.
 - Bound list operations. Use `--limit`, targeted filters, and follow-up pages before using `--all` in a large domain.
-- Verify every mutation with a fresh read. For asynchronous operations, also inspect the work request.
+- Verify every mutation with a fresh read. Digital twin model, adapter, instance, and relationship creates return resources directly; their `--wait-for-state ACTIVE` option performs client-side GET polling of the returned resource.
+- Inspect work requests only when the operation documents work-request behavior or the response returns `opc-work-request-id`. An accepted work request is not final-state proof.
 - Keep public examples tenant-neutral. Do not introduce internal profiles, private network access patterns, schemas, or private tooling.
 
 ## CLI, SDK, And MCP Routing
@@ -132,7 +133,7 @@ If a relationship appears missing, check the reverse direction before creating a
 
 ## Work Requests
 
-After create, update, or delete operations, capture the work request ID when the CLI returns one. For failures or slow state transitions, inspect status, errors, and logs:
+Use work-request APIs only when the operation documents work-request behavior or the response returns `opc-work-request-id`. Do not search for a work request after digital-twin model, adapter, instance, or relationship creates. For a genuine work request, inspect status, errors, and logs:
 
 ```bash
 oci iot --profile <oci_profile> --region <oci_region> work-request get \

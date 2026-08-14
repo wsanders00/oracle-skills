@@ -62,6 +62,28 @@ rg -n 'OCI_IOT_AUTH_TYPE=api_key' "$ROOT_DIR/references/mcp-optional-use.md" >/d
 rg -n -i 'snapshot|historized|raw-command|rejected' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
 rg -n 'references/platform-surface\.md' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n -i 'domain group|digital twin model|digital twin adapter|digital twin instance|relationship|work request|raw commands|Data API' "$ROOT_DIR/references/platform-surface.md" >/dev/null
+rg -n -i 'digital twin model, adapter, instance, and relationship creates' "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n -i 'created resource' "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n 'no `opc-work-request-id`' "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n -i 'resource waiter' "$ROOT_DIR/SKILL.md" >/dev/null
+rg -n -i 'client-side GET polling' "$ROOT_DIR/references/cli-workflows.md" "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
+rg -n -i 'work-request-id' "$ROOT_DIR/references/cli-workflows.md" "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
+rg -n -i 'resource CRUD|actually create work requests|operations that.*work request' "$ROOT_DIR/references/platform-surface.md" >/dev/null
+rg -n -i 'release blocker|release-readiness defect|resource-returning creates' "$ROOT_DIR/references/release-validation.md" >/dev/null
+rg -n 'work-request status, log, and error inspection only for operations that actually create work requests' "$ROOT_DIR/references/release-validation.md" >/dev/null
+rg -n -i '202 Accepted|accepted.*incomplete|incomplete.*accepted' "$ROOT_DIR/SKILL.md" "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
+if rg -n 'Use work requests for asynchronous failures or long-running operations' "$ROOT_DIR/references/cli-workflows.md" >/dev/null; then
+  echo "Broad work-request guidance remains in CLI workflows." >&2
+  exit 1
+fi
+if rg -n 'Diagnose create/update/delete failures' "$ROOT_DIR/references/platform-surface.md" >/dev/null; then
+  echo "Broad create/update/delete work-request guidance remains in platform surface." >&2
+  exit 1
+fi
+if rg -n 'For asynchronous operations, also inspect the work request|After create, update, or delete operations, capture the work request ID' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null; then
+  echo "Unconditional work-request inspection guidance remains in resilience guidance." >&2
+  exit 1
+fi
 rg -n -i 'configure-apex-data-access|configure-direct-data-access|configure-ords-data-access|change-data-retention-period|MQTTs' "$ROOT_DIR/references/platform-surface.md" "$ROOT_DIR/references/cli-workflows.md" "$ROOT_DIR/references/data-access.md" >/dev/null
 rg -n -i 'snapshotData|rawData|historizedData|rejectedData|rawCommandData' "$ROOT_DIR/references/data-access.md" >/dev/null
 rg -n -- '--auth' "$ROOT_DIR/scripts/derive_domain_context.sh" >/dev/null

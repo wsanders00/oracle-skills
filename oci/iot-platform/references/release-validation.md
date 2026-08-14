@@ -33,20 +33,22 @@ Validate at least one clean or minimally configured operator environment with pu
 3. model creation and readback
 4. adapter creation and readback
 5. twin instance creation and readback
-6. test publish flow and content verification using a test-owned auth resource; do not reuse an existing certificate or secret
-7. confirm the HTTPS publish URL includes the adapter `inboundEnvelope.referenceEndpoint`; posting to the bare device host is not a valid publish test
-8. confirm normal publishing-device twins are `DIRECT` unless the validation intentionally covers a gateway/downstream topology
+6. relationship creation and filtered source/target/content-path readback
+7. test publish flow and content verification using a test-owned auth resource; do not reuse an existing certificate or secret
+8. confirm the HTTPS publish URL includes the adapter `inboundEnvelope.referenceEndpoint`; posting to the bare device host is not a valid publish test
+9. confirm normal publishing-device twins are `DIRECT` unless the validation intentionally covers a gateway/downstream topology
 
 If Data API or direct DB guidance ships in the release, validate at least one example there too.
 
 Also verify operator-resilience guidance remains public-safe and covers:
 
+- resource-returning creates, GET-based resource waiters, and conditional work-request routing for the four digital-twin create families
 - bounded list pagination and lifecycle-state filtering, with no unbounded fleet scans
 - SDK and CLI capability drift checks, including documented fallbacks when one surface lacks a feature
 - gateway-aware twin validation, including child or downstream device context where relevant
 - direct-vs-indirect instance creation guidance that does not use `INDIRECT` to avoid auth setup
 - relationship direction and source/target filtering, not only broad relationship listing
-- work-request status, log, and error inspection for asynchronous operations
+- work-request status, log, and error inspection only for operations that actually create work requests or return the `opc-work-request-id` response header
 - publish rejection triage for topic, auth, schema, domain, and lifecycle-state failures
 - publish endpoint triage for missing or mismatched adapter reference endpoint paths
 - raw-command final-state validation after command submission, not only accepted requests
@@ -55,6 +57,8 @@ Also verify operator-resilience guidance remains public-safe and covers:
 - Data API collection guidance for snapshot, raw, historized, rejected, and raw-command records
 
 ## Release Blockers
+
+Guidance that searches for work requests after the four resource-returning digital-twin creates, or labels a GET-based resource waiter as work-request polling, is a release-readiness defect and a release blocker. This no-live documentation batch does not complete the future manual release scenarios above; those still require an approved public-CLI validation pass.
 
 Do not release if any of these are true:
 

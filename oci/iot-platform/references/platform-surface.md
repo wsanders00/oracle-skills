@@ -42,7 +42,7 @@ Device connectivity is broader than the HTTPS template bundled with this skill. 
 | Adapters | Inbound routes and payload envelope mapping | Map published payloads into twin content | Read adapter, route, model link, envelope |
 | Instances | Digital twins for devices, gateways, logical assets, or indirect devices | Create or inspect a twin and its connectivity | Read instance, content, connectivity type, gateways |
 | Relationships | Directed graph edges between twins | Model topology or containment | Filter by source, target, content path, lifecycle |
-| Work requests | Async operation status, errors, logs | Diagnose create/update/delete failures | Read status, errors, logs, target resource state |
+| Work requests | Async operation status, errors, logs | Diagnose operations that actually create work requests | Read status, errors, logs, target resource state |
 | Raw commands | Request/response dispatch through a twin | Send a command to a device integration | Verify response record, device evidence, or state change |
 | Data API | Snapshot, raw, historized, rejected, and raw-command records | Troubleshoot current and historical ingest | Bounded query plus record-by-ID when needed |
 | Data access config | ORDS, direct DB, APEX, VCN/identity access | Enable advanced data workflows | Read config and test narrow access path |
@@ -60,6 +60,8 @@ The public OCI CLI exposes these IoT command groups:
 - `work-request`: get, list, list errors, list logs
 
 For high-risk operations such as data-access configuration, compartment moves, deletes, raw commands, or retention changes, inspect command help first and ask for explicit approval before giving an executable mutation sequence.
+
+Digital-twin resource CRUD is distinct from work-request operations: model, adapter, instance, and relationship creates return their resources directly, while the work-request family applies only to operations that actually create work requests.
 
 ## Connectivity Types
 
