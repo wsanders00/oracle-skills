@@ -1,0 +1,16 @@
+{
+  "fixtureId": "runtime-file-storage-mount-cases-v1",
+  "scope": "offline-example",
+  "description": "Validation of relative File Storage mount paths; no filesystem access.",
+  "rules": { "prefix": "/mnt/", "maximumMountsToRecheck": 5, "reject": ["leading slash", "trailing slash", "path traversal segment"] },
+  "cases": [
+    { "caseId": "valid-history", "mountPath": "history", "expected": { "valid": true, "effectivePath": "/mnt/history" } },
+    { "caseId": "valid-nested", "mountPath": "data/archive", "expected": { "valid": true, "effectivePath": "/mnt/data/archive" } },
+    { "caseId": "reject-leading-slash", "mountPath": "/history", "expected": { "valid": false, "reason": "leading-slash" } },
+    { "caseId": "reject-trailing-slash", "mountPath": "history/", "expected": { "valid": false, "reason": "trailing-slash" } },
+    { "caseId": "reject-parent-segment", "mountPath": "data/../etc", "expected": { "valid": false, "reason": "path-traversal" } },
+    { "caseId": "reject-current-segment", "mountPath": "./history", "expected": { "valid": false, "reason": "path-traversal" } },
+    { "caseId": "reject-empty", "mountPath": "", "expected": { "valid": false, "reason": "empty-relative-path" } }
+  ],
+  "cannotProve": ["export existence", "mount-target route", "NFS permissions", "runtime read/write access"]
+}

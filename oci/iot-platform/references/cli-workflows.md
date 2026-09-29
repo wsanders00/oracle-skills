@@ -1,12 +1,12 @@
 # OCI IoT CLI Workflows
 
-Use this file for the public, CLI-first operator path. For large fleets, gateway topology, publish failures, raw commands, or cleanup, pair these commands with [resilience-guidance.md](resilience-guidance.md).
+Use this file for the public, CLI-first operator path. For large fleets, gateway topology, publish failures, raw commands, or cleanup, pair these commands with [resilience-guidance.md](resilience-guidance.md). Choose the CLI signer and applicable global options for the execution environment using [operator-authentication.md](operator-authentication.md); these examples do not imply that every OCI CLI auth mode has been exercised against every IoT command.
 
 ## Inputs To Gather
 
 - `IOT_DOMAIN_ID`
-- `OCI_CLI_PROFILE`
-- `OCI_CLI_AUTH` when the profile requires a non-default auth mode, such as `security_token`
+- `OCI_CLI_PROFILE` only when the chosen auth mode uses a named OCI CLI config profile
+- `OCI_CLI_AUTH` when selecting a non-default CLI auth mode
 - `OCI_REGION` when not derivable from the domain
 - resource identifiers already known by the user:
   - digital twin model ID
@@ -15,26 +15,33 @@ Use this file for the public, CLI-first operator path. For large fleets, gateway
   - digital twin relationship ID
   - work request ID
 
-If only `IOT_DOMAIN_ID` is known, derive the rest first:
+For the examples below, initialize the optional global CLI arguments once in the same Bash shell. Leave the array empty if no explicit profile or auth mode is needed; add only the options that apply to the selected execution context. Reuse it unchanged for each OCI command so the same signer is used throughout.
 
 ```bash
-bash scripts/derive_domain_context.sh \
-  --profile <oci_profile> \
-  --auth <oci_cli_auth> \
+OCI_CLI_GLOBAL_ARGS=()
+# Uncomment and set only when applicable:
+# OCI_CLI_GLOBAL_ARGS+=(--profile "<oci_profile>")
+# OCI_CLI_GLOBAL_ARGS+=(--auth "<oci_cli_auth>")
+```
+
+If only `IOT_DOMAIN_ID` is known, derive the rest first using those same optional arguments:
+
+```bash
+bash scripts/derive_domain_context.sh "${OCI_CLI_GLOBAL_ARGS[@]}" \
   --iot-domain-id <iot_domain_ocid>
 ```
 
-Omit `--auth` only when the selected profile uses the CLI default auth mode. For security-token profiles, use `--auth security_token` and add the same global option to later OCI CLI commands.
+The helper accepts `--profile` and `--auth` when needed. Omit `--auth` when relying on the CLI default. Do not assume a named profile is required for instance, resource, or workload identity authentication.
 
 ## Command Capability Check
 
 Check local CLI help before relying on newer filters or topology options:
 
 ```bash
-oci iot digital-twin-instance list --help
-oci iot digital-twin-instance create --help
-oci iot digital-twin-relationship list --help
-oci iot digital-twin-instance invoke-raw-json-command --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance list --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance create --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-relationship list --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance invoke-raw-json-command --help
 ```
 
 If a documented CLI flag is missing locally, use the Python SDK or a narrower CLI fallback and call out the drift.
@@ -44,7 +51,7 @@ If a documented CLI flag is missing locally, use the Python SDK or a narrower CL
 List the domain:
 
 ```bash
-oci iot --profile <oci_profile> domain get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain get \
   --iot-domain-id <iot_domain_ocid> \
   --output json
 ```
@@ -52,13 +59,13 @@ oci iot --profile <oci_profile> domain get \
 List domain groups only when the user needs tenancy discovery:
 
 ```bash
-oci iot --profile <oci_profile> domain-group list --all
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain-group list --all
 ```
 
 List active digital twin instances with a bounded first page:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance list \
   --iot-domain-id <iot_domain_ocid> \
   --lifecycle-state ACTIVE \
   --limit 100 \
@@ -68,7 +75,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list
 List active models:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-model list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-model list \
   --iot-domain-id <iot_domain_ocid> \
   --lifecycle-state ACTIVE \
   --limit 100 \
@@ -78,7 +85,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-model list \
 List active adapters:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-adapter list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-adapter list \
   --iot-domain-id <iot_domain_ocid> \
   --lifecycle-state ACTIVE \
   --limit 100 \
@@ -87,6 +94,40 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-adapter list 
 
 Use `--all` only after confirming the domain is small enough or the operator needs complete inventory.
 
+## Managed Flow Runtime Discovery
+
+The Flow Runtime list command requires a compartment OCID even when filtering
+by IoT domain. Confirm the compartment belongs to the intended target tenancy;
+do not infer it from the caller's profile or authentication mode. Check the
+installed CLI's `oci iot flow-runtime list --help` before relying on filters.
+
+```bash
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> flow-runtime list \
+  --compartment-id <target_compartment_ocid> \
+  --iot-domain-id <iot_domain_ocid> \
+  --lifecycle-state ACTIVE \
+  --limit 100 \
+  --output json
+```
+
+Change or omit the lifecycle filter when investigating an `INACTIVE` or
+`FAILED` runtime; the example above is not a complete inventory.
+
+Read the exact runtime before planning a deployment:
+
+```bash
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> flow-runtime get \
+  --iot-flow-runtime-id <iot_flow_runtime_ocid> \
+  --output json
+```
+
+The complete flows document is a separate, potentially sensitive read. If it
+is needed, use `flow-runtime get-flows --iot-flow-runtime-id` only for an
+authorized exact runtime and keep the response out of shared logs and Git.
+Use the [Flow Runtime reference](../flow-runtime/references/flow-runtime.md)
+and [editor guide](../flow-runtime/references/flows-editor-and-collaboration.md)
+for lifecycle, saved-versus-effective-state, and replacement boundaries.
+
 ## Full CLI Surface Awareness
 
 For complete command-family coverage, see [platform-surface.md](platform-surface.md). The public CLI includes domain and domain-group lifecycle operations, data-retention changes, data-access configuration, work requests, all digital twin resource CRUD, digital twin content reads, and raw binary/json/text command invocation.
@@ -94,12 +135,12 @@ For complete command-family coverage, see [platform-surface.md](platform-surface
 Use help before high-risk or less common operations:
 
 ```bash
-oci iot domain change-data-retention-period --help
-oci iot domain configure-apex-data-access --help
-oci iot domain configure-direct-data-access --help
-oci iot domain configure-ords-data-access --help
-oci iot domain-group configure-data-access --help
-oci iot digital-twin-instance invoke-raw-json-command --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain change-data-retention-period --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain configure-apex-data-access --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain configure-direct-data-access --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain configure-ords-data-access --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain-group configure-data-access --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance invoke-raw-json-command --help
 ```
 
 Do not provide an executable mutation for delete, compartment move, data-access configuration, retention changes, raw commands, or publish validation until the user approves that specific operation.
@@ -109,7 +150,7 @@ Do not provide an executable mutation for delete, compartment move, data-access 
 Get instance metadata:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance get \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --output json
 ```
@@ -117,7 +158,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get 
 Get latest content with metadata:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get-content \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance get-content \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --should-include-metadata true \
   --output json
@@ -138,7 +179,7 @@ If the content response has metadata but no current values, treat that as incomp
 Start from the neutral template:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-model create \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-model create \
   --iot-domain-id <iot_domain_ocid> \
   --display-name "Temperature Sensor v1" \
   --spec file://templates/model.temperature-sensor.template.json \
@@ -148,13 +189,13 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-model create 
 Verify both metadata and stored spec:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-model get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-model get \
   --digital-twin-model-id <digital_twin_model_ocid> \
   --output json
 ```
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-model get-spec \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-model get-spec \
   --digital-twin-model-id <digital_twin_model_ocid> \
   --output json
 ```
@@ -164,7 +205,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-model get-spe
 Use the neutral adapter template and update endpoint, timestamp mapping, and payload fields first.
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-adapter create \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-adapter create \
   --iot-domain-id <iot_domain_ocid> \
   --digital-twin-model-id <digital_twin_model_ocid> \
   --display-name "Temperature Adapter" \
@@ -175,7 +216,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-adapter creat
 Verify:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-adapter get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-adapter get \
   --digital-twin-adapter-id <digital_twin_adapter_ocid> \
   --output json
 ```
@@ -187,7 +228,7 @@ Update the instance template with the model, adapter, external key, and auth ide
 Do not default to `INDIRECT` connectivity to avoid supplying `authId`. If the user simply asks for a device or publishing twin and does not mention gateway routing, treat `DIRECT` as the likely default and explain that direct twins require an auth resource such as a Vault secret or certificate. Only create an `INDIRECT` twin when the user explicitly asks for an indirectly connected, downstream, or gateway-routed device, or when they provide a gateway twin and state that the new twin should use it.
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance create \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance create \
   --iot-domain-id <iot_domain_ocid> \
   --connectivity-type DIRECT \
   --from-json file://templates/instance.template.json \
@@ -197,7 +238,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance crea
 Verify:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance get \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --output json
 ```
@@ -209,7 +250,7 @@ Gateway routing is an explicit topology choice, not a substitute for publishing-
 List active gateway twins:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance list \
   --iot-domain-id <iot_domain_ocid> \
   --connectivity-type GATEWAY \
   --lifecycle-state ACTIVE \
@@ -220,7 +261,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list
 Create an indirect twin only after the gateway twin is active:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance create \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance create \
   --iot-domain-id <iot_domain_ocid> \
   --connectivity-type INDIRECT \
   --gateways '["<gateway_twin_ocid>"]' \
@@ -238,7 +279,7 @@ Verify the created instance and confirm `connectivityType` and `gateways`.
 Only create a relationship after confirming the source model defines the content path and both twins are active.
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-relationship create \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-relationship create \
   --iot-domain-id <iot_domain_ocid> \
   --source-digital-twin-instance-id <source_twin_ocid> \
   --target-digital-twin-instance-id <target_twin_ocid> \
@@ -248,7 +289,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-relationship 
 Verify with source, target, and content-path filters:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-relationship list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-relationship list \
   --iot-domain-id <iot_domain_ocid> \
   --source-digital-twin-instance-id <source_twin_ocid> \
   --target-digital-twin-instance-id <target_twin_ocid> \
@@ -265,20 +306,20 @@ If no relationship appears, check the reverse direction before creating another 
 Use work requests for asynchronous failures or long-running operations:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> work-request get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request get \
   --work-request-id <work_request_ocid> \
   --output json
 ```
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> work-request list-errors \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request list-errors \
   --work-request-id <work_request_ocid> \
   --limit 100 \
   --output json
 ```
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> work-request list-logs \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request list-logs \
   --work-request-id <work_request_ocid> \
   --limit 100 \
   --output json
@@ -313,7 +354,7 @@ For certificate-based publishing, switch to an mTLS client flow instead of `curl
 After publishing, verify the twin content again. For basic validation, `digital-twin-instance get-content` with metadata is enough to prove the publish updated the twin:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get-content \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance get-content \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --should-include-metadata true \
   --output json
@@ -326,7 +367,7 @@ If content did not update, check adapter endpoint path, payload content type, ti
 Raw-command acceptance is not the same as device completion. Include response fields when a response is expected:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance invoke-raw-json-command \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance invoke-raw-json-command \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --request-endpoint <request_endpoint> \
   --request-duration PT30S \

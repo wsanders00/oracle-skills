@@ -1,0 +1,17 @@
+{
+  "fixtureId": "runtime-resource-operation-cases-v1",
+  "scope": "offline-example",
+  "description": "Classification of Flow Runtime lifecycle and management operations.",
+  "cases": [
+    { "caseId": "list-read-only", "operation": "list", "mutates": false, "workRequest": false, "effectiveReadback": false, "expected": "inspect" },
+    { "caseId": "get-read-only", "operation": "get", "mutates": false, "workRequest": false, "effectiveReadback": false, "expected": "inspect" },
+    { "caseId": "create-resource", "operation": "create", "mutates": true, "workRequest": true, "effectiveReadback": true, "expected": "approve-and-track" },
+    { "caseId": "update-properties", "operation": "update", "mutates": true, "workRequest": true, "requiresCurrentEtag": true, "effectiveReadback": true, "expected": "approve-and-track" },
+    { "caseId": "move-compartment", "operation": "move", "mutates": true, "workRequest": true, "effectiveReadback": true, "expected": "approve-and-track" },
+    { "caseId": "activate-runtime", "operation": "activate", "mutates": true, "workRequest": true, "effectiveReadback": true, "expected": "approve-and-track" },
+    { "caseId": "deactivate-runtime", "operation": "deactivate", "mutates": true, "workRequest": true, "effectiveReadback": true, "expected": "approve-and-track" },
+    { "caseId": "delete-runtime", "operation": "delete", "mutates": true, "workRequest": true, "requiresCurrentEtag": true, "effectiveReadback": true, "expected": "approve-and-track" },
+    { "caseId": "replace-complete-flows", "operation": "update-flows", "mutates": true, "workRequest": false, "requiresCurrentEtag": true, "effectiveReadback": true, "expected": "backup-conditional-replace" }
+  ],
+  "cannotProve": ["work-request completion", "lifecycle health", "rollback success"]
+}

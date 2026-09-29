@@ -1,0 +1,131 @@
+{
+  "fixtureId": "node-identity-cases-v1",
+  "scope": "offline-example",
+  "phase": 6,
+  "description": "Deterministic identity, source-owner, authentication-family, and target-gate cases. No package import, network access, or live target inspection is performed.",
+  "matrixPath": "../../references/node-capability-matrix.md",
+  "claimId": "FR-NODE-IDENTITY-001",
+  "sourceRecords": [
+    { "sourceId": "O1", "role": "managed Flow Runtime editor and documented palette", "immutableRef": null },
+    { "sourceId": "C11", "role": "official batch Object Storage scenario role", "immutableRef": null },
+    { "sourceId": "C12", "role": "official monitoring/command/Notifications scenario role", "immutableRef": null },
+    { "sourceId": "O7", "role": "Oracle sample-package repository", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "release": "0.6.0" },
+    { "sourceId": "S4", "role": "Oracle sample-package node reference", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "release": "0.6.0" },
+    { "sourceId": "N1", "role": "generic Node-RED Function semantics", "immutableRef": null },
+    { "sourceId": "N2", "role": "generic Node-RED message semantics", "immutableRef": null },
+    { "sourceId": "N4", "role": "generic Node-RED error/status semantics", "immutableRef": null },
+    { "sourceId": "M1", "role": "MQTT protocol semantics", "immutableRef": null }
+  ],
+  "samplePackageGate": {
+    "sourceIds": ["O7", "S4"],
+    "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+    "release": "0.6.0",
+    "status": "pinned-source-target-gated",
+    "blocker": "No selected Flow Runtime palette or permitted module/version inspection is recorded; the pinned source is not proof of managed availability.",
+    "mutableMainSatisfiesGate": false,
+    "targetInspectionRequired": true
+  },
+  "cases": [
+    {
+      "caseId": "managed-iot-config-context",
+      "request": "Use the managed editor's OCI Config for a telemetry node",
+      "surfaceContext": "managed-editor",
+      "name": "iot-config",
+      "expected": { "decision": "select", "classification": "managed-documented", "canonicalName": "iot-config", "paletteLabel": "OCI Config", "sourceOwner": "O1", "authenticationFamily": "oci-configuration", "configurationParent": null, "targetGate": "managed-palette-and-runtime-inspection" }
+    },
+    {
+      "caseId": "sample-device-iot-config-context",
+      "request": "Use the sample package's device MQTTS connection config",
+      "surfaceContext": "sample-package-device-mqtt",
+      "name": "iot-config",
+      "expected": { "decision": "select-but-gate", "classification": "sample-package", "canonicalName": "iot-config", "paletteLabel": "sample device MQTT config", "sourceOwner": "S4", "sourceIds": ["O7", "S4"], "authenticationFamily": "device-mqtts", "configurationParent": null, "targetGate": "immutable-package-and-target-palette" }
+    },
+    {
+      "caseId": "sample-cloud-oci-config-context",
+      "request": "Use the sample package OCI REST authentication for a command node",
+      "surfaceContext": "sample-package-oci-rest",
+      "name": "oci-config",
+      "expected": { "decision": "select-but-gate", "classification": "sample-package", "canonicalName": "oci-config", "paletteLabel": "sample OCI config", "sourceOwner": "S4", "sourceIds": ["O7", "S4"], "authenticationFamily": "oci-api", "configurationParent": null, "targetGate": "immutable-package-and-target-palette" }
+    },
+    {
+      "caseId": "bare-iot-config-requires-clarification",
+      "request": "Configure iot-config",
+      "surfaceContext": null,
+      "name": "iot-config",
+      "expected": { "decision": "clarify", "reason": "ambiguous-name", "candidateIdentities": ["managed-iot-config", "sample-device-iot-config"], "authenticationFamilies": ["oci-configuration", "device-mqtts"], "sourceOwners": ["O1", "S4"] }
+    },
+    {
+      "caseId": "managed-label-does-not-select-sample",
+      "request": "A sample iot-config should be treated as OCI Config because the labels match",
+      "surfaceContext": "sample-package-device-mqtt",
+      "name": "iot-config",
+      "expected": { "decision": "reject", "reason": "authentication-family-mismatch", "classification": "sample-package", "authenticationFamily": "device-mqtts", "mustNotBe": "managed-documented", "sourceOwner": "S4", "sourceIds": ["O7", "S4"] }
+    },
+    {
+      "caseId": "oci-config-is-not-device-config",
+      "request": "Use oci-config credentials for an iot-telemetry device session",
+      "surfaceContext": "sample-package-oci-rest",
+      "name": "oci-config",
+      "expected": { "decision": "reject", "reason": "authentication-family-mismatch", "classification": "sample-package", "authenticationFamily": "oci-api", "mustNotAuthenticate": "device-mqtts", "sourceOwner": "S4", "sourceIds": ["O7", "S4"] }
+    },
+    {
+      "caseId": "managed-database-child-parent",
+      "request": "Choose the SQL node from the managed database palette",
+      "surfaceContext": "managed-editor",
+      "name": "sql",
+      "expected": { "decision": "select", "classification": "managed-documented", "sourceOwner": "O1", "configurationParent": "managed-db-connection", "authenticationFamily": "oracle-database", "targetGate": "managed-palette-and-database-contract" }
+    },
+    {
+      "caseId": "official-object-storage-role",
+      "request": "Download the next CSV object in Oracle's batch scenario",
+      "surfaceContext": "official-scenario-batch",
+      "name": "Object Storage download",
+      "expected": { "decision": "select-but-gate", "classification": "official-scenario", "sourceOwner": "C11", "exactPaletteIdentity": "not-established", "targetGate": "scenario-role-and-target-palette", "offlineAllowed": true }
+    },
+    {
+      "caseId": "official-notifications-role",
+      "request": "Publish the formatted command alert from Oracle's monitoring scenario",
+      "surfaceContext": "official-scenario-monitoring",
+      "name": "OCI Notifications publication",
+      "expected": { "decision": "select-but-gate", "classification": "official-scenario", "sourceOwner": "C12", "exactPaletteIdentity": "not-established", "targetGate": "scenario-role-and-target-palette", "publicationIsNotSubscriberDelivery": true, "offlineAllowed": true }
+    },
+    {
+      "caseId": "mutable-sample-reference-cannot-be-normative",
+      "request": "Copy package-specific iot-subscribe behavior from the current repository main branch",
+      "surfaceContext": "sample-package",
+      "name": "iot-subscribe",
+      "expected": { "decision": "reject-normative-use", "classification": "sample-package", "sourceOwner": "S4", "sourceIds": ["O7", "S4"], "reason": "immutable-reference-required", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "selectedRevision": "main", "mutableMainSatisfiesGate": false, "targetGate": "pinned-source-target-gated" }
+    },
+    {
+      "caseId": "generic-mqtt-is-not-oci-device-node",
+      "request": "Use mqtt in to prove an OCI device subscription",
+      "surfaceContext": "generic-node-red",
+      "name": "mqtt in",
+      "expected": { "decision": "reject-claim", "classification": "generic-core", "sourceOwner": "N2", "sourceIds": ["N2", "M1"], "reason": "generic-semantics-do-not-prove-oci-device-session", "authenticationFamily": "generic-broker" }
+    },
+    {
+      "caseId": "fusion-scm-routes-elsewhere",
+      "request": "Add a Fusion SCM node to this OCI IoT skill",
+      "surfaceContext": null,
+      "name": "Fusion SCM",
+      "expected": { "decision": "route-elsewhere", "classification": "routed-elsewhere", "sourceOwner": "none", "reason": "outside-skill-boundary" }
+    },
+    {
+      "caseId": "arbitrary-community-node-routes-elsewhere",
+      "request": "Install an arbitrary community node in the managed runtime",
+      "surfaceContext": "managed-editor",
+      "name": "community-example",
+      "expected": { "decision": "route-elsewhere", "classification": "routed-elsewhere", "sourceOwner": "none", "reason": "self-hosted-or-unverified-module" }
+    }
+  ],
+  "offlineProof": [
+    "Explicit context resolves managed iot-config, sample device iot-config, and sample oci-config without merging identities.",
+    "Every case carries one classification and one source owner, including routed-out requests.",
+    "The recorded immutable revision permits exact-revision source evidence while the absent target palette inspection keeps sample nodes compatibility-gated and rejects mutable-main substitution."
+  ],
+  "cannotProve": [
+    "managed palette availability, target runtime/version/region compatibility, or package permission",
+    "OCI IAM/resource-principal authorization, device MQTTS connection, database/queue access, or service reachability",
+    "telemetry normalization/history, command completion, Notification subscriber delivery, or any live side effect"
+  ]
+}

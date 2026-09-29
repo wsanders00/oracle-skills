@@ -1,0 +1,106 @@
+{
+  "scope": "offline-example",
+  "description": "Pure filtering cases for the normalized-data queue. Queue access and digital-twin evaluation are represented by fixture data only.",
+  "contract": {
+    "queueType": "NORMALIZED_DATA",
+    "subscriberIdentityRequired": true,
+    "targetTwinIdentityRequired": true,
+    "recordShape": ["recordId", "twinId", "deviceType", "externalKey", "sourceTime", "metrics"],
+    "threshold": { "metric": "temperature", "operator": "gte", "value": 70 },
+    "emptyDequeue": "no-op",
+    "invalidRecord": "final-reject"
+  },
+  "cases": [
+    {
+      "name": "empty dequeue",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [],
+      "expected": { "route": "final", "reason": "empty-dequeue", "commands": [], "recordId": null }
+    },
+    {
+      "name": "wrong raw queue is rejected",
+      "subscriberId": "subscriber-example",
+      "queueType": "RAW_DATA",
+      "records": [{ "recordId": "r-raw-01", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 90 } }],
+      "expected": { "route": "final", "reason": "queue-type-mismatch", "commands": [], "recordId": null }
+    },
+    {
+      "name": "missing subscriber identity",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-02", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 90 } }],
+      "expected": { "route": "final", "reason": "subscriber-required", "commands": [], "recordId": null }
+    },
+    {
+      "name": "twin identity filtered before threshold",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-03", "twinId": "other-twin", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 95 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "twin-mismatch", "commands": [], "recordId": null }
+    },
+    {
+      "name": "below threshold is ignored",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-04", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 69.9 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "below-threshold", "commands": [], "recordId": "r-04" }
+    },
+    {
+      "name": "normalized threshold emits correlated command",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-05", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 70 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "command", "reason": "threshold", "commands": [{ "sourceRecordId": "r-05", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "requestEndpoint": "hvacs/child-01/command/setMode", "responseEndpoint": "hvacs/child-01/command/response", "command": "setMode", "value": "eco" }], "recordId": "r-05" }
+    },
+    {
+      "name": "invalid normalized payload is terminal",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-06", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "not-a-time", "metrics": { "temperature": 80 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "invalid-source-time", "commands": [], "recordId": "r-06" }
+    },
+    {
+      "name": "missing target twin configuration is terminal",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-07", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 90 } }],
+      "expected": { "route": "final", "reason": "target-twin-required", "commands": [], "recordId": null }
+    },
+    {
+      "name": "missing record twin identity is terminal",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-08", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 90 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "invalid-identity", "commands": [], "recordId": "r-08" }
+    },
+    {
+      "name": "missing record device type is terminal",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-09", "twinId": "twin-01", "externalKey": "child-01", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 90 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "invalid-identity", "commands": [], "recordId": "r-09" }
+    },
+    {
+      "name": "missing record external key is terminal",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-10", "twinId": "twin-01", "deviceType": "hvacs", "sourceTime": "2026-01-15T14:00:00.000Z", "metrics": { "temperature": 90 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "invalid-identity", "commands": [], "recordId": "r-10" }
+    },
+    {
+      "name": "invalid calendar source time is terminal",
+      "subscriberId": "subscriber-example",
+      "queueType": "NORMALIZED_DATA",
+      "records": [{ "recordId": "r-11", "twinId": "twin-01", "deviceType": "hvacs", "externalKey": "child-01", "sourceTime": "2026-02-30T12:00:00Z", "metrics": { "temperature": 90 } }],
+      "targetTwinId": "twin-01",
+      "expected": { "route": "final", "reason": "invalid-source-time", "commands": [], "recordId": "r-11" }
+    }
+  ]
+}

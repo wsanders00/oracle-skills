@@ -1,0 +1,202 @@
+{
+  "scope": "offline-example",
+  "description": "Bounded command polling and notification formatting cases. Queue, SQL, command, and Notifications stages are fakes.",
+  "contract": {
+    "pollLimit": 3,
+    "pollIntervalMs": 1000,
+    "deadlineMs": 2500,
+    "states": ["accepted", "prepared", "sent", "pending", "responded", "missing", "completed", "rejected", "refused", "expired", "bad-response", "not-responded", "deadline"],
+    "ports": { "final": 0, "retry": 1 },
+    "sourceCorrelationField": "recordId",
+    "sendResponseFields": ["rawCommandDataRecordId"],
+    "sql": {
+      "table": "RAW_COMMAND_DATA",
+      "predicate": "ID = :recordId",
+      "bindName": "recordId",
+      "bindValueSource": "rawCommandDataRecordId",
+      "statusField": "DELIVERY_STATUS",
+      "emptyResult": "retry"
+    },
+    "missingResponse": { "action": "reconcile-without-resend", "attemptField": "reconciliationAttempt", "elapsedField": "elapsedMs" },
+    "notification": { "title": "OCI IoT command result", "bodyFields": ["sourceRecordId", "rawCommandDataRecordId", "status", "deviceType", "externalKey"] }
+  },
+  "cases": [
+    {
+      "name": "send returns ID and SQL reports completed",
+      "recordId": "r-completed",
+      "deviceType": "hvacs",
+      "externalKey": "child-01",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-completed" },
+      "statusResults": [[{ "ID": "cmd-completed", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 1, "transitions": ["completed"], "sourceRecordId": "r-completed", "rawCommandDataRecordId": "cmd-completed", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-completed rawCommandDataRecordId=cmd-completed status=completed deviceType=hvacs externalKey=child-01" } }
+    },
+    {
+      "name": "SQL accepted then completed",
+      "recordId": "r-poll",
+      "deviceType": "hvacs",
+      "externalKey": "child-02",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-poll" },
+      "statusResults": [[{ "ID": "cmd-poll", "DELIVERY_STATUS": "ACCEPTED" }], [{ "ID": "cmd-poll", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 2, "transitions": ["accepted", "completed"], "sourceRecordId": "r-poll", "rawCommandDataRecordId": "cmd-poll", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-poll rawCommandDataRecordId=cmd-poll status=completed deviceType=hvacs externalKey=child-02" } }
+    },
+    {
+      "name": "missing command response within reconciliation bounds",
+      "recordId": "r-missing",
+      "deviceType": "hvacs",
+      "externalKey": "child-03",
+      "commandResponse": null,
+      "reconciliationAttempt": 1,
+      "elapsedMs": 0,
+      "statusResults": [],
+      "expected": { "state": "missing", "route": "retry", "polls": 0, "transitions": ["missing"], "sourceRecordId": "r-missing", "rawCommandDataRecordId": null, "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-missing rawCommandDataRecordId=none status=missing deviceType=hvacs externalKey=child-03" } }
+    },
+    {
+      "name": "missing command response attempt limit",
+      "recordId": "r-missing-limit",
+      "deviceType": "hvacs",
+      "externalKey": "child-03",
+      "commandResponse": null,
+      "reconciliationAttempt": 3,
+      "elapsedMs": 0,
+      "statusResults": [],
+      "expected": { "state": "deadline", "route": "final", "polls": 0, "transitions": ["deadline"], "sourceRecordId": "r-missing-limit", "rawCommandDataRecordId": null, "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-missing-limit rawCommandDataRecordId=none status=deadline deviceType=hvacs externalKey=child-03" } }
+    },
+    {
+      "name": "missing command response deadline",
+      "recordId": "r-missing-deadline",
+      "deviceType": "hvacs",
+      "externalKey": "child-03",
+      "commandResponse": null,
+      "reconciliationAttempt": 1,
+      "elapsedMs": 2500,
+      "statusResults": [],
+      "expected": { "state": "deadline", "route": "final", "polls": 0, "transitions": ["deadline"], "sourceRecordId": "r-missing-deadline", "rawCommandDataRecordId": null, "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-missing-deadline rawCommandDataRecordId=none status=deadline deviceType=hvacs externalKey=child-03" } }
+    },
+    {
+      "name": "missing command record ID",
+      "recordId": "r-no-command-id",
+      "deviceType": "hvacs",
+      "externalKey": "child-04",
+      "commandResponse": {},
+      "statusResults": [],
+      "expected": { "state": "bad-response", "route": "final", "polls": 0, "transitions": ["bad-response"], "sourceRecordId": "r-no-command-id", "rawCommandDataRecordId": null, "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-no-command-id rawCommandDataRecordId=none status=bad-response deviceType=hvacs externalKey=child-04" } }
+    },
+    {
+      "name": "mismatched SQL command record ID",
+      "recordId": "r-mismatch",
+      "deviceType": "hvacs",
+      "externalKey": "child-05",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-mismatch" },
+      "statusResults": [[{ "ID": "other-command", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "bad-response", "route": "final", "polls": 1, "transitions": ["bad-response"], "sourceRecordId": "r-mismatch", "rawCommandDataRecordId": "cmd-mismatch", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-mismatch rawCommandDataRecordId=cmd-mismatch status=bad-response deviceType=hvacs externalKey=child-05" } }
+    },
+    {
+      "name": "rejected status from SQL",
+      "recordId": "r-rejected",
+      "deviceType": "hvacs",
+      "externalKey": "child-06",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-rejected" },
+      "statusResults": [[{ "ID": "cmd-rejected", "DELIVERY_STATUS": "REJECTED" }]],
+      "expected": { "state": "rejected", "route": "final", "polls": 1, "transitions": ["rejected"], "sourceRecordId": "r-rejected", "rawCommandDataRecordId": "cmd-rejected", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-rejected rawCommandDataRecordId=cmd-rejected status=rejected deviceType=hvacs externalKey=child-06" } }
+    },
+    {
+      "name": "refused status from SQL",
+      "recordId": "r-refused",
+      "deviceType": "hvacs",
+      "externalKey": "child-07",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-refused" },
+      "statusResults": [[{ "ID": "cmd-refused", "DELIVERY_STATUS": "REFUSED" }]],
+      "expected": { "state": "refused", "route": "final", "polls": 1, "transitions": ["refused"], "sourceRecordId": "r-refused", "rawCommandDataRecordId": "cmd-refused", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-refused rawCommandDataRecordId=cmd-refused status=refused deviceType=hvacs externalKey=child-07" } }
+    },
+    {
+      "name": "expired status from SQL",
+      "recordId": "r-expired",
+      "deviceType": "hvacs",
+      "externalKey": "child-08",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-expired" },
+      "statusResults": [[{ "ID": "cmd-expired", "DELIVERY_STATUS": "EXPIRED" }]],
+      "expected": { "state": "expired", "route": "final", "polls": 1, "transitions": ["expired"], "sourceRecordId": "r-expired", "rawCommandDataRecordId": "cmd-expired", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-expired rawCommandDataRecordId=cmd-expired status=expired deviceType=hvacs externalKey=child-08" } }
+    },
+    {
+      "name": "device not responded status from SQL",
+      "recordId": "r-no-response",
+      "deviceType": "hvacs",
+      "externalKey": "child-09",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-no-response" },
+      "statusResults": [[{ "ID": "cmd-no-response", "DELIVERY_STATUS": "NOT_RESPONDED" }]],
+      "expected": { "state": "not-responded", "route": "final", "polls": 1, "transitions": ["not-responded"], "sourceRecordId": "r-no-response", "rawCommandDataRecordId": "cmd-no-response", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-no-response rawCommandDataRecordId=cmd-no-response status=not-responded deviceType=hvacs externalKey=child-09" } }
+    },
+    {
+      "name": "poll deadline",
+      "recordId": "r-deadline",
+      "deviceType": "hvacs",
+      "externalKey": "child-10",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-deadline" },
+      "statusResults": [[{ "ID": "cmd-deadline", "DELIVERY_STATUS": "PENDING" }], [{ "ID": "cmd-deadline", "DELIVERY_STATUS": "PENDING" }], [{ "ID": "cmd-deadline", "DELIVERY_STATUS": "PENDING" }], [{ "ID": "cmd-deadline", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "deadline", "route": "final", "polls": 2, "transitions": ["pending", "pending", "deadline"], "sourceRecordId": "r-deadline", "rawCommandDataRecordId": "cmd-deadline", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-deadline rawCommandDataRecordId=cmd-deadline status=deadline deviceType=hvacs externalKey=child-10" } }
+    },
+    {
+      "name": "invalid status response",
+      "recordId": "r-invalid",
+      "deviceType": "hvacs",
+      "externalKey": "child-11",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-invalid" },
+      "statusResults": [[{ "ID": "cmd-invalid", "DELIVERY_STATUS": "GARBAGE" }]],
+      "expected": { "state": "bad-response", "route": "final", "polls": 1, "transitions": ["bad-response"], "sourceRecordId": "r-invalid", "rawCommandDataRecordId": "cmd-invalid", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-invalid rawCommandDataRecordId=cmd-invalid status=bad-response deviceType=hvacs externalKey=child-11" } }
+    },
+    {
+      "name": "empty SQL status result retries then completes",
+      "recordId": "r-empty-retry",
+      "deviceType": "hvacs",
+      "externalKey": "child-12",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-empty-retry" },
+      "statusResults": [[], [{ "ID": "cmd-empty-retry", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 2, "transitions": ["retry", "completed"], "sourceRecordId": "r-empty-retry", "rawCommandDataRecordId": "cmd-empty-retry", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-empty-retry rawCommandDataRecordId=cmd-empty-retry status=completed deviceType=hvacs externalKey=child-12" } }
+    },
+    {
+      "name": "empty SQL status result reaches deadline",
+      "recordId": "r-empty-deadline",
+      "deviceType": "hvacs",
+      "externalKey": "child-13",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-empty-deadline" },
+      "statusResults": [[], [], []],
+      "expected": { "state": "deadline", "route": "final", "polls": 2, "transitions": ["retry", "retry", "deadline"], "sourceRecordId": "r-empty-deadline", "rawCommandDataRecordId": "cmd-empty-deadline", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-empty-deadline rawCommandDataRecordId=cmd-empty-deadline status=deadline deviceType=hvacs externalKey=child-13" } }
+    },
+    {
+      "name": "SQL prepared then completed",
+      "recordId": "r-prepared",
+      "deviceType": "hvacs",
+      "externalKey": "child-14",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-prepared" },
+      "statusResults": [[{ "ID": "cmd-prepared", "DELIVERY_STATUS": "PREPARED" }], [{ "ID": "cmd-prepared", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 2, "transitions": ["prepared", "completed"], "sourceRecordId": "r-prepared", "rawCommandDataRecordId": "cmd-prepared", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-prepared rawCommandDataRecordId=cmd-prepared status=completed deviceType=hvacs externalKey=child-14" } }
+    },
+    {
+      "name": "SQL sent then completed",
+      "recordId": "r-sent",
+      "deviceType": "hvacs",
+      "externalKey": "child-15",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-sent" },
+      "statusResults": [[{ "ID": "cmd-sent", "DELIVERY_STATUS": "SENT" }], [{ "ID": "cmd-sent", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 2, "transitions": ["sent", "completed"], "sourceRecordId": "r-sent", "rawCommandDataRecordId": "cmd-sent", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-sent rawCommandDataRecordId=cmd-sent status=completed deviceType=hvacs externalKey=child-15" } }
+    },
+    {
+      "name": "SQL pending then completed",
+      "recordId": "r-pending",
+      "deviceType": "hvacs",
+      "externalKey": "child-16",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-pending" },
+      "statusResults": [[{ "ID": "cmd-pending", "DELIVERY_STATUS": "PENDING" }], [{ "ID": "cmd-pending", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 2, "transitions": ["pending", "completed"], "sourceRecordId": "r-pending", "rawCommandDataRecordId": "cmd-pending", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-pending rawCommandDataRecordId=cmd-pending status=completed deviceType=hvacs externalKey=child-16" } }
+    },
+    {
+      "name": "SQL responded then completed",
+      "recordId": "r-responded",
+      "deviceType": "hvacs",
+      "externalKey": "child-17",
+      "commandResponse": { "rawCommandDataRecordId": "cmd-responded" },
+      "statusResults": [[{ "ID": "cmd-responded", "DELIVERY_STATUS": "RESPONDED" }], [{ "ID": "cmd-responded", "DELIVERY_STATUS": "COMPLETED" }]],
+      "expected": { "state": "completed", "route": "final", "polls": 2, "transitions": ["responded", "completed"], "sourceRecordId": "r-responded", "rawCommandDataRecordId": "cmd-responded", "notification": { "title": "OCI IoT command result", "body": "sourceRecordId=r-responded rawCommandDataRecordId=cmd-responded status=completed deviceType=hvacs externalKey=child-17" } }
+    }
+  ]
+}

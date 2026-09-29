@@ -1,0 +1,62 @@
+[
+  {
+    "id": "b1c2d3e4f5a60001",
+    "type": "tab",
+    "label": "OCI IoT offline ingress example",
+    "disabled": false,
+    "info": "Offline example of one documented topic transform. No broker or OCI connection is configured.",
+    "env": []
+  },
+  {
+    "id": "b1c2d3e4f5a60002",
+    "type": "inject",
+    "z": "b1c2d3e4f5a60001",
+    "name": "Sanitized HVAC example",
+    "props": [
+      { "p": "payload" },
+      { "p": "topic", "vt": "str" }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "source/hvacs/example-hvac-01",
+    "payload": "{\"time\":\"2026-01-15T14:00:00.123Z\",\"temperature\":72.5,\"humidity\":45.2,\"mode\":\"cool\"}",
+    "payloadType": "json",
+    "x": 180,
+    "y": 160,
+    "wires": [["b1c2d3e4f5a60003"]]
+  },
+  {
+    "id": "b1c2d3e4f5a60003",
+    "type": "function",
+    "z": "b1c2d3e4f5a60001",
+    "name": "Route and serialize example",
+    "func": "// Offline example only: confirm the target contract before reuse.\nconst sourceTopic = typeof msg.topic === \"string\" ? msg.topic : \"\";\nlet parts = sourceTopic.split(\"/\");\n\nif (parts[0] === \"$share\") {\n    if (parts.length < 3 || !parts[1] || parts[2] !== \"source\") {\n        node.warn(\"Ignoring malformed shared-subscription topic: \" + sourceTopic);\n        return null;\n    }\n    parts = parts.slice(2);\n}\n\nif (parts.length !== 3 || parts[0] !== \"source\" || parts.some((part) => !part)) {\n    node.warn(\"Ignoring malformed source topic: \" + sourceTopic);\n    return null;\n}\n\nconst deviceType = parts[1];\nconst externalKey = parts[2];\nif (deviceType !== \"gateway\" && deviceType !== \"hvacs\") {\n    node.warn(\"Ignoring unsupported example device type: \" + sourceTopic);\n    return null;\n}\n\nlet payload = msg.payload;\nif (typeof payload === \"string\") {\n    try {\n        payload = JSON.parse(payload);\n    } catch (error) {\n        node.error(\"Payload must be valid JSON\", msg);\n        return null;\n    }\n}\nconst timestampPattern = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6})?Z$/;\nif (!payload || typeof payload !== \"object\" || Array.isArray(payload)) {\n    node.warn(\"Example payload must be a JSON object\");\n    return null;\n}\nconst parsedTime = typeof payload.time === \"string\" && timestampPattern.test(payload.time) ? Date.parse(payload.time) : NaN;\nconst canonicalTime = Number.isFinite(parsedTime) ? new Date(parsedTime).toISOString() : \"\";\nif (!Number.isFinite(parsedTime) || canonicalTime.slice(0, 19) !== payload.time.slice(0, 19)) {\n    node.warn(\"Example payload must contain a valid UTC time\");\n    return null;\n}\n\nconst targetTopic = deviceType === \"gateway\" ? \"data\" : \"hvacs/\" + externalKey;\nmsg.topic = targetTopic;\nmsg.payload = JSON.stringify(payload);\nmsg._example = { sourceTopic, targetTopic };\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 470,
+    "y": 160,
+    "wires": [["b1c2d3e4f5a60004"]]
+  },
+  {
+    "id": "b1c2d3e4f5a60004",
+    "type": "debug",
+    "z": "b1c2d3e4f5a60001",
+    "name": "Prepared example message",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 780,
+    "y": 160,
+    "wires": []
+  }
+]

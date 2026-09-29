@@ -1,0 +1,18 @@
+{
+  "fixtureId": "runtime-delivery-recovery-cases-v1",
+  "scope": "offline-example",
+  "description": "Bounded message/command delivery and recovery transitions.",
+  "states": ["prepared", "accepted", "rejected", "accepted_unconfirmed", "completed", "refused", "expired", "bad_response", "not_responded", "quarantined"],
+  "cases": [
+    { "caseId": "accepted-requires-reconciliation", "input": { "correlationId": "corr-a", "result": "accepted" }, "expected": { "next": "accepted_unconfirmed", "retry": "reconcile-first" } },
+    { "caseId": "transient-failure-bounded-retry", "input": { "correlationId": "corr-b", "result": "temporary-failure", "attempt": 1, "maxAttempts": 3 }, "expected": { "next": "prepared", "retry": true } },
+    { "caseId": "transient-failure-attempt-limit", "input": { "correlationId": "corr-b-attempt", "result": "temporary-failure", "attempt": 3, "maxAttempts": 3 }, "expected": { "next": "not_responded", "retry": false } },
+    { "caseId": "transient-failure-deadline", "input": { "correlationId": "corr-b-deadline", "result": "temporary-failure", "attempt": 1, "maxAttempts": 3, "pollCount": 1, "maxPolls": 4, "deadlineReached": true }, "expected": { "next": "not_responded", "retry": false } },
+    { "caseId": "transient-failure-poll-limit", "input": { "correlationId": "corr-b-polls", "result": "temporary-failure", "attempt": 1, "maxAttempts": 3, "pollCount": 4, "maxPolls": 4, "deadlineReached": false }, "expected": { "next": "not_responded", "retry": false } },
+    { "caseId": "terminal-refusal", "input": { "correlationId": "corr-c", "result": "refused" }, "expected": { "next": "refused", "retry": false } },
+    { "caseId": "poll-deadline", "input": { "correlationId": "corr-d", "pollCount": 4, "maxPolls": 4, "deadlineReached": true }, "expected": { "next": "not_responded", "retry": false } },
+    { "caseId": "notification-publication-is-not-delivery", "input": { "correlationId": "corr-e", "publication": "accepted", "subscriberConfirmation": "unknown" }, "expected": { "publicationEvidence": true, "subscriberDeliveryEvidence": false } },
+    { "caseId": "malformed-quarantine", "input": { "correlationId": "corr-f", "result": "malformed" }, "expected": { "next": "quarantined", "retry": false } }
+  ],
+  "invariants": ["correlationId is preserved", "poll count is bounded", "terminal states cannot re-enter retry"]
+}

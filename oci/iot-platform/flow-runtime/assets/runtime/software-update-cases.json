@@ -1,0 +1,12 @@
+{
+  "fixtureId": "runtime-software-update-cases-v1",
+  "scope": "offline-example",
+  "description": "Preflight and post-check ordering for OCI-managed runtime software updates.",
+  "cases": [
+    { "caseId": "preflight-ready", "announcement": { "deadlineRecorded": true, "runtimeIdentified": true }, "preflight": { "flowsBackup": true, "localFilesPersisted": true, "ownerNotified": true }, "expected": { "decision": "bounded-maintenance-window" } },
+    { "caseId": "preflight-blocks-local-only-state", "announcement": { "deadlineRecorded": true, "runtimeIdentified": true }, "preflight": { "flowsBackup": true, "localFilesPersisted": false }, "expected": { "decision": "stop", "reason": "local-files-ephemeral" } },
+    { "caseId": "post-check-success", "lifecycle": "Active", "workRequest": "SUCCEEDED", "checks": { "editor": true, "flows": true, "permittedNodes": true, "logs": true }, "expected": { "decision": "record-effective-checks" } },
+    { "caseId": "post-check-failure", "lifecycle": "Inactive", "workRequest": "FAILED", "checks": { "editor": false }, "expected": { "decision": "stop-and-diagnose", "retry": false } }
+  ],
+  "cannotProve": ["update success", "interruption duration", "runtime health"]
+}

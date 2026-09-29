@@ -1,0 +1,47 @@
+{
+  "fixtureId": "node-compatibility-gates-v1",
+  "scope": "offline-example",
+  "description": "Required inspection record before using scenario or sample-package nodes.",
+  "classificationRules": {
+    "official-scenario": "role documented by an Oracle scenario; installed availability is unknown",
+    "sample-package": "behavior supplied by oracle-samples/node-red-nodes; not a managed guarantee",
+    "managed-documented": "current managed editor documents the role; target palette/version still requires inspection"
+  },
+  "requiredGateFields": ["targetRuntimeVersion", "region", "paletteLabel", "moduleVersion", "authContext", "networkRoute", "liveApproval"],
+  "cases": [
+    {
+      "caseId": "object-storage-scenario-role",
+      "nodeOrRole": "Object Storage download",
+      "classification": "official-scenario",
+      "sourceClaimId": "FR-SCENARIO-NODES-001",
+      "sourceIds": ["C11"],
+      "role": "retrieve discrete batch/archive objects before offline transformation",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "offlineAllowed": true,
+      "liveRequired": ["bucket/object policy", "resource principal", "network reachability", "device-host publication"]
+    },
+    {
+      "caseId": "notifications-scenario-role",
+      "nodeOrRole": "OCI Notifications publication",
+      "classification": "official-scenario",
+      "sourceClaimId": "FR-SCENARIO-NODES-001",
+      "sourceIds": ["C12"],
+      "role": "publish formatted alert title/body to a Notifications topic",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "offlineAllowed": true,
+      "liveRequired": ["topic policy", "resource principal", "publication acceptance", "subscriber confirmation"]
+    },
+    {
+      "caseId": "sample-package-gated",
+      "nodeOrRole": "sample-package node",
+      "classification": "sample-package",
+      "sourceClaimId": "FR-NODES-001",
+      "sourceIds": ["O7", "S4"],
+      "role": "release 0.6.0 behavior is pinned; use only after target module/version permission is recorded",
+      "targetAvailability": "not-proven",
+      "offlineAllowed": true,
+      "liveRequired": ["immutable package reference", "permitted module/version", "target palette inspection", "dependency review"]
+    }
+  ],
+  "cannotProve": ["installed node availability", "version compatibility", "IAM", "network reachability", "service delivery"]
+}
