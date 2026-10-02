@@ -24,6 +24,7 @@ db/
 ├── containers/
 ├── design/
 ├── devops/
+├── data-guard/
 ├── features/
 ├── frameworks/
 ├── migrations/
@@ -49,6 +50,7 @@ db/
 | OCR database-category container images and pull guidance | `db/containers/` |
 | ERD, data modeling, partitioning, tablespaces | `db/design/` |
 | Schema migrations, online operations, edition-based redefinition, testing, version control | `db/devops/` |
+| Guidance and assistance for triaging data guard configuration and environment related issues | `db/data-guard/` |
 | AQ, DBMS_SCHEDULER, materialized views, DBLinks, APEX, vector search, SELECT AI | `db/features/` |
 | SQLAlchemy, Django, Pandas, Spring JPA, MyBatis, TypeORM, Sequelize, Dapper, GORM | `db/frameworks/` |
 | Migrations from PostgreSQL, MySQL, SQL Server, MongoDB, Snowflake, and more | `db/migrations/` |
