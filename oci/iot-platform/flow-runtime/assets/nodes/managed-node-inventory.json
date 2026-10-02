@@ -1,7 +1,7 @@
 {
   "fixtureId": "managed-node-inventory-v1",
   "scope": "offline-example",
-  "description": "Contract inventory from documented managed palette roles; target inspection remains required.",
+  "description": "Documented managed workflow roles, not exact registered target types or verified message-field contracts. Map roles to the selected runtime inventory and node help before authoring.",
   "sourceClaimId": "FR-NODES-001",
   "nodes": [
     {

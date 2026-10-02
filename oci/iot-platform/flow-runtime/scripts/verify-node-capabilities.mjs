@@ -92,7 +92,7 @@ for (const [fixture, id] of [
 
 const identityDecision = (item) => {
   const { name, surfaceContext } = item;
-  if (name === "iot-config" && surfaceContext === "managed-editor") return { decision: "select", classification: "managed-documented", canonicalName: "iot-config", paletteLabel: "OCI Config", sourceOwner: "O1", authenticationFamily: "oci-configuration", configurationParent: null, targetGate: "managed-palette-and-runtime-inspection" };
+  if (name === "iot-config" && surfaceContext === "managed-editor") return { decision: "classify-source-role", classification: "managed-documented", documentedNodeLabel: "iot-config", paletteLabel: "OCI Config", sourceOwner: "O1", authenticationFamily: "oci-configuration", targetSelection: "requires-selected-target-observation" };
   if (name === "iot-config" && surfaceContext === "sample-package-device-mqtt" && /treated as OCI Config/i.test(item.request)) return { decision: "reject", reason: "authentication-family-mismatch", classification: "sample-package", authenticationFamily: "device-mqtts", mustNotBe: "managed-documented", sourceOwner: "S4", sourceIds: ["O7", "S4"] };
   if (name === "iot-config" && surfaceContext === "sample-package-device-mqtt") return { decision: "select-but-gate", classification: "sample-package", canonicalName: "iot-config", paletteLabel: "sample device MQTT config", sourceOwner: "S4", sourceIds: ["O7", "S4"], authenticationFamily: "device-mqtts", configurationParent: null, targetGate: "immutable-package-and-target-palette" };
   if (name === "oci-config" && surfaceContext === "sample-package-oci-rest" && /telemetry device session/i.test(item.request)) return { decision: "reject", reason: "authentication-family-mismatch", classification: "sample-package", authenticationFamily: "oci-api", mustNotAuthenticate: "device-mqtts", sourceOwner: "S4", sourceIds: ["O7", "S4"] };
@@ -107,7 +107,46 @@ const identityDecision = (item) => {
   return { decision: "route-elsewhere", classification: "routed-elsewhere", sourceOwner: "none", reason: "self-hosted-or-unverified-module" };
 };
 
+const managedTargetDecision = (item) => {
+  const target = item.target ?? {};
+  if (target.product === "standalone-node-red") return { decision: "route-outside-managed-runtime", reason: "standalone-runtime-is-not-managed-target", liveAcceptance: "not-established", authorization: "not-granted" };
+  if (target.paletteStatus !== "inspected") return { decision: "inspect-palette", availability: "unknown", liveCompatibility: "unproven", authorization: "not-granted" };
+  const node = target.node ?? {};
+  if (!node.type) return { decision: "inspect-palette", availability: "unknown", liveCompatibility: "unproven", authorization: "not-granted" };
+  if (node.available !== true) return { decision: "unavailable", selectedNodeType: node.type, availability: "absent-on-selected-target", liveCompatibility: "unproven", authorization: "not-granted" };
+  if (!target.moduleIdentity || !target.moduleVersion || !target.runtimeVersion || !target.runtimeProvenance) return { decision: "inspect-target-provenance", selectedNodeType: node.type, availability: "observed", liveCompatibility: "unproven", authorization: "not-granted" };
+
+  const evidence = target.targetContractEvidence;
+  if (!evidence) {
+    return { decision: "compatibility-gate", selectedNodeType: node.type, contract: "unverified", reason: "affirmative-target-contract-evidence-required", liveCompatibility: "unproven", authorization: "not-granted" };
+  }
+  const exactImplementation = evidence.status === "verified"
+    && ["target-inspection", "immutable-package-implementation"].includes(evidence.kind)
+    && typeof evidence.reference === "string" && evidence.reference.length > 0
+    && typeof evidence.provenance === "string" && evidence.provenance.length > 0
+    && evidence.targetRuntimeProvenance === target.runtimeProvenance
+    && evidence.nodeType === node.type
+    && evidence.moduleIdentity === target.moduleIdentity
+    && evidence.moduleVersion === target.moduleVersion
+    && Array.isArray(evidence.fields) && evidence.fields.length > 0
+    && Array.isArray(evidence.outputs) && evidence.outputs.length > 0
+    && typeof evidence.auth === "string" && evidence.auth.length > 0;
+  if (!exactImplementation) {
+    return { decision: "compatibility-gate", selectedNodeType: node.type, contract: "unverified-for-selected-target", reason: "module-identity-or-version-mismatch", liveCompatibility: "unproven", authorization: "not-granted" };
+  }
+  return {
+    decision: "plan-bounded-managed-test",
+    selectedNodeType: node.type,
+    contract: evidence.kind === "target-inspection" ? "verified-exact-target" : "verified-matching-immutable-implementation",
+    liveCompatibility: "unproven-until-live-test",
+    liveAcceptance: "not-run",
+    authorization: "not-granted"
+  };
+};
+
 for (const item of identity.cases) assert.deepEqual(identityDecision(item), item.expected, `${item.caseId}: identity decision mismatch`);
+assert.equal(identity.targetSelectionCases.length, 9, "managed target-selection case count changed without an explicit review");
+for (const item of identity.targetSelectionCases) assert.deepEqual(managedTargetDecision(item), item.expected, `${item.caseId}: managed target-selection decision mismatch`);
 assert.equal(identity.samplePackageGate.immutableRevision, sampleRevision, "identity fixture sample revision mismatch");
 assert.equal(identity.samplePackageGate.mutableMainSatisfiesGate, false, "mutable main must not satisfy the sample-package gate");
 
@@ -673,4 +712,4 @@ assert.deepEqual(optionalDecision({ family: "oci-ords-poll", input: { pollType: 
 assert.deepEqual(optionalDecision({ family: "oci-ords-poll", input: { pollType: "commandStatus", waitFor: "response", recordId: "fixture", intervalMs: 1000, timeoutMs: 1000, responses: [{ response_data: "ok" }] } }), { decision: "accepted-shape", path: "/20250531/rawCommandData/fixture", pollComplete: true, pollTimedOut: false, pollAttempts: 1, deliveryStatus: null, finite: true }, "ORDS response completion must preserve a null delivery status");
 assert.deepEqual(optionalDecision({ family: "oci-object-storage", input: { config: { operation: "download", namespace: "fixture-ns", bucketName: "fixture-bucket", objectName: "fixture-object", downloadOutput: "buffer" }, msg: {}, bytes: "fixture-bytes" } }), { decision: "accepted-shape", effectiveOperation: "download", branch: "download", runtimeOperationProvided: false, serviceCall: "getObject", fileWritten: "", outputType: "buffer" }, "Object Storage must dispatch from the resolved configured operation");
 
-console.log(`verified ${identity.cases.length} identity, ${database.cases.length} database/AQ, ${iot.cases.length} core IoT/OCI, and ${optional.cases.length} optional OCI node capability cases`);
+console.log(`verified ${identity.cases.length} source-role identity, ${identity.targetSelectionCases.length} managed-target selection, ${database.cases.length} database/AQ, ${iot.cases.length} core IoT/OCI, and ${optional.cases.length} optional OCI node capability cases`);

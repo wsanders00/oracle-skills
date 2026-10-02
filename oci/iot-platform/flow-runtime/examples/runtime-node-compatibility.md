@@ -1,18 +1,27 @@
-# Example: gate a scenario node before use
+# Example: select managed nodes and gate sample details
 
 An Oracle scenario shows an Object Storage download node followed by a
 Notifications publication node. That diagram establishes the workflow role,
 not that either node is installed in a particular managed runtime.
 
-Use this sequence:
+Use the [managed target selection](../references/node-reference.md#managed-target-selection)
+route before selecting implementation details:
 
-1. Record target runtime version, region, and exact palette labels from a
+1. Record target runtime version, region, exact registered node types, owning
+   modules/versions and configuration-parent types from a
    read-only inspection.
-2. Classify each role as `official-scenario` until the palette confirms a
-   managed documented node. If the node comes from
-   `oracle-samples/node-red-nodes`, classify it as `sample-package`.
+2. Map the workflow to the observed managed types and their node help. An
+   observed `oci-config` or `iot-send-command` is not renamed to a documentation
+   label. A required type absent from the inspected palette is unavailable on
+   that target, even if a local installation or sample reference contains it.
+   Keep the source classification of each documented role or package detail;
+   availability does not change its provenance.
 3. For a sample node, pin an immutable commit or release and record the
-   permitted module/version. A mutable `main` link is illustrative only.
+   permitted module/version. Require affirmative evidence that the relevant
+   fields, outputs and authentication apply in the selected implementation;
+   matching names or versions alone is insufficient. A mutable `main` link is
+   illustrative only. If sample equivalence is unknown, continue with the
+   managed node's supported contract.
 4. Record the authentication context and resource-principal policy separately
    from user access to the editor. Record required bucket/topic permissions and
    network reachability as live gates.

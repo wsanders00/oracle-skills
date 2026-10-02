@@ -7,10 +7,32 @@ selected managed Flow Runtime.
 
 Use this page as the router and managed-role summary. For exact identity and
 authentication collisions, read the [node capability matrix](node-capability-matrix.md).
-For operational fields and state boundaries, read the focused
+For observed type selection, read the [managed node selection boundary](node-reference.md).
+For conditional package fields and state boundaries, read the focused
 [Database/AQ](database-and-aq-node-contracts.md) or
 [IoT/OCI](iot-and-oci-node-contracts.md) contract only when that surface is in
-scope.
+scope and its particular implementation contract is established for the target.
+
+## Selected managed runtime first
+
+The primary workflow is authoring and operating flows in OCI IoT. Record the
+selected runtime/region, exact registered node type, owning module/version,
+configuration-parent type and relevant node-help fields. Use that evidence to
+choose inputs, outputs and authentication. Keep documented roles, observed
+availability and tested behavior as separate facts.
+
+An observed `oci-config` or `iot-send-command` in a managed runtime remains a
+managed target node for this workflow; its name also occurring in the public
+sample package does not establish sample implementation equivalence. A node
+absent from the inspected palette is unavailable on that target. Report that
+limit and evaluate an independently supported path if the user needs one.
+
+For a sample detail, require affirmative evidence for the relevant fields,
+outputs and authentication in the selected implementation. Module permission,
+a package pin, a familiar type name or matching version alone is insufficient.
+If that evidence is missing, continue managed-node discovery through target
+help and approved inspection; do not apply the sample detail or recommend an
+installation to make the palette resemble an example.
 
 ## Classification rules
 
@@ -34,11 +56,12 @@ are separate compatibility evidence.
 
 ## Managed documented inventory
 
-The labels below are the documented palette labels/canonical roles. Message
+The labels below are documented palette labels/canonical roles, not a portable
+list of exact registered types. Map each role to the inspected target. Message
 fields, queue names, SQL, and credentials are placeholders; they are not a
 portable universal schema.
 
-| Canonical / palette label | Class | Input → output contract | Auth context | Transaction/ack/error boundary |
+| Documented role / palette label | Class | Workflow role (target fields require evidence) | Auth context | Transaction/ack/error boundary |
 | --- | --- | --- | --- | --- |
 | `db-connection` / Database connection | managed documented | config node; downstream DB nodes use the shared connection | configured Oracle Database connection | Connection failure is node/runtime evidence; no message acknowledgement implied |
 | `begin transaction` | managed documented | `msg` → same `msg` plus transaction/connection context | Database connection | Acquires connection and begins transaction; failure routes to node error path |
@@ -57,16 +80,18 @@ evidence, and explicit `cannot_prove` boundaries for each role.
 
 ### Database and AQ ownership
 
-Select one transaction owner and document it. The focused
-[Database/AQ contract](database-and-aq-node-contracts.md) owns the detailed
-connection, commit/rollback, SQL-source, enqueue/dequeue, and finite-retry
-rules. Do not infer those details from this inventory table.
+Select one transaction owner and document it. The selected node help and
+established target contract own operational fields and outputs. The focused
+[Database/AQ contract](database-and-aq-node-contracts.md) contains conditional
+pinned-package connection, commit/rollback, SQL-source, enqueue/dequeue and
+finite-retry details. Apply a detail only where target evidence establishes it;
+do not infer it from this inventory table.
 
 ### OCI IoT authentication
 
 Device MQTT credentials and OCI REST authentication are separate boundaries.
-The focused [IoT/OCI contract](iot-and-oci-node-contracts.md) owns telemetry,
-subscription, command, scenario-node, ORDS, content/relationship, and logging
+The focused [IoT/OCI contract](iot-and-oci-node-contracts.md) separates shared
+workflow evidence from conditional package telemetry, subscription and command
 details. Do not use a device identity as an OCI API credential or copy either
 credential family into a flow export.
 
@@ -81,14 +106,16 @@ installation, version, permissions, bucket/topic access, or delivery.
 The pinned public sample package contains additional Object Storage,
 Notifications, Logging, ORDS, digital-twin content, relationship, Database/AQ,
 and OCI node contracts. Classify each as **sample-package** unless the selected
-runtime documentation and palette establish otherwise. The pinned revision is
+runtime evidence establishes the actual node identity and selected contract.
+Availability does not change the provenance of sample-package details. The pinned revision is
 exact-source evidence, not a managed-service or target-availability guarantee.
 
 Use [compatibility gates](../assets/nodes/compatibility-gates.json) before a
 dependent workflow. A gate records target runtime/version/region, palette
-label and module version, immutable package commit or release (if applicable),
-authentication path, and live approval. If any field is unknown, keep the
-workflow offline and report an availability gap.
+type/label and module version, relevant target-contract evidence, immutable
+package commit or release (if applicable), authentication path and live approval.
+If a required field is unknown, keep the dependent operation offline and report
+which availability or contract fact is missing.
 
 The [node compatibility walkthrough](../examples/runtime-node-compatibility.md)
 shows how to apply the classification gate without claiming target

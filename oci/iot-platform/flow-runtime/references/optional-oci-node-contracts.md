@@ -6,7 +6,10 @@ palette guarantees. The source is Oracle's `oci-nodes` package release `0.6.0`
 at commit `d1f886fed04f456b28527d578be140fbc7a6c2f1` (source IDs `O7`/`S4`).
 The package pin makes the recorded behavior attributable to one immutable
 revision; it does not establish that a selected Flow Runtime permits the
-module, dependencies, or target API.
+module, dependencies, or target API. Start managed-node discovery with the
+[selected target](node-reference.md#managed-target-selection). A managed node
+with the same registered type remains usable through its own verified
+contract; apply a sample detail only after its applicability is established.
 
 This reference owns `FR-SCENARIO-NODE-CONTRACTS-001`,
 `FR-IOT-EXTENSIONS-001`, and `FR-FLOW-LOGGING-NODES-001` for the exact pinned
@@ -38,6 +41,10 @@ types. Conversely, package registration does not establish a managed palette.
 Keep both records visible.
 
 ## Target gate and cannot-prove boundary
+
+Record evidence for the relevant configuration fields, output shape and
+authentication in the target implementation. Matching package names and
+versions or permission to install a module does not establish equivalence.
 
 Before live use, record all of the following for the selected Flow Runtime:
 target runtime/version and region, exact palette label/type, permitted module

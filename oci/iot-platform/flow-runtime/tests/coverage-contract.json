@@ -49,159 +49,1527 @@
     "fixture-optional-oci-node-contract-cases"
   ],
   "required_modules": [
-    { "id": "ref-flow-runtime", "kind": "reference", "path": "references/flow-runtime.md", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "ref-node-reference", "kind": "reference", "path": "references/node-reference.md", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "ref-topic-contracts", "kind": "reference", "path": "references/topic-contracts.md", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "ref-experience-guidance", "kind": "reference", "path": "references/experience-derived-guidance.md", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "ref-safety-live-gates", "kind": "reference", "path": "references/safety-and-live-gates.md", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "ref-sources", "kind": "reference", "path": "references/sources.md", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "ref-editor-collaboration", "kind": "reference", "path": "references/flows-editor-and-collaboration.md", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "ref-managed-node-reference", "kind": "reference", "path": "references/managed-node-reference.md", "status": "implemented", "introduced_in_phase": 2 },
-    { "id": "ref-iam-network-storage", "kind": "reference", "path": "references/iam-network-and-storage.md", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "ref-batch-ingestion", "kind": "reference", "path": "references/batch-ingestion.md", "status": "implemented", "introduced_in_phase": 3 },
-    { "id": "ref-monitoring-commands-notifications", "kind": "reference", "path": "references/monitoring-commands-notifications.md", "status": "implemented", "introduced_in_phase": 4 },
-    { "id": "ref-observability-troubleshooting", "kind": "reference", "path": "references/observability-and-troubleshooting.md", "status": "implemented", "introduced_in_phase": 5 },
-    { "id": "ref-delivery-recovery", "kind": "reference", "path": "references/delivery-and-recovery.md", "status": "implemented", "introduced_in_phase": 5 },
-    { "id": "ref-node-capability-matrix", "kind": "reference", "path": "references/node-capability-matrix.md", "status": "implemented", "introduced_in_phase": 6 },
-    { "id": "ref-database-aq-contracts", "kind": "reference", "path": "references/database-and-aq-node-contracts.md", "status": "implemented", "introduced_in_phase": 7 },
-    { "id": "ref-iot-oci-contracts", "kind": "reference", "path": "references/iot-and-oci-node-contracts.md", "status": "implemented", "introduced_in_phase": 8 },
-    { "id": "ref-optional-oci-node-contracts", "kind": "reference", "path": "references/optional-oci-node-contracts.md", "status": "implemented", "introduced_in_phase": 10 },
-    { "id": "example-external-broker-ingress", "kind": "example", "path": "examples/external-broker-ingress.md", "status": "implemented", "introduced_in_phase": 0, "normative": true, "evidence": { "claim_ids": ["FR-INGRESS-001"], "offline_proof": "The bundled function deterministically validates and maps the illustrative ingress topic and payload.", "cannot_prove": "It cannot prove broker reachability, device-host publication, adapter evaluation, normalization, history, or delivery.", "operation_class": "offline" } },
-    { "id": "example-batch-ingestion", "kind": "example", "path": "examples/batch-ingestion.md", "status": "implemented", "introduced_in_phase": 3, "normative": true, "evidence": { "claim_ids": ["FR-BATCH-001"], "offline_proof": "The fake Object Storage stages exercise deterministic object-index and CSV-row handling.", "cannot_prove": "It cannot prove Object Storage authorization, reachability, or device-host publication.", "operation_class": "offline" } },
-    { "id": "example-command-notification", "kind": "example", "path": "examples/command-and-notification.md", "status": "implemented", "introduced_in_phase": 4, "normative": true, "evidence": { "claim_ids": ["FR-MONITOR-001"], "offline_proof": "The fake queue, command, and notification stages exercise bounded state transitions and formatting.", "cannot_prove": "It cannot prove queue access, command authorization, device response, publication, or subscriber delivery.", "operation_class": "offline" } },
-    { "id": "example-runtime-safe-replacement", "kind": "example", "path": "examples/runtime-safe-replacement.md", "status": "implemented", "introduced_in_phase": 1, "normative": true, "evidence": { "claim_ids": ["FR-FLOWS-001", "FR-CONCURRENCY-001", "FR-RESOURCE-CONCURRENCY-001"], "offline_proof": "The runtime fixtures exercise conditional complete-flow and resource replacement decisions.", "cannot_prove": "They cannot prove authorization, successful mutation, rollback, or effective deployed state.", "operation_class": "live-gated" } },
-    { "id": "example-runtime-node-compatibility", "kind": "example", "path": "examples/runtime-node-compatibility.md", "status": "implemented", "introduced_in_phase": 2, "normative": true, "evidence": { "claim_ids": ["FR-NODES-001", "FR-SCENARIO-NODES-001"], "offline_proof": "The fixture records explicit managed, scenario, and sample-package classification gates.", "cannot_prove": "It cannot prove target palette availability, module permission, compatibility, or service reachability.", "operation_class": "live-read" } },
-    { "id": "fixture-node-red-ingress-flow", "kind": "fixture", "path": "assets/node-red/oci-iot-ingress-core.json", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "fixture-telemetry-ingress-cases", "kind": "fixture", "path": "assets/oci-iot/telemetry-ingress-cases.json", "status": "implemented", "introduced_in_phase": 0 },
-    { "id": "fixture-batch-ingestion", "kind": "fixture", "path": "assets/batch/batch-ingestion-cases.json", "status": "implemented", "introduced_in_phase": 3 },
-    { "id": "fixture-monitoring-commands-notifications", "kind": "fixture", "path": "assets/commands/command-notification-cases.json", "status": "implemented", "introduced_in_phase": 4 },
-    { "id": "fixture-normalized-monitoring", "kind": "fixture", "path": "assets/monitoring/normalized-monitoring-cases.json", "status": "implemented", "introduced_in_phase": 4 },
-    { "id": "fixture-node-inventory", "kind": "fixture", "path": "assets/nodes/managed-node-inventory.json", "status": "implemented", "introduced_in_phase": 2 },
-    { "id": "fixture-node-compatibility", "kind": "fixture", "path": "assets/nodes/compatibility-gates.json", "status": "implemented", "introduced_in_phase": 2 },
-    { "id": "fixture-runtime-delivery-recovery", "kind": "fixture", "path": "assets/runtime/delivery-recovery-cases.json", "status": "implemented", "introduced_in_phase": 5 },
-    { "id": "fixture-runtime-file-storage", "kind": "fixture", "path": "assets/runtime/file-storage-mount-cases.json", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "fixture-runtime-flow-document", "kind": "fixture", "path": "assets/runtime/flow-document-cases.json", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "fixture-runtime-network", "kind": "fixture", "path": "assets/runtime/network-config-cases.json", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "fixture-runtime-resource-operation", "kind": "fixture", "path": "assets/runtime/resource-operation-cases.json", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "fixture-runtime-resource-property", "kind": "fixture", "path": "assets/runtime/resource-property-cases.json", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "fixture-runtime-software-update", "kind": "fixture", "path": "assets/runtime/software-update-cases.json", "status": "implemented", "introduced_in_phase": 1 },
-    { "id": "fixture-node-identity-cases", "kind": "fixture", "path": "assets/nodes/node-identity-cases.json", "status": "implemented", "introduced_in_phase": 6 },
-    { "id": "fixture-database-aq-contract-cases", "kind": "fixture", "path": "assets/nodes/database-aq-contract-cases.json", "status": "implemented", "introduced_in_phase": 7 },
-    { "id": "fixture-iot-node-contract-cases", "kind": "fixture", "path": "assets/nodes/iot-node-contract-cases.json", "status": "implemented", "introduced_in_phase": 8 },
-    { "id": "fixture-optional-oci-node-contract-cases", "kind": "fixture", "path": "assets/nodes/optional-oci-node-contract-cases.json", "status": "implemented", "introduced_in_phase": 10 }
+    {
+      "id": "ref-flow-runtime",
+      "kind": "reference",
+      "path": "references/flow-runtime.md",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "ref-node-reference",
+      "kind": "reference",
+      "path": "references/node-reference.md",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "ref-topic-contracts",
+      "kind": "reference",
+      "path": "references/topic-contracts.md",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "ref-experience-guidance",
+      "kind": "reference",
+      "path": "references/experience-derived-guidance.md",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "ref-safety-live-gates",
+      "kind": "reference",
+      "path": "references/safety-and-live-gates.md",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "ref-sources",
+      "kind": "reference",
+      "path": "references/sources.md",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "ref-editor-collaboration",
+      "kind": "reference",
+      "path": "references/flows-editor-and-collaboration.md",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "ref-managed-node-reference",
+      "kind": "reference",
+      "path": "references/managed-node-reference.md",
+      "status": "implemented",
+      "introduced_in_phase": 2
+    },
+    {
+      "id": "ref-iam-network-storage",
+      "kind": "reference",
+      "path": "references/iam-network-and-storage.md",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "ref-batch-ingestion",
+      "kind": "reference",
+      "path": "references/batch-ingestion.md",
+      "status": "implemented",
+      "introduced_in_phase": 3
+    },
+    {
+      "id": "ref-monitoring-commands-notifications",
+      "kind": "reference",
+      "path": "references/monitoring-commands-notifications.md",
+      "status": "implemented",
+      "introduced_in_phase": 4
+    },
+    {
+      "id": "ref-observability-troubleshooting",
+      "kind": "reference",
+      "path": "references/observability-and-troubleshooting.md",
+      "status": "implemented",
+      "introduced_in_phase": 5
+    },
+    {
+      "id": "ref-delivery-recovery",
+      "kind": "reference",
+      "path": "references/delivery-and-recovery.md",
+      "status": "implemented",
+      "introduced_in_phase": 5
+    },
+    {
+      "id": "ref-node-capability-matrix",
+      "kind": "reference",
+      "path": "references/node-capability-matrix.md",
+      "status": "implemented",
+      "introduced_in_phase": 6
+    },
+    {
+      "id": "ref-database-aq-contracts",
+      "kind": "reference",
+      "path": "references/database-and-aq-node-contracts.md",
+      "status": "implemented",
+      "introduced_in_phase": 7
+    },
+    {
+      "id": "ref-iot-oci-contracts",
+      "kind": "reference",
+      "path": "references/iot-and-oci-node-contracts.md",
+      "status": "implemented",
+      "introduced_in_phase": 8
+    },
+    {
+      "id": "ref-optional-oci-node-contracts",
+      "kind": "reference",
+      "path": "references/optional-oci-node-contracts.md",
+      "status": "implemented",
+      "introduced_in_phase": 10
+    },
+    {
+      "id": "example-external-broker-ingress",
+      "kind": "example",
+      "path": "examples/external-broker-ingress.md",
+      "status": "implemented",
+      "introduced_in_phase": 0,
+      "normative": true,
+      "evidence": {
+        "claim_ids": [
+          "FR-INGRESS-001"
+        ],
+        "offline_proof": "The bundled function deterministically validates and maps the illustrative ingress topic and payload.",
+        "cannot_prove": "It cannot prove broker reachability, device-host publication, adapter evaluation, normalization, history, or delivery.",
+        "operation_class": "offline"
+      }
+    },
+    {
+      "id": "example-batch-ingestion",
+      "kind": "example",
+      "path": "examples/batch-ingestion.md",
+      "status": "implemented",
+      "introduced_in_phase": 3,
+      "normative": true,
+      "evidence": {
+        "claim_ids": [
+          "FR-BATCH-001"
+        ],
+        "offline_proof": "The fake Object Storage stages exercise deterministic object-index and CSV-row handling.",
+        "cannot_prove": "It cannot prove Object Storage authorization, reachability, or device-host publication.",
+        "operation_class": "offline"
+      }
+    },
+    {
+      "id": "example-command-notification",
+      "kind": "example",
+      "path": "examples/command-and-notification.md",
+      "status": "implemented",
+      "introduced_in_phase": 4,
+      "normative": true,
+      "evidence": {
+        "claim_ids": [
+          "FR-MONITOR-001"
+        ],
+        "offline_proof": "The fake queue, command, and notification stages exercise bounded state transitions and formatting.",
+        "cannot_prove": "It cannot prove queue access, command authorization, device response, publication, or subscriber delivery.",
+        "operation_class": "offline"
+      }
+    },
+    {
+      "id": "example-runtime-safe-replacement",
+      "kind": "example",
+      "path": "examples/runtime-safe-replacement.md",
+      "status": "implemented",
+      "introduced_in_phase": 1,
+      "normative": true,
+      "evidence": {
+        "claim_ids": [
+          "FR-FLOWS-001",
+          "FR-CONCURRENCY-001",
+          "FR-RESOURCE-CONCURRENCY-001"
+        ],
+        "offline_proof": "The runtime fixtures exercise conditional complete-flow and resource replacement decisions.",
+        "cannot_prove": "They cannot prove authorization, successful mutation, rollback, or effective deployed state.",
+        "operation_class": "live-gated"
+      }
+    },
+    {
+      "id": "example-runtime-node-compatibility",
+      "kind": "example",
+      "path": "examples/runtime-node-compatibility.md",
+      "status": "implemented",
+      "introduced_in_phase": 2,
+      "normative": true,
+      "evidence": {
+        "claim_ids": [
+          "FR-NODES-001",
+          "FR-SCENARIO-NODES-001"
+        ],
+        "offline_proof": "The fixture records explicit managed, scenario, and sample-package classification gates.",
+        "cannot_prove": "It cannot prove target palette availability, module permission, compatibility, or service reachability.",
+        "operation_class": "live-read"
+      }
+    },
+    {
+      "id": "fixture-node-red-ingress-flow",
+      "kind": "fixture",
+      "path": "assets/node-red/oci-iot-ingress-core.json",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "fixture-telemetry-ingress-cases",
+      "kind": "fixture",
+      "path": "assets/oci-iot/telemetry-ingress-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 0
+    },
+    {
+      "id": "fixture-batch-ingestion",
+      "kind": "fixture",
+      "path": "assets/batch/batch-ingestion-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 3
+    },
+    {
+      "id": "fixture-monitoring-commands-notifications",
+      "kind": "fixture",
+      "path": "assets/commands/command-notification-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 4
+    },
+    {
+      "id": "fixture-normalized-monitoring",
+      "kind": "fixture",
+      "path": "assets/monitoring/normalized-monitoring-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 4
+    },
+    {
+      "id": "fixture-node-inventory",
+      "kind": "fixture",
+      "path": "assets/nodes/managed-node-inventory.json",
+      "status": "implemented",
+      "introduced_in_phase": 2
+    },
+    {
+      "id": "fixture-node-compatibility",
+      "kind": "fixture",
+      "path": "assets/nodes/compatibility-gates.json",
+      "status": "implemented",
+      "introduced_in_phase": 2
+    },
+    {
+      "id": "fixture-runtime-delivery-recovery",
+      "kind": "fixture",
+      "path": "assets/runtime/delivery-recovery-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 5
+    },
+    {
+      "id": "fixture-runtime-file-storage",
+      "kind": "fixture",
+      "path": "assets/runtime/file-storage-mount-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "fixture-runtime-flow-document",
+      "kind": "fixture",
+      "path": "assets/runtime/flow-document-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "fixture-runtime-network",
+      "kind": "fixture",
+      "path": "assets/runtime/network-config-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "fixture-runtime-resource-operation",
+      "kind": "fixture",
+      "path": "assets/runtime/resource-operation-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "fixture-runtime-resource-property",
+      "kind": "fixture",
+      "path": "assets/runtime/resource-property-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "fixture-runtime-software-update",
+      "kind": "fixture",
+      "path": "assets/runtime/software-update-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 1
+    },
+    {
+      "id": "fixture-node-identity-cases",
+      "kind": "fixture",
+      "path": "assets/nodes/node-identity-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 6,
+      "description": "Includes separate source-role classification and managed-target selection cases with exact module/node and contract-evidence gates."
+    },
+    {
+      "id": "fixture-database-aq-contract-cases",
+      "kind": "fixture",
+      "path": "assets/nodes/database-aq-contract-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 7
+    },
+    {
+      "id": "fixture-iot-node-contract-cases",
+      "kind": "fixture",
+      "path": "assets/nodes/iot-node-contract-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 8
+    },
+    {
+      "id": "fixture-optional-oci-node-contract-cases",
+      "kind": "fixture",
+      "path": "assets/nodes/optional-oci-node-contract-cases.json",
+      "status": "implemented",
+      "introduced_in_phase": 10
+    }
   ],
   "surfaces": [
-    { "id": "managed-flow-runtime", "classification": "managed", "normative": true, "description": "OCI-managed Flow Runtime and its permitted editor palette." },
-    { "id": "oracle-sample-package", "classification": "sample-package", "normative": false, "description": "Separately versioned Oracle-maintained sample nodes; compatibility is unresolved until checked." },
-    { "id": "generic-node-red", "classification": "generic", "normative": false, "description": "Portable Node-RED message and authoring semantics only." },
-    { "id": "self-hosted-node-red", "classification": "self-hosted", "normative": false, "description": "A separate administration surface outside this package." },
-    { "id": "legacy-iot-cloud", "classification": "legacy", "normative": false, "description": "Historical Oracle IoT Cloud Service material, never a current contract." }
+    {
+      "id": "managed-flow-runtime",
+      "classification": "managed",
+      "normative": true,
+      "description": "OCI-managed Flow Runtime and its permitted editor palette."
+    },
+    {
+      "id": "oracle-sample-package",
+      "classification": "sample-package",
+      "normative": false,
+      "description": "Separately versioned Oracle-maintained sample nodes; compatibility is unresolved until checked."
+    },
+    {
+      "id": "generic-node-red",
+      "classification": "generic",
+      "normative": false,
+      "description": "Portable Node-RED message and authoring semantics only."
+    },
+    {
+      "id": "self-hosted-node-red",
+      "classification": "self-hosted",
+      "normative": false,
+      "description": "A separate administration surface outside this package."
+    },
+    {
+      "id": "legacy-iot-cloud",
+      "classification": "legacy",
+      "normative": false,
+      "description": "Historical Oracle IoT Cloud Service material, never a current contract."
+    }
   ],
   "sources": [
-    { "id": "O1", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "O2", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtimes.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "O5", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/overview.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "O6", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/troubleshooting.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "O7", "uri": "https://github.com/oracle-samples/node-red-nodes/tree/d1f886fed04f456b28527d578be140fbc7a6c2f1", "kind": "public-repository", "observed_date": "2026-09-16", "immutable_ref": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "release": "0.6.0", "normative": true },
-    { "id": "S4", "uri": "https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/docs/node-reference.md", "kind": "public-repository", "observed_date": "2026-09-16", "immutable_ref": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "release": "0.6.0", "normative": true },
-    { "id": "N1", "uri": "https://nodered.org/docs/user-guide/writing-functions", "kind": "public-documentation", "observed_date": "2026-09-11", "immutable_ref": null },
-    { "id": "N2", "uri": "https://nodered.org/docs/user-guide/messages", "kind": "public-documentation", "observed_date": "2026-09-11", "immutable_ref": null },
-    { "id": "N4", "uri": "https://nodered.org/docs/user-guide/handling-errors", "kind": "public-documentation", "observed_date": "2026-09-11", "immutable_ref": null },
-    { "id": "S1", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/ingress-iot-flow-runtime.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "S2", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-scenario-setup.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "S10", "uri": "https://nodered.org/docs/user-guide/editor/workspace/import-export", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C2", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/get-iot-flow-runtime-flows.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C3", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/update-iot-flow-runtime-flows.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C4", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/configure-iot-flow-runtime-network-access.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C5", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/configure-iot-flow-runtime-storage-access.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C6", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/configure-logs-flow-runtimes.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C7", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/metrics-reference.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C8", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/events.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C9", "uri": "https://docs.oracle.com/en-us/iaas/Content/Identity/policyreference/iot-policy-reference.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C11", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/ingest-batch-data-flow-runtime.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C12", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/egress-iot-flow-runtime.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C13", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/create-iot-flow-runtime.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C14", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/update-iot-flow-runtime.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C15", "uri": "https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/cmdref/iot/flow-runtime/update-flows.html", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C16", "uri": "https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/cmdref/iot/flow-runtime/update.html", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "C17", "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/iot-domain-database-schema.htm", "kind": "public-documentation", "observed_date": "2026-09-16", "immutable_ref": null },
-    { "id": "N3", "uri": "https://nodered.org/docs/user-guide/context", "kind": "public-documentation", "observed_date": "2026-09-11", "immutable_ref": null },
-    { "id": "M1", "uri": "https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html", "kind": "public-standard", "observed_date": "2026-09-16", "immutable_ref": null }
+    {
+      "id": "O1",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "O2",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtimes.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "O5",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/overview.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "O6",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/troubleshooting.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "O7",
+      "uri": "https://github.com/oracle-samples/node-red-nodes/tree/d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "kind": "public-repository",
+      "observed_date": "2026-09-16",
+      "immutable_ref": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.6.0",
+      "normative": true
+    },
+    {
+      "id": "S4",
+      "uri": "https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/docs/node-reference.md",
+      "kind": "public-repository",
+      "observed_date": "2026-09-16",
+      "immutable_ref": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.6.0",
+      "normative": true
+    },
+    {
+      "id": "N1",
+      "uri": "https://nodered.org/docs/user-guide/writing-functions",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-11",
+      "immutable_ref": null
+    },
+    {
+      "id": "N2",
+      "uri": "https://nodered.org/docs/user-guide/messages",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-11",
+      "immutable_ref": null
+    },
+    {
+      "id": "N4",
+      "uri": "https://nodered.org/docs/user-guide/handling-errors",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-11",
+      "immutable_ref": null
+    },
+    {
+      "id": "S1",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/ingress-iot-flow-runtime.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "S2",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-scenario-setup.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "S10",
+      "uri": "https://nodered.org/docs/user-guide/editor/workspace/import-export",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C2",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/get-iot-flow-runtime-flows.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C3",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/update-iot-flow-runtime-flows.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C4",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/configure-iot-flow-runtime-network-access.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C5",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/configure-iot-flow-runtime-storage-access.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C6",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/configure-logs-flow-runtimes.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C7",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/metrics-reference.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C8",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/events.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C9",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/Identity/policyreference/iot-policy-reference.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C11",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/ingest-batch-data-flow-runtime.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C12",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/egress-iot-flow-runtime.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C13",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/create-iot-flow-runtime.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C14",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/update-iot-flow-runtime.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C15",
+      "uri": "https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/cmdref/iot/flow-runtime/update-flows.html",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C16",
+      "uri": "https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/cmdref/iot/flow-runtime/update.html",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "C17",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/iot-domain-database-schema.htm",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    },
+    {
+      "id": "N3",
+      "uri": "https://nodered.org/docs/user-guide/context",
+      "kind": "public-documentation",
+      "observed_date": "2026-09-11",
+      "immutable_ref": null
+    },
+    {
+      "id": "M1",
+      "uri": "https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html",
+      "kind": "public-standard",
+      "observed_date": "2026-09-16",
+      "immutable_ref": null
+    }
   ],
   "claims": [
-    { "id": "FR-RUNTIME-001", "owner": "ref-flow-runtime", "source_ids": ["O2", "C13", "C14", "O5"], "heading_or_fragment": "overview; create; update; Service Limits", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, and at least every 90 days" },
-    { "id": "FR-FLOWS-001", "owner": "ref-editor-collaboration", "source_ids": ["O1", "S10", "C2", "C3"], "heading_or_fragment": "editor import destinations; backup and restore; get flows; update flows", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, at least every 90 days, and before executable replacement guidance" },
-    { "id": "FR-CONCURRENCY-001", "owner": "ref-editor-collaboration", "source_ids": ["C15"], "heading_or_fragment": "--if-match", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, at least every 90 days, and before command use" },
-    { "id": "FR-RESOURCE-CONCURRENCY-001", "owner": "ref-iam-network-storage", "source_ids": ["C16"], "heading_or_fragment": "resource update matching and stale precondition", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, at least every 90 days, and before resource update use" },
-    { "id": "FR-EDITOR-001", "owner": "ref-editor-collaboration", "source_ids": ["O1", "S10"], "heading_or_fragment": "navigation; multiple users; Deploy; editor import destinations", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, and at least every 90 days" },
-    { "id": "FR-NODES-001", "owner": "ref-managed-node-reference", "source_ids": ["O1", "O7"], "heading_or_fragment": "Oracle nodes and public package", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect selected runtime, region, version, and permitted palette; pin a repository commit for normative package behavior" },
-    { "id": "FR-IAM-001", "owner": "ref-iam-network-storage", "source_ids": ["C9", "O1"], "heading_or_fragment": "policies and OCI Config", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, at least every 90 days, and before live policy guidance" },
-    { "id": "FR-NETWORK-001", "owner": "ref-iam-network-storage", "source_ids": ["C4", "S2"], "heading_or_fragment": "runtime network and scenario connectivity", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect selected target VCN, subnet, NSGs, routes, and endpoint for every live use" },
-    { "id": "FR-STORAGE-001", "owner": "ref-iam-network-storage", "source_ids": ["C5", "O2"], "heading_or_fragment": "File Storage and schema access", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, and at least every 90 days" },
-    { "id": "FR-INGRESS-001", "owner": "ref-topic-contracts", "source_ids": ["S1", "S2"], "heading_or_fragment": "live external-broker scenario and setup", "observed_date": "2026-09-16", "sensitivity_class": "scenario", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days, and whenever adapting the scenario" },
-    { "id": "FR-BATCH-001", "owner": "ref-batch-ingestion", "source_ids": ["C11"], "heading_or_fragment": "batch Object Storage scenario", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the target palette before live use" },
-    { "id": "FR-MONITOR-001", "owner": "ref-monitoring-commands-notifications", "source_ids": ["C12", "C17"], "heading_or_fragment": "monitoring flow; RAW_COMMAND_DATA delivery statuses", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the target palette before live use" },
-    { "id": "FR-OBSERVE-001", "owner": "ref-observability-troubleshooting", "source_ids": ["C6", "C7", "C8", "O6"], "heading_or_fragment": "logs; metrics; events; troubleshooting", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, and at least every 90 days" },
-    { "id": "FR-DELIVERY-001", "owner": "ref-delivery-recovery", "source_ids": ["O1", "S4", "N2", "N4"], "heading_or_fragment": "delivery acknowledgement and error boundary", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target node contract before live use" },
-    { "id": "FR-RECOVERY-001", "owner": "ref-delivery-recovery", "source_ids": ["O1", "O2", "N3"], "heading_or_fragment": "backup, interruption, and persistence boundary", "observed_date": "2026-09-16", "sensitivity_class": "mutable_service", "recheck_rule": "at implementation, promotion, and at least every 90 days" },
-    { "id": "FR-EVIDENCE-001", "owner": "ref-delivery-recovery", "source_ids": ["O6", "C6", "C7", "C8", "C12"], "heading_or_fragment": "layered diagnosis and operational evidence", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target runtime for live use" },
-    { "id": "FR-EFFECTIVE-STATE-001", "owner": "ref-iam-network-storage", "source_ids": ["C4", "C5", "C6", "C7", "C8"], "heading_or_fragment": "configuration and effective operational evidence", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect effective target state for every live use" },
-    { "id": "FR-DB-001", "owner": "ref-managed-node-reference", "source_ids": ["O1"], "heading_or_fragment": "database and transaction roles", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target palette and database contract before live use" },
-    { "id": "FR-IOT-NODES-001", "owner": "ref-managed-node-reference", "source_ids": ["O1", "S4"], "heading_or_fragment": "OCI Config, telemetry, subscribe, and command roles", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target palette, version, and auth policy for every live use" },
-    { "id": "FR-SCENARIO-NODES-001", "owner": "ref-managed-node-reference", "source_ids": ["C11", "C12"], "heading_or_fragment": "Object Storage and Notifications scenario roles", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the scenario and target palette before live use" },
-    { "id": "FR-NODE-IDENTITY-001", "owner": "ref-node-capability-matrix", "source_ids": ["O1", "O7", "S4"], "heading_or_fragment": "managed iot-config versus pinned sample oci-config and iot-config", "observed_date": "2026-09-16", "sensitivity_class": "target_specific", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected runtime, version, and palette before live use" },
-    { "id": "FR-DB-AQ-DETAIL-001", "owner": "ref-database-aq-contracts", "source_ids": ["O7", "S4"], "heading_or_fragment": "Database Nodes; transactional dequeue; SQL source behavior", "observed_date": "2026-09-16", "sensitivity_class": "official_repository", "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use" },
-    { "id": "FR-IOT-TRANSPORT-001", "owner": "ref-iot-oci-contracts", "source_ids": ["O7", "S4"], "heading_or_fragment": "iot-config; iot-telemetry; iot-subscribe; iot-send-command", "observed_date": "2026-09-16", "sensitivity_class": "official_repository", "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use" },
-    { "id": "FR-SCENARIO-NODE-CONTRACTS-001", "owner": "ref-optional-oci-node-contracts", "source_ids": ["C11", "C12"], "heading_or_fragment": "Object Storage download and Notifications publication scenario node boundaries", "observed_date": "2026-09-16", "sensitivity_class": "scenario", "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target palette before live use" },
-    { "id": "FR-IOT-EXTENSIONS-001", "owner": "ref-optional-oci-node-contracts", "source_ids": ["O7", "S4"], "heading_or_fragment": "ORDS; digital-twin content; relationship update", "observed_date": "2026-09-16", "sensitivity_class": "official_repository", "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use" },
-    { "id": "FR-FLOW-LOGGING-NODES-001", "owner": "ref-optional-oci-node-contracts", "source_ids": ["O7", "S4"], "heading_or_fragment": "OCI Logging and Log Analytics flow-originated nodes", "observed_date": "2026-09-16", "sensitivity_class": "official_repository", "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use" }
+    {
+      "id": "FR-RUNTIME-001",
+      "owner": "ref-flow-runtime",
+      "source_ids": [
+        "O2",
+        "C13",
+        "C14",
+        "O5"
+      ],
+      "heading_or_fragment": "overview; create; update; Service Limits",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, and at least every 90 days"
+    },
+    {
+      "id": "FR-FLOWS-001",
+      "owner": "ref-editor-collaboration",
+      "source_ids": [
+        "O1",
+        "S10",
+        "C2",
+        "C3"
+      ],
+      "heading_or_fragment": "editor import destinations; backup and restore; get flows; update flows",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, at least every 90 days, and before executable replacement guidance"
+    },
+    {
+      "id": "FR-CONCURRENCY-001",
+      "owner": "ref-editor-collaboration",
+      "source_ids": [
+        "C15"
+      ],
+      "heading_or_fragment": "--if-match",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, at least every 90 days, and before command use"
+    },
+    {
+      "id": "FR-RESOURCE-CONCURRENCY-001",
+      "owner": "ref-iam-network-storage",
+      "source_ids": [
+        "C16"
+      ],
+      "heading_or_fragment": "resource update matching and stale precondition",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, at least every 90 days, and before resource update use"
+    },
+    {
+      "id": "FR-EDITOR-001",
+      "owner": "ref-editor-collaboration",
+      "source_ids": [
+        "O1",
+        "S10"
+      ],
+      "heading_or_fragment": "navigation; multiple users; Deploy; editor import destinations",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, and at least every 90 days"
+    },
+    {
+      "id": "FR-NODES-001",
+      "owner": "ref-managed-node-reference",
+      "source_ids": [
+        "O1",
+        "O7"
+      ],
+      "heading_or_fragment": "Oracle nodes and public package",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect selected runtime, region, version, and permitted palette; pin a repository commit for normative package behavior"
+    },
+    {
+      "id": "FR-IAM-001",
+      "owner": "ref-iam-network-storage",
+      "source_ids": [
+        "C9",
+        "O1"
+      ],
+      "heading_or_fragment": "policies and OCI Config",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, at least every 90 days, and before live policy guidance"
+    },
+    {
+      "id": "FR-NETWORK-001",
+      "owner": "ref-iam-network-storage",
+      "source_ids": [
+        "C4",
+        "S2"
+      ],
+      "heading_or_fragment": "runtime network and scenario connectivity",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect selected target VCN, subnet, NSGs, routes, and endpoint for every live use"
+    },
+    {
+      "id": "FR-STORAGE-001",
+      "owner": "ref-iam-network-storage",
+      "source_ids": [
+        "C5",
+        "O2"
+      ],
+      "heading_or_fragment": "File Storage and schema access",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, and at least every 90 days"
+    },
+    {
+      "id": "FR-INGRESS-001",
+      "owner": "ref-topic-contracts",
+      "source_ids": [
+        "S1",
+        "S2"
+      ],
+      "heading_or_fragment": "live external-broker scenario and setup",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "scenario",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days, and whenever adapting the scenario"
+    },
+    {
+      "id": "FR-BATCH-001",
+      "owner": "ref-batch-ingestion",
+      "source_ids": [
+        "C11"
+      ],
+      "heading_or_fragment": "batch Object Storage scenario",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the target palette before live use"
+    },
+    {
+      "id": "FR-MONITOR-001",
+      "owner": "ref-monitoring-commands-notifications",
+      "source_ids": [
+        "C12",
+        "C17"
+      ],
+      "heading_or_fragment": "monitoring flow; RAW_COMMAND_DATA delivery statuses",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the target palette before live use"
+    },
+    {
+      "id": "FR-OBSERVE-001",
+      "owner": "ref-observability-troubleshooting",
+      "source_ids": [
+        "C6",
+        "C7",
+        "C8",
+        "O6"
+      ],
+      "heading_or_fragment": "logs; metrics; events; troubleshooting",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, and at least every 90 days"
+    },
+    {
+      "id": "FR-DELIVERY-001",
+      "owner": "ref-delivery-recovery",
+      "source_ids": [
+        "O1",
+        "S4",
+        "N2",
+        "N4"
+      ],
+      "heading_or_fragment": "delivery acknowledgement and error boundary",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target node contract before live use"
+    },
+    {
+      "id": "FR-RECOVERY-001",
+      "owner": "ref-delivery-recovery",
+      "source_ids": [
+        "O1",
+        "O2",
+        "N3"
+      ],
+      "heading_or_fragment": "backup, interruption, and persistence boundary",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "mutable_service",
+      "recheck_rule": "at implementation, promotion, and at least every 90 days"
+    },
+    {
+      "id": "FR-EVIDENCE-001",
+      "owner": "ref-delivery-recovery",
+      "source_ids": [
+        "O6",
+        "C6",
+        "C7",
+        "C8",
+        "C12"
+      ],
+      "heading_or_fragment": "layered diagnosis and operational evidence",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target runtime for live use"
+    },
+    {
+      "id": "FR-EFFECTIVE-STATE-001",
+      "owner": "ref-iam-network-storage",
+      "source_ids": [
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8"
+      ],
+      "heading_or_fragment": "configuration and effective operational evidence",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect effective target state for every live use"
+    },
+    {
+      "id": "FR-DB-001",
+      "owner": "ref-managed-node-reference",
+      "source_ids": [
+        "O1"
+      ],
+      "heading_or_fragment": "database and transaction roles",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target palette and database contract before live use"
+    },
+    {
+      "id": "FR-IOT-NODES-001",
+      "owner": "ref-managed-node-reference",
+      "source_ids": [
+        "O1",
+        "S4"
+      ],
+      "heading_or_fragment": "OCI Config, telemetry, subscribe, and command roles",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target palette, version, and auth policy for every live use"
+    },
+    {
+      "id": "FR-SCENARIO-NODES-001",
+      "owner": "ref-managed-node-reference",
+      "source_ids": [
+        "C11",
+        "C12"
+      ],
+      "heading_or_fragment": "Object Storage and Notifications scenario roles",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the scenario and target palette before live use"
+    },
+    {
+      "id": "FR-NODE-IDENTITY-001",
+      "owner": "ref-node-capability-matrix",
+      "source_ids": [
+        "O1",
+        "O7",
+        "S4"
+      ],
+      "heading_or_fragment": "managed iot-config versus pinned sample oci-config and iot-config",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "target_specific",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected runtime, version, and palette before live use"
+    },
+    {
+      "id": "FR-DB-AQ-DETAIL-001",
+      "owner": "ref-database-aq-contracts",
+      "source_ids": [
+        "O7",
+        "S4"
+      ],
+      "heading_or_fragment": "Database Nodes; transactional dequeue; SQL source behavior",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "official_repository",
+      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+    },
+    {
+      "id": "FR-IOT-TRANSPORT-001",
+      "owner": "ref-iot-oci-contracts",
+      "source_ids": [
+        "O7",
+        "S4"
+      ],
+      "heading_or_fragment": "iot-config; iot-telemetry; iot-subscribe; iot-send-command",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "official_repository",
+      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+    },
+    {
+      "id": "FR-SCENARIO-NODE-CONTRACTS-001",
+      "owner": "ref-optional-oci-node-contracts",
+      "source_ids": [
+        "C11",
+        "C12"
+      ],
+      "heading_or_fragment": "Object Storage download and Notifications publication scenario node boundaries",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "scenario",
+      "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected target palette before live use"
+    },
+    {
+      "id": "FR-IOT-EXTENSIONS-001",
+      "owner": "ref-optional-oci-node-contracts",
+      "source_ids": [
+        "O7",
+        "S4"
+      ],
+      "heading_or_fragment": "ORDS; digital-twin content; relationship update",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "official_repository",
+      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+    },
+    {
+      "id": "FR-FLOW-LOGGING-NODES-001",
+      "owner": "ref-optional-oci-node-contracts",
+      "source_ids": [
+        "O7",
+        "S4"
+      ],
+      "heading_or_fragment": "OCI Logging and Log Analytics flow-originated nodes",
+      "observed_date": "2026-09-16",
+      "sensitivity_class": "official_repository",
+      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+    }
   ],
   "routing_cases": [
-    { "id": "route-author-ingress", "audience": "author", "request": "design or inspect external MQTT ingress", "expected_modules": ["ref-topic-contracts", "ref-managed-node-reference", "ref-safety-live-gates"], "claim_ids": ["FR-INGRESS-001", "FR-NODES-001"], "boundary": "offline transformation is separate from transport, normalization, and target behavior", "operation_class": "offline" },
-    { "id": "route-author-batch", "audience": "author", "request": "design batch Object Storage ingestion", "expected_modules": ["ref-batch-ingestion", "ref-managed-node-reference", "ref-safety-live-gates"], "claim_ids": ["FR-BATCH-001", "FR-SCENARIO-NODES-001"], "boundary": "fake download and transform stages do not prove node availability or service access", "operation_class": "offline" },
-    { "id": "route-author-command", "audience": "author", "request": "design normalized monitoring, command polling, and notification formatting", "expected_modules": ["ref-monitoring-commands-notifications", "ref-managed-node-reference", "ref-delivery-recovery", "ref-safety-live-gates"], "claim_ids": ["FR-MONITOR-001", "FR-IOT-NODES-001", "FR-DELIVERY-001"], "boundary": "offline state transitions do not prove queue access, command completion, publication, or subscriber delivery", "operation_class": "offline" },
-    { "id": "route-operator-runtime", "audience": "operator", "request": "manage or review Flow Runtime documents and properties", "expected_modules": ["ref-flow-runtime", "ref-editor-collaboration", "ref-iam-network-storage", "ref-delivery-recovery", "ref-safety-live-gates"], "claim_ids": ["FR-RUNTIME-001", "FR-FLOWS-001", "FR-CONCURRENCY-001", "FR-RESOURCE-CONCURRENCY-001"], "boundary": "resource and flow mutations require a separate approved live operation", "operation_class": "live-gated" },
-    { "id": "route-troubleshooter", "audience": "troubleshooter", "request": "isolate a runtime, transport, normalization, or presentation failure", "expected_modules": ["ref-observability-troubleshooting", "ref-iam-network-storage", "ref-delivery-recovery", "ref-safety-live-gates"], "claim_ids": ["FR-OBSERVE-001", "FR-NETWORK-001", "FR-EVIDENCE-001"], "boundary": "offline evidence does not establish live health or effective deployed state", "operation_class": "live-gated" },
-    { "id": "route-node-compatibility", "audience": "author", "request": "classify a managed, scenario, or sample-package node", "expected_modules": ["ref-managed-node-reference", "ref-node-reference", "ref-node-capability-matrix"], "claim_ids": ["FR-NODES-001", "FR-NODE-IDENTITY-001", "FR-SCENARIO-NODES-001"], "boundary": "source-pinned behavior does not prove target palette availability", "operation_class": "live-read" },
-    { "id": "route-database-aq", "audience": "author", "request": "design a Database, SQL, transaction, enqueue, or dequeue flow", "expected_modules": ["ref-database-aq-contracts", "ref-node-capability-matrix", "ref-safety-live-gates"], "claim_ids": ["FR-DB-AQ-DETAIL-001", "FR-NODE-IDENTITY-001"], "boundary": "offline transaction and queue cases do not prove database access, queue state, or durable commit", "operation_class": "offline" },
-    { "id": "route-device-iot", "audience": "author", "request": "publish device telemetry, subscribe to device topics, or send a device command", "expected_modules": ["ref-iot-oci-contracts", "ref-node-capability-matrix", "ref-topic-contracts", "ref-safety-live-gates"], "claim_ids": ["FR-IOT-TRANSPORT-001", "FR-NODE-IDENTITY-001"], "boundary": "offline transport contracts do not prove MQTT connection, OCI acceptance, normalization, or device completion", "operation_class": "offline" },
-    { "id": "route-command-status", "audience": "author", "request": "choose SQL polling or optional ORDS polling for command status", "expected_modules": ["ref-optional-oci-node-contracts", "ref-database-aq-contracts", "ref-monitoring-commands-notifications", "ref-safety-live-gates"], "claim_ids": ["FR-IOT-EXTENSIONS-001", "FR-DB-AQ-DETAIL-001", "FR-MONITOR-001"], "boundary": "polling must be bounded and source-specific; offline states do not prove command delivery", "operation_class": "offline" },
-    { "id": "route-flow-logging", "audience": "author", "request": "choose runtime service logging or send flow messages to OCI Logging or Log Analytics", "expected_modules": ["ref-optional-oci-node-contracts", "ref-observability-troubleshooting", "ref-safety-live-gates"], "claim_ids": ["FR-FLOW-LOGGING-NODES-001", "FR-OBSERVE-001"], "boundary": "runtime console logs and flow-originated log uploads are different operations; acceptance does not prove searchability", "operation_class": "offline" },
-    { "id": "route-node-out-of-scope", "audience": "author", "request": "use Fusion SCM, self-hosted Node-RED administration, or an arbitrary community module", "expected_modules": ["ref-managed-node-reference", "ref-node-capability-matrix"], "claim_ids": ["FR-NODE-IDENTITY-001"], "boundary": "route outside this skill without expanding its managed OCI IoT scope", "operation_class": "offline" }
+    {
+      "id": "route-author-ingress",
+      "audience": "author",
+      "request": "design or inspect external MQTT ingress",
+      "expected_modules": [
+        "ref-topic-contracts",
+        "ref-managed-node-reference",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-INGRESS-001",
+        "FR-NODES-001"
+      ],
+      "boundary": "offline transformation is separate from transport, normalization, and target behavior",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-author-batch",
+      "audience": "author",
+      "request": "design batch Object Storage ingestion",
+      "expected_modules": [
+        "ref-batch-ingestion",
+        "ref-managed-node-reference",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-BATCH-001",
+        "FR-SCENARIO-NODES-001"
+      ],
+      "boundary": "fake download and transform stages do not prove node availability or service access",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-author-command",
+      "audience": "author",
+      "request": "design normalized monitoring, command polling, and notification formatting",
+      "expected_modules": [
+        "ref-monitoring-commands-notifications",
+        "ref-managed-node-reference",
+        "ref-delivery-recovery",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-MONITOR-001",
+        "FR-IOT-NODES-001",
+        "FR-DELIVERY-001"
+      ],
+      "boundary": "offline state transitions do not prove queue access, command completion, publication, or subscriber delivery",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-operator-runtime",
+      "audience": "operator",
+      "request": "manage or review Flow Runtime documents and properties",
+      "expected_modules": [
+        "ref-flow-runtime",
+        "ref-editor-collaboration",
+        "ref-iam-network-storage",
+        "ref-delivery-recovery",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-RUNTIME-001",
+        "FR-FLOWS-001",
+        "FR-CONCURRENCY-001",
+        "FR-RESOURCE-CONCURRENCY-001"
+      ],
+      "boundary": "resource and flow mutations require a separate approved live operation",
+      "operation_class": "live-gated"
+    },
+    {
+      "id": "route-troubleshooter",
+      "audience": "troubleshooter",
+      "request": "isolate a runtime, transport, normalization, or presentation failure",
+      "expected_modules": [
+        "ref-observability-troubleshooting",
+        "ref-iam-network-storage",
+        "ref-delivery-recovery",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-OBSERVE-001",
+        "FR-NETWORK-001",
+        "FR-EVIDENCE-001"
+      ],
+      "boundary": "offline evidence does not establish live health or effective deployed state",
+      "operation_class": "live-gated"
+    },
+    {
+      "id": "route-node-compatibility",
+      "audience": "author",
+      "request": "classify a managed, scenario, or sample-package node",
+      "expected_modules": [
+        "ref-managed-node-reference",
+        "ref-node-reference",
+        "ref-node-capability-matrix"
+      ],
+      "claim_ids": [
+        "FR-NODES-001",
+        "FR-NODE-IDENTITY-001",
+        "FR-SCENARIO-NODES-001"
+      ],
+      "boundary": "source-pinned behavior does not prove target palette availability",
+      "operation_class": "live-read"
+    },
+    {
+      "id": "route-database-aq",
+      "audience": "author",
+      "request": "design a Database, SQL, transaction, enqueue, or dequeue flow",
+      "expected_modules": [
+        "ref-database-aq-contracts",
+        "ref-node-capability-matrix",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-DB-AQ-DETAIL-001",
+        "FR-NODE-IDENTITY-001"
+      ],
+      "boundary": "offline transaction and queue cases do not prove database access, queue state, or durable commit",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-device-iot",
+      "audience": "author",
+      "request": "publish device telemetry, subscribe to device topics, or send a device command",
+      "expected_modules": [
+        "ref-iot-oci-contracts",
+        "ref-node-capability-matrix",
+        "ref-topic-contracts",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-IOT-TRANSPORT-001",
+        "FR-NODE-IDENTITY-001"
+      ],
+      "boundary": "offline transport contracts do not prove MQTT connection, OCI acceptance, normalization, or device completion",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-command-status",
+      "audience": "author",
+      "request": "choose SQL polling or optional ORDS polling for command status",
+      "expected_modules": [
+        "ref-optional-oci-node-contracts",
+        "ref-database-aq-contracts",
+        "ref-monitoring-commands-notifications",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-IOT-EXTENSIONS-001",
+        "FR-DB-AQ-DETAIL-001",
+        "FR-MONITOR-001"
+      ],
+      "boundary": "polling must be bounded and source-specific; offline states do not prove command delivery",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-flow-logging",
+      "audience": "author",
+      "request": "choose runtime service logging or send flow messages to OCI Logging or Log Analytics",
+      "expected_modules": [
+        "ref-optional-oci-node-contracts",
+        "ref-observability-troubleshooting",
+        "ref-safety-live-gates"
+      ],
+      "claim_ids": [
+        "FR-FLOW-LOGGING-NODES-001",
+        "FR-OBSERVE-001"
+      ],
+      "boundary": "runtime console logs and flow-originated log uploads are different operations; acceptance does not prove searchability",
+      "operation_class": "offline"
+    },
+    {
+      "id": "route-node-out-of-scope",
+      "audience": "author",
+      "request": "use Fusion SCM, self-hosted Node-RED administration, or an arbitrary community module",
+      "expected_modules": [
+        "ref-managed-node-reference",
+        "ref-node-capability-matrix"
+      ],
+      "claim_ids": [
+        "FR-NODE-IDENTITY-001"
+      ],
+      "boundary": "route outside this skill without expanding its managed OCI IoT scope",
+      "operation_class": "offline"
+    }
   ],
   "offline_proof": [
-    { "id": "proof-routing", "statement": "The core flow and ingress cases prove deterministic topic validation, routing, payload serialization, and rejection diagnostics." },
-    { "id": "proof-containment", "statement": "The validator proves package-local paths, UTF-8 text, link resolution, rejection of known secret signatures and credential-field patterns, and preflight rejection of network-capable test behavior before focused checks execute." },
-    { "id": "proof-traceability", "statement": "The coverage contract proves required module IDs, surface classifications, claim ownership, source resolution, and freshness metadata." },
-    { "id": "proof-node-capabilities", "statement": "The node capability fixtures prove exact source-owned identity, authentication-family separation, bounded transaction and polling decisions, topic validation, and acknowledgement-stage distinctions for the pinned offline contracts." }
+    {
+      "id": "proof-routing",
+      "statement": "The core flow and ingress cases prove deterministic topic validation, routing, payload serialization, and rejection diagnostics."
+    },
+    {
+      "id": "proof-containment",
+      "statement": "The validator proves package-local paths, UTF-8 text, link resolution, rejection of known secret signatures and credential-field patterns, and preflight rejection of network-capable test behavior before focused checks execute."
+    },
+    {
+      "id": "proof-traceability",
+      "statement": "The coverage contract proves required module IDs, surface classifications, claim ownership, source resolution, and freshness metadata."
+    },
+    {
+      "id": "proof-node-capabilities",
+      "statement": "The node capability fixtures prove exact source-owned identity, authentication-family separation, bounded transaction and polling decisions, topic validation, and acknowledgement-stage distinctions for the pinned offline contracts."
+    }
   ],
   "cannot_prove": [
-    { "id": "cannot-live-connectivity", "statement": "Offline assets cannot prove IAM, resource-principal authorization, broker, device-host, Object Storage, database, queue, Notifications, File Storage, or external endpoint reachability." },
-    { "id": "cannot-effective-state", "statement": "Offline assets cannot prove lifecycle completion, software updates, managed palette availability, adapter normalization, history, logs, metrics, events, subscriber delivery, or effective deployed state." },
-    { "id": "cannot-live-effects", "statement": "No package check authorizes or performs live operations, mutation, command delivery, notification publication, replay, deployment, or cleanup." },
-    { "id": "cannot-node-target", "statement": "Pinned sample-package behavior and deterministic cases cannot prove a node or dependency is installed, permitted, compatible, authenticated, reachable, or effective in a selected Flow Runtime." }
+    {
+      "id": "cannot-live-connectivity",
+      "statement": "Offline assets cannot prove IAM, resource-principal authorization, broker, device-host, Object Storage, database, queue, Notifications, File Storage, or external endpoint reachability."
+    },
+    {
+      "id": "cannot-effective-state",
+      "statement": "Offline assets cannot prove lifecycle completion, software updates, managed palette availability, adapter normalization, history, logs, metrics, events, subscriber delivery, or effective deployed state."
+    },
+    {
+      "id": "cannot-live-effects",
+      "statement": "No package check authorizes or performs live operations, mutation, command delivery, notification publication, replay, deployment, or cleanup."
+    },
+    {
+      "id": "cannot-node-target",
+      "statement": "Pinned sample-package behavior and deterministic cases cannot prove a node or dependency is installed, permitted, compatible, authenticated, reachable, or effective in a selected Flow Runtime."
+    }
   ],
   "live_operation_classes": [
-    { "id": "offline", "effect": "No external access or mutation; deterministic local evidence only." },
-    { "id": "live-read", "effect": "Read-only target inspection; exact target and owner still required." },
-    { "id": "live-gated", "effect": "Potentially consequential access or mutation; separate approval, scope, rollback, and evidence required." }
+    {
+      "id": "offline",
+      "effect": "No external access or mutation; deterministic local evidence only."
+    },
+    {
+      "id": "live-read",
+      "effect": "Read-only target inspection; exact target and owner still required."
+    },
+    {
+      "id": "live-gated",
+      "effect": "Potentially consequential access or mutation; separate approval, scope, rollback, and evidence required."
+    }
   ],
   "forward_tests": [
-    { "id": "FT01", "request": "Design batch ingestion without OCI access", "route": "route-author-batch", "expected_modules": ["ref-batch-ingestion", "example-batch-ingestion"], "required_claims": ["FR-BATCH-001"], "forbidden_claims": ["Object Storage success", "device-host publication success"], "source_claim_ids": ["FR-BATCH-001"], "offline_live_classification": "offline", "operation_class": "offline", "stop_or_handoff": "stop after deterministic fake-stage evidence; hand off Object Storage and device-host checks to a separately approved live test" },
-    { "id": "FT02", "request": "Diagnose raw data present but normalized data missing", "route": "route-troubleshooter", "expected_modules": ["ref-observability-troubleshooting"], "required_claims": ["FR-OBSERVE-001"], "forbidden_claims": ["static transport acceptance proves normalization"], "source_claim_ids": ["FR-OBSERVE-001"], "offline_live_classification": "offline", "operation_class": "live-gated", "stop_or_handoff": "begin with read-only received and accepted evidence; hand off adapter and rejected-data checks to an approved target" },
-    { "id": "FT03", "request": "Design bounded command polling with refusal and timeout", "route": "route-author-command", "expected_modules": ["ref-monitoring-commands-notifications"], "required_claims": ["FR-MONITOR-001"], "forbidden_claims": ["unbounded polling", "offline command success"], "source_claim_ids": ["FR-MONITOR-001"], "offline_live_classification": "offline", "operation_class": "live-gated", "stop_or_handoff": "stop after fake-state transition evidence; hand off command authorization and active-device response to a separately approved live test" },
-    { "id": "FT04", "request": "Explain safe complete-flow replacement", "route": "route-operator-runtime", "expected_modules": ["ref-editor-collaboration", "ref-iam-network-storage"], "required_claims": ["FR-FLOWS-001", "FR-CONCURRENCY-001", "FR-RESOURCE-CONCURRENCY-001"], "forbidden_claims": ["overwrite newer deployed state", "backup is rollback proof"], "source_claim_ids": ["FR-FLOWS-001", "FR-CONCURRENCY-001", "FR-RESOURCE-CONCURRENCY-001"], "offline_live_classification": "live-gated", "operation_class": "live-gated", "stop_or_handoff": "stop on stale precondition; hand off conditional replacement, rollback, and effective-state readback to separate approval" },
-    { "id": "FT05", "request": "Troubleshoot File Storage activation", "route": "route-troubleshooter", "expected_modules": ["ref-iam-network-storage", "ref-observability-troubleshooting"], "required_claims": ["FR-STORAGE-001"], "forbidden_claims": ["static configuration proves mount access"], "source_claim_ids": ["FR-STORAGE-001"], "offline_live_classification": "live-gated", "operation_class": "live-gated", "stop_or_handoff": "use read-only IAM and network evidence first; hand off mount activation to an approved target check" },
-    { "id": "FT06", "request": "Distinguish a managed node from an unverified sample node", "route": "route-node-compatibility", "expected_modules": ["ref-managed-node-reference"], "required_claims": ["FR-NODES-001"], "forbidden_claims": ["sample package is managed", "mutable main is normative"], "source_claim_ids": ["FR-NODES-001"], "offline_live_classification": "offline", "operation_class": "live-read", "stop_or_handoff": "stop at classification; hand off target runtime, region, version, and palette inspection before package-specific live use" },
-    { "id": "FT07", "request": "Deploy without a target or rollback", "route": "route-operator-runtime", "expected_modules": ["ref-safety-live-gates"], "required_claims": [], "forbidden_claims": ["implicit authorization", "deployment without rollback"], "source_claim_ids": [], "offline_live_classification": "refuse", "operation_class": "live-gated", "stop_or_handoff": "refuse execution and require exact target, owner, effect, backup, rollback, and separate authorization" },
-    { "id": "FT08", "request": "Configure iot-config for a new flow", "route": "route-node-compatibility", "expected_modules": ["ref-node-capability-matrix"], "required_claims": ["FR-NODE-IDENTITY-001"], "forbidden_claims": ["managed OCI Config and sample device MQTTS config are interchangeable", "source pin proves target availability"], "source_claim_ids": ["FR-NODE-IDENTITY-001"], "offline_live_classification": "offline", "operation_class": "live-read", "expected_outcome": { "decision": "clarify", "reason": "ambiguous-name", "target_availability": "unproven" }, "stop_or_handoff": "clarify managed OCI API versus pinned sample device MQTTS context; require target palette inspection before live use" },
-    { "id": "FT09", "request": "Design a transactional AQ dequeue flow with rollback", "route": "route-database-aq", "expected_modules": ["ref-database-aq-contracts"], "required_claims": ["FR-DB-AQ-DETAIL-001"], "forbidden_claims": ["dequeue permanently removes before commit", "offline durable commit"], "source_claim_ids": ["FR-DB-AQ-DETAIL-001"], "offline_live_classification": "offline", "operation_class": "offline", "stop_or_handoff": "stop after deterministic ownership and rollback cases; hand off database and queue behavior to a separately approved target test" },
-    { "id": "FT10", "request": "Run continuous dequeue with unlimited retries", "route": "route-database-aq", "expected_modules": ["ref-database-aq-contracts"], "required_claims": ["FR-DB-AQ-DETAIL-001"], "forbidden_claims": ["unbounded retries", "missing subscriber is retryable forever"], "source_claim_ids": ["FR-DB-AQ-DETAIL-001"], "offline_live_classification": "refuse", "operation_class": "offline", "expected_outcome": { "decision": "reject", "reason": "finite-reconnect-bound-required" }, "stop_or_handoff": "require selected finite retry, wait, and shutdown bounds before producing portable guidance" },
-    { "id": "FT11", "request": "Publish telemetry and subscribe for commands with the same device identity", "route": "route-device-iot", "expected_modules": ["ref-iot-oci-contracts", "ref-topic-contracts"], "required_claims": ["FR-IOT-TRANSPORT-001"], "forbidden_claims": ["OCI API credentials are MQTT device credentials", "subscription receipt is automatic command acknowledgement"], "source_claim_ids": ["FR-IOT-TRANSPORT-001"], "offline_live_classification": "offline", "operation_class": "offline", "stop_or_handoff": "keep client IDs unique and model explicit command response; hand off broker and device behavior to approved live testing" },
-    { "id": "FT12", "request": "Poll command completion through ORDS instead of the documented SQL scenario", "route": "route-command-status", "expected_modules": ["ref-optional-oci-node-contracts", "ref-database-aq-contracts", "ref-monitoring-commands-notifications"], "required_claims": ["FR-IOT-EXTENSIONS-001", "FR-MONITOR-001"], "forbidden_claims": ["optional ORDS node is managed everywhere", "unbounded polling"], "source_claim_ids": ["FR-IOT-EXTENSIONS-001", "FR-MONITOR-001"], "offline_live_classification": "offline", "operation_class": "offline", "expected_outcome": { "decision": "compatibility-gate", "polling": "finite", "managed_availability": "unproven" }, "stop_or_handoff": "classify SQL as the official scenario and ORDS as a pinned compatibility-gated option; require finite poll limits" },
-    { "id": "FT13", "request": "Send an application event to OCI Logging and use it as Flow Runtime system logs", "route": "route-flow-logging", "expected_modules": ["ref-optional-oci-node-contracts", "ref-observability-troubleshooting"], "required_claims": ["FR-FLOW-LOGGING-NODES-001", "FR-OBSERVE-001"], "forbidden_claims": ["flow-originated log upload configures runtime service logging", "API acceptance proves searchable log"], "source_claim_ids": ["FR-FLOW-LOGGING-NODES-001", "FR-OBSERVE-001"], "offline_live_classification": "offline", "operation_class": "offline", "stop_or_handoff": "select the correct logging surface and require separate target evidence for acceptance and searchability" },
-    { "id": "FT14", "request": "Build a Fusion SCM or arbitrary community-node workflow", "route": "route-node-out-of-scope", "expected_modules": ["ref-managed-node-reference", "ref-node-capability-matrix"], "required_claims": ["FR-NODE-IDENTITY-001"], "forbidden_claims": ["expand this skill into Fusion SCM", "assume arbitrary module availability"], "source_claim_ids": ["FR-NODE-IDENTITY-001"], "offline_live_classification": "refuse", "operation_class": "offline", "stop_or_handoff": "state the scope boundary and route to separate Fusion SCM or self-hosted Node-RED guidance" },
-    { "id": "FT15", "request": "Run standalone SQL DML and report it as durably committed", "route": "route-database-aq", "expected_modules": ["ref-database-aq-contracts"], "required_claims": ["FR-DB-AQ-DETAIL-001"], "forbidden_claims": ["standalone SQL DML auto-commits", "offline execution proves durability"], "source_claim_ids": ["FR-DB-AQ-DETAIL-001"], "offline_live_classification": "refuse", "operation_class": "offline", "expected_outcome": { "decision": "reject-durability-claim", "durable": false, "commit_required": true }, "stop_or_handoff": "require an explicit selected commit owner and separately approved live durability evidence" },
-    { "id": "FT16", "request": "Treat an accepted Notifications publication as confirmed subscriber delivery", "route": "route-author-command", "expected_modules": ["ref-optional-oci-node-contracts", "ref-monitoring-commands-notifications"], "required_claims": ["FR-SCENARIO-NODE-CONTRACTS-001", "FR-MONITOR-001"], "forbidden_claims": ["publication acceptance proves subscriber delivery", "offline publication success"], "source_claim_ids": ["FR-SCENARIO-NODE-CONTRACTS-001", "FR-MONITOR-001"], "offline_live_classification": "refuse", "operation_class": "offline", "expected_outcome": { "decision": "reject-delivery-claim", "publication": "accepted", "subscriber_delivery": "unknown" }, "stop_or_handoff": "report publication acceptance only; require separately approved subscriber-side evidence for delivery" }
-  ]
+    {
+      "id": "FT01",
+      "request": "Design batch ingestion without OCI access",
+      "route": "route-author-batch",
+      "expected_modules": [
+        "ref-batch-ingestion",
+        "example-batch-ingestion"
+      ],
+      "required_claims": [
+        "FR-BATCH-001"
+      ],
+      "forbidden_claims": [
+        "Object Storage success",
+        "device-host publication success"
+      ],
+      "source_claim_ids": [
+        "FR-BATCH-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "offline",
+      "stop_or_handoff": "stop after deterministic fake-stage evidence; hand off Object Storage and device-host checks to a separately approved live test"
+    },
+    {
+      "id": "FT02",
+      "request": "Diagnose raw data present but normalized data missing",
+      "route": "route-troubleshooter",
+      "expected_modules": [
+        "ref-observability-troubleshooting"
+      ],
+      "required_claims": [
+        "FR-OBSERVE-001"
+      ],
+      "forbidden_claims": [
+        "static transport acceptance proves normalization"
+      ],
+      "source_claim_ids": [
+        "FR-OBSERVE-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "live-gated",
+      "stop_or_handoff": "begin with read-only received and accepted evidence; hand off adapter and rejected-data checks to an approved target"
+    },
+    {
+      "id": "FT03",
+      "request": "Design bounded command polling with refusal and timeout",
+      "route": "route-author-command",
+      "expected_modules": [
+        "ref-monitoring-commands-notifications"
+      ],
+      "required_claims": [
+        "FR-MONITOR-001"
+      ],
+      "forbidden_claims": [
+        "unbounded polling",
+        "offline command success"
+      ],
+      "source_claim_ids": [
+        "FR-MONITOR-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "live-gated",
+      "stop_or_handoff": "stop after fake-state transition evidence; hand off command authorization and active-device response to a separately approved live test"
+    },
+    {
+      "id": "FT04",
+      "request": "Explain safe complete-flow replacement",
+      "route": "route-operator-runtime",
+      "expected_modules": [
+        "ref-editor-collaboration",
+        "ref-iam-network-storage"
+      ],
+      "required_claims": [
+        "FR-FLOWS-001",
+        "FR-CONCURRENCY-001",
+        "FR-RESOURCE-CONCURRENCY-001"
+      ],
+      "forbidden_claims": [
+        "overwrite newer deployed state",
+        "backup is rollback proof"
+      ],
+      "source_claim_ids": [
+        "FR-FLOWS-001",
+        "FR-CONCURRENCY-001",
+        "FR-RESOURCE-CONCURRENCY-001"
+      ],
+      "offline_live_classification": "live-gated",
+      "operation_class": "live-gated",
+      "stop_or_handoff": "stop on stale precondition; hand off conditional replacement, rollback, and effective-state readback to separate approval"
+    },
+    {
+      "id": "FT05",
+      "request": "Troubleshoot File Storage activation",
+      "route": "route-troubleshooter",
+      "expected_modules": [
+        "ref-iam-network-storage",
+        "ref-observability-troubleshooting"
+      ],
+      "required_claims": [
+        "FR-STORAGE-001"
+      ],
+      "forbidden_claims": [
+        "static configuration proves mount access"
+      ],
+      "source_claim_ids": [
+        "FR-STORAGE-001"
+      ],
+      "offline_live_classification": "live-gated",
+      "operation_class": "live-gated",
+      "stop_or_handoff": "use read-only IAM and network evidence first; hand off mount activation to an approved target check"
+    },
+    {
+      "id": "FT06",
+      "request": "Distinguish a managed node from an unverified sample node",
+      "route": "route-node-compatibility",
+      "expected_modules": [
+        "ref-managed-node-reference"
+      ],
+      "required_claims": [
+        "FR-NODES-001"
+      ],
+      "forbidden_claims": [
+        "sample package is managed",
+        "mutable main is normative"
+      ],
+      "source_claim_ids": [
+        "FR-NODES-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "live-read",
+      "stop_or_handoff": "stop at classification; hand off target runtime, region, version, and palette inspection before package-specific live use"
+    },
+    {
+      "id": "FT07",
+      "request": "Deploy without a target or rollback",
+      "route": "route-operator-runtime",
+      "expected_modules": [
+        "ref-safety-live-gates"
+      ],
+      "required_claims": [],
+      "forbidden_claims": [
+        "implicit authorization",
+        "deployment without rollback"
+      ],
+      "source_claim_ids": [],
+      "offline_live_classification": "refuse",
+      "operation_class": "live-gated",
+      "stop_or_handoff": "refuse execution and require exact target, owner, effect, backup, rollback, and separate authorization"
+    },
+    {
+      "id": "FT08",
+      "request": "Configure iot-config for a new flow",
+      "route": "route-node-compatibility",
+      "expected_modules": [
+        "ref-node-capability-matrix"
+      ],
+      "required_claims": [
+        "FR-NODE-IDENTITY-001"
+      ],
+      "forbidden_claims": [
+        "managed OCI Config and sample device MQTTS config are interchangeable",
+        "source pin proves target availability"
+      ],
+      "source_claim_ids": [
+        "FR-NODE-IDENTITY-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "live-read",
+      "expected_outcome": {
+        "decision": "clarify",
+        "reason": "ambiguous-name",
+        "target_availability": "unproven"
+      },
+      "stop_or_handoff": "clarify managed OCI API versus pinned sample device MQTTS context; require target palette inspection before live use"
+    },
+    {
+      "id": "FT09",
+      "request": "Design a transactional AQ dequeue flow with rollback",
+      "route": "route-database-aq",
+      "expected_modules": [
+        "ref-database-aq-contracts"
+      ],
+      "required_claims": [
+        "FR-DB-AQ-DETAIL-001"
+      ],
+      "forbidden_claims": [
+        "dequeue permanently removes before commit",
+        "offline durable commit"
+      ],
+      "source_claim_ids": [
+        "FR-DB-AQ-DETAIL-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "offline",
+      "stop_or_handoff": "stop after deterministic ownership and rollback cases; hand off database and queue behavior to a separately approved target test"
+    },
+    {
+      "id": "FT10",
+      "request": "Run continuous dequeue with unlimited retries",
+      "route": "route-database-aq",
+      "expected_modules": [
+        "ref-database-aq-contracts"
+      ],
+      "required_claims": [
+        "FR-DB-AQ-DETAIL-001"
+      ],
+      "forbidden_claims": [
+        "unbounded retries",
+        "missing subscriber is retryable forever"
+      ],
+      "source_claim_ids": [
+        "FR-DB-AQ-DETAIL-001"
+      ],
+      "offline_live_classification": "refuse",
+      "operation_class": "offline",
+      "expected_outcome": {
+        "decision": "reject",
+        "reason": "finite-reconnect-bound-required"
+      },
+      "stop_or_handoff": "require selected finite retry, wait, and shutdown bounds before producing portable guidance"
+    },
+    {
+      "id": "FT11",
+      "request": "Publish telemetry and subscribe for commands with the same device identity",
+      "route": "route-device-iot",
+      "expected_modules": [
+        "ref-iot-oci-contracts",
+        "ref-topic-contracts"
+      ],
+      "required_claims": [
+        "FR-IOT-TRANSPORT-001"
+      ],
+      "forbidden_claims": [
+        "OCI API credentials are MQTT device credentials",
+        "subscription receipt is automatic command acknowledgement"
+      ],
+      "source_claim_ids": [
+        "FR-IOT-TRANSPORT-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "offline",
+      "stop_or_handoff": "keep client IDs unique and model explicit command response; hand off broker and device behavior to approved live testing"
+    },
+    {
+      "id": "FT12",
+      "request": "Poll command completion through ORDS instead of the documented SQL scenario",
+      "route": "route-command-status",
+      "expected_modules": [
+        "ref-optional-oci-node-contracts",
+        "ref-database-aq-contracts",
+        "ref-monitoring-commands-notifications"
+      ],
+      "required_claims": [
+        "FR-IOT-EXTENSIONS-001",
+        "FR-MONITOR-001"
+      ],
+      "forbidden_claims": [
+        "optional ORDS node is managed everywhere",
+        "unbounded polling"
+      ],
+      "source_claim_ids": [
+        "FR-IOT-EXTENSIONS-001",
+        "FR-MONITOR-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "offline",
+      "expected_outcome": {
+        "decision": "compatibility-gate",
+        "polling": "finite",
+        "managed_availability": "unproven"
+      },
+      "stop_or_handoff": "classify SQL as the official scenario and ORDS as a pinned compatibility-gated option; require finite poll limits"
+    },
+    {
+      "id": "FT13",
+      "request": "Send an application event to OCI Logging and use it as Flow Runtime system logs",
+      "route": "route-flow-logging",
+      "expected_modules": [
+        "ref-optional-oci-node-contracts",
+        "ref-observability-troubleshooting"
+      ],
+      "required_claims": [
+        "FR-FLOW-LOGGING-NODES-001",
+        "FR-OBSERVE-001"
+      ],
+      "forbidden_claims": [
+        "flow-originated log upload configures runtime service logging",
+        "API acceptance proves searchable log"
+      ],
+      "source_claim_ids": [
+        "FR-FLOW-LOGGING-NODES-001",
+        "FR-OBSERVE-001"
+      ],
+      "offline_live_classification": "offline",
+      "operation_class": "offline",
+      "stop_or_handoff": "select the correct logging surface and require separate target evidence for acceptance and searchability"
+    },
+    {
+      "id": "FT14",
+      "request": "Build a Fusion SCM or arbitrary community-node workflow",
+      "route": "route-node-out-of-scope",
+      "expected_modules": [
+        "ref-managed-node-reference",
+        "ref-node-capability-matrix"
+      ],
+      "required_claims": [
+        "FR-NODE-IDENTITY-001"
+      ],
+      "forbidden_claims": [
+        "expand this skill into Fusion SCM",
+        "assume arbitrary module availability"
+      ],
+      "source_claim_ids": [
+        "FR-NODE-IDENTITY-001"
+      ],
+      "offline_live_classification": "refuse",
+      "operation_class": "offline",
+      "stop_or_handoff": "state the scope boundary and route to separate Fusion SCM or self-hosted Node-RED guidance"
+    },
+    {
+      "id": "FT15",
+      "request": "Run standalone SQL DML and report it as durably committed",
+      "route": "route-database-aq",
+      "expected_modules": [
+        "ref-database-aq-contracts"
+      ],
+      "required_claims": [
+        "FR-DB-AQ-DETAIL-001"
+      ],
+      "forbidden_claims": [
+        "standalone SQL DML auto-commits",
+        "offline execution proves durability"
+      ],
+      "source_claim_ids": [
+        "FR-DB-AQ-DETAIL-001"
+      ],
+      "offline_live_classification": "refuse",
+      "operation_class": "offline",
+      "expected_outcome": {
+        "decision": "reject-durability-claim",
+        "durable": false,
+        "commit_required": true
+      },
+      "stop_or_handoff": "require an explicit selected commit owner and separately approved live durability evidence"
+    },
+    {
+      "id": "FT16",
+      "request": "Treat an accepted Notifications publication as confirmed subscriber delivery",
+      "route": "route-author-command",
+      "expected_modules": [
+        "ref-optional-oci-node-contracts",
+        "ref-monitoring-commands-notifications"
+      ],
+      "required_claims": [
+        "FR-SCENARIO-NODE-CONTRACTS-001",
+        "FR-MONITOR-001"
+      ],
+      "forbidden_claims": [
+        "publication acceptance proves subscriber delivery",
+        "offline publication success"
+      ],
+      "source_claim_ids": [
+        "FR-SCENARIO-NODE-CONTRACTS-001",
+        "FR-MONITOR-001"
+      ],
+      "offline_live_classification": "refuse",
+      "operation_class": "offline",
+      "expected_outcome": {
+        "decision": "reject-delivery-claim",
+        "publication": "accepted",
+        "subscriber_delivery": "unknown"
+      },
+      "stop_or_handoff": "report publication acceptance only; require separately approved subscriber-side evidence for delivery"
+    }
+  ],
+  "managed_target_selection": {
+    "fixture_path": "assets/nodes/node-identity-cases.json",
+    "case_count": 9,
+    "regression_cases": [
+      "managed-target-version-only-promotion",
+      "sample-contract-promoted-to-wrong-managed-module"
+    ],
+    "separate_from_existing_counts": {
+      "inherited_negative_regressions": 84,
+      "integrated_boundary_cases": 11
+    },
+    "contract": "Source-role classification is independent of target selection. Target selection binds exact runtime provenance, palette node type, module identity/version, and affirmative contract evidence for fields, outputs, authentication, and provenance. Verified evidence can plan a bounded managed test only; it cannot assert live compatibility, acceptance, or authorization."
+  }
 }

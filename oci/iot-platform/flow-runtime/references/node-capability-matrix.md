@@ -18,9 +18,12 @@ It is still not a managed-service guarantee: a mutable `main` URL cannot
 replace the pin, and the selected Flow Runtime palette, version, region,
 dependency permission, and authentication policy remain target gates.
 
-The remaining source gap is target evidence: no selected Flow Runtime palette
-or permitted module/version inspection is recorded. Keep sample nodes
-compatibility-gated until that target evidence exists.
+For the requested target, establish palette/module availability and the relevant
+implementation contract separately. An inspected managed type can differ from
+the documentation's role label. Keep sample details conditional until evidence
+establishes their applicability; matching names or version numbers alone is
+insufficient. Use the [managed target selection](node-reference.md#managed-target-selection)
+route first.
 
 ## Source anchors
 
@@ -48,11 +51,17 @@ Records with similarly named nodes remain separate records.
 
 ## Identity and authentication matrix
 
+Managed-editor rows identify documentation roles. Use inspected registered
+types and configuration parents when constructing the target flow; do not
+copy these role labels as a universal runtime registration map. Sample rows
+identify types from the pinned package and retain that source ownership even
+when similarly named nodes are observed in a managed target.
+
 The `iot-config` collision is intentional and must remain visible. A bare
 request for `iot-config` is incomplete; use explicit managed-editor context or
 sample-package/device context to resolve it.
 
-| Surface | Exact node type / canonical name | Palette label or role | Configuration parent | Authentication family | Classification | Source owner | Claim ID | Target gate |
+| Source surface | Documented role / package node type | Palette label or role | Source configuration parent (verify target) | Authentication family | Classification | Source owner | Claim ID | Target gate |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Managed editor | `iot-config` | `OCI Config` | none (config parent) | OCI configuration: config file, instance principal, resource principal, or API key as supported by target | `managed-documented` | `O1` | `FR-NODES-001` | Inspect target runtime/version/region and managed palette; separately verify IAM and endpoint access |
 | Managed editor | `telemetry` | `telemetry` | managed `iot-config` | OCI configuration from linked managed config | `managed-documented` | `O1` | `FR-IOT-NODES-001` | Confirm target palette, linked config, topic/payload contract, and live policy |

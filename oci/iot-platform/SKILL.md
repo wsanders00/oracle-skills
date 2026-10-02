@@ -61,6 +61,16 @@ do not infer access to `settings.js`, the local broker, arbitrary modules, or
 the runtime filesystem. Treat legacy Oracle IoT Cloud Service material as
 historical, not as the current OCI IoT contract.
 
+For flow authoring, start with the selected managed runtime's exact registered
+node types, module versions and node help. Map documented palette roles to that
+inventory; a documentation label is not an exact type or configuration parent.
+Use the [managed node selection boundary](flow-runtime/references/node-reference.md)
+to choose supported fields and authentication before constructing a flow.
+The detailed public sample-package contracts are conditional references:
+matching names or version numbers alone do not establish that their behavior
+applies to the managed node. Local fixtures validate transformations and
+decisions; managed deployment and integration require evidence from OCI IoT.
+
 Route node questions through the
 [managed-node reference](flow-runtime/references/managed-node-reference.md)
 and [capability matrix](flow-runtime/references/node-capability-matrix.md)

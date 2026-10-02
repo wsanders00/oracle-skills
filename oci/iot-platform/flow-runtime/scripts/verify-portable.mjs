@@ -140,7 +140,7 @@ for (const path of files) {
 const executableIntegrity = new Map([
   ["scripts/verify-runtime.mjs", "76af7c4b07a0679b17dcf6b33d7fdabb07cd312975ea7ed33aced839f0156848"],
   ["scripts/verify-workflows.mjs", "6169e24aaae9aa702bb58b41c235243ee4e8e1aa839e654f5f73530626422273"],
-  ["scripts/verify-node-capabilities.mjs", "14eda9b7897ecae9e600d29b0cda150efbd919582b5fb59992bdb3929e3cc000"],
+  ["scripts/verify-node-capabilities.mjs", "946a2eba7e66ac96cb217cc9260226589084eb5a4331e58e64c4d7b97b14275e"],
   ["assets/node-red/oci-iot-ingress-core.json", "fe51bd106564a35829bd4691c31f79c432189122f2c688b875ce080e82e773b4"]
 ]);
 for (const [name, expectedSha256] of executableIntegrity) {

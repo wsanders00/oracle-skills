@@ -54,6 +54,9 @@ When explaining or designing a Flow Runtime workflow:
 1. Identify the domain and whether the flow is operating on the device host,
    data host, or an external system.
 2. Identify the managed node surface actually available in the target runtime.
+   Map documented roles to exact registered types and inspect the relevant
+   target help; use [managed node selection](node-reference.md#managed-target-selection)
+   before applying conditional sample-package details.
 3. For editor or flows work, use [editor and flow collaboration](flows-editor-and-collaboration.md).
 4. For identity, reachability, or persistence, use
    [IAM, network, and storage](iam-network-and-storage.md).

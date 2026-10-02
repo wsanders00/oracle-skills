@@ -1,6 +1,6 @@
 # Database and AQ node contracts
 
-Read this reference when a flow uses the managed Database connection, begin
+Read the managed selection section when a flow uses Database connection, begin
 transaction, end transaction, enqueue, dequeue, or SQL roles. These contracts
 preserve the boundaries that change a flow design; they are not a database
 driver manual and they do not authorize a connection or queue operation.
@@ -17,6 +17,21 @@ to release `0.6.0` at commit
 `d1f886fed04f456b28527d578be140fbc7a6c2f1`; they are normative only for that
 exact revision and must not be attributed to the managed service.
 
+## Managed database workflow
+
+Start with the selected managed runtime's exact database node types and module
+version. Read its node help for connection options, SQL sources, bind mapping,
+row limits, outputs, transaction ownership and error handling. Establish the
+fields needed by the requested flow; an available node or a passing constant
+query does not verify its other contracts. Keep connection values private.
+
+Use those supported fields to design the managed flow. If a requested contract
+is unresolved, prepare a bounded test or report the gap. A local driver or
+sample-node test cannot establish the managed database connection behavior.
+The remaining implementation details on this page describe the pinned sample
+package. Apply a detail only when affirmative target evidence establishes it;
+matching `db-nodes` versions alone does not establish the implementation.
+
 Claim owner: `FR-DB-AQ-DETAIL-001` (pinned official-repository behavior; recheck
 the target palette, selected module/version, database driver, and AQ version
 before live use). The managed role inventory is also summarized in
@@ -30,6 +45,9 @@ only. It does not open a database connection, mutate a queue, commit a
 transaction, execute SQL, or prove target output shapes.
 
 ## Choose the authentication and driver family first
+
+The options and `authType` values below belong to the pinned sample package.
+The managed connection's supported options come from its own verified contract.
 
 Keep database authentication separate from OCI API authentication and from
 device MQTT credentials. A database connection configuration must select and
@@ -63,11 +81,14 @@ Thin versus thick is a driver boundary, not a promise made by the managed node:
   selected family, connect descriptor form, TLS/wallet requirement, and target
   runtime/driver versions as a compatibility gate.
 
-Driver mode is process-wide in one Node-RED runtime. The first database
+In the pinned package, driver mode is process-wide in one Node-RED runtime. The first database
 connection that initializes node-oracledb chooses Thin or Thick; a later node
 requesting the other mode continues with the initialized mode and logs a
-warning. Thick is the source node's default. Restart the runtime to switch
-mode. This is a source/runtime boundary, not a per-config guarantee.
+warning. Thick is the source node's default. A mode switch in that source
+requires a new runtime process. This skill does not prescribe a standalone
+restart or driver installation for a managed runtime. Any required managed
+software or lifecycle operation uses OCI's supported procedure and a separate
+operation scope. This is a source/runtime boundary, not a per-config guarantee.
 
 Do not place usernames, passwords, wallets, private keys, connection strings,
 tokens, or bind values in a flow export or committed fixture. Use placeholders

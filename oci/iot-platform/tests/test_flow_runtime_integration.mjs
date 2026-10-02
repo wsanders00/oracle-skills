@@ -17,6 +17,7 @@ const validatorRel = "flow-runtime/scripts/verify-portable.mjs";
 const scratch = await mkdtemp(join(tmpdir(), "oci-iot-integrated-portability-"));
 let negativeRegressionCount = 0;
 let integratedCaseCount = 0;
+let managedTargetRegressionCount = 0;
 
 const runValidator = async (target) => run(process.execPath, [resolve(target, validatorRel)], {
   cwd: scratch,
@@ -47,9 +48,42 @@ const expectFailure = async (name, mutate, expectedPattern) => {
   assert.match(failure, expectedOrIntegrity, `${name}: validator failed for the wrong reason`);
 };
 
+const expectManagedTargetFailure = async (name, mutate) => {
+  managedTargetRegressionCount += 1;
+  const target = await makeCopy(name);
+  await mutate(target);
+  let failure;
+  try {
+    await runValidator(target);
+  } catch (error) {
+    failure = `${error.stdout ?? ""}\n${error.stderr ?? ""}`;
+  }
+  assert.match(failure ?? "", /managed target-selection decision mismatch/, `${name}: unsafe target promotion was accepted`);
+};
+
 try {
   const direct = await runValidator(packageRoot);
   assert.match(direct.stdout, /verified bundled Flow Runtime module/);
+
+  await expectManagedTargetFailure("managed-target-version-only-promotion", async (target) => {
+    const path = packagePath(target, "assets/nodes/node-identity-cases.json");
+    const fixture = JSON.parse(await readFile(path, "utf8"));
+    fixture.targetSelectionCases.find((item) => item.caseId === "matching-name-and-version-without-contract-stays-gated").expected = {
+      decision: "plan-bounded-managed-test", selectedNodeType: "iot-send-command", contract: "version-match",
+      liveCompatibility: "confirmed", liveAcceptance: "passed", authorization: "granted"
+    };
+    await writeFile(path, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
+  });
+
+  await expectManagedTargetFailure("sample-contract-promoted-to-wrong-managed-module", async (target) => {
+    const path = packagePath(target, "assets/nodes/node-identity-cases.json");
+    const fixture = JSON.parse(await readFile(path, "utf8"));
+    fixture.targetSelectionCases.find((item) => item.caseId === "sample-0-6-contract-cannot-transfer-to-observed-0-5-module").expected = {
+      decision: "plan-bounded-managed-test", selectedNodeType: "iot-send-command", contract: "verified-matching-immutable-implementation",
+      liveCompatibility: "confirmed", liveAcceptance: "passed", authorization: "granted"
+    };
+    await writeFile(path, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
+  });
 
   const standalone = await makeCopy("standalone");
   const copied = await runValidator(standalone);
@@ -885,7 +919,8 @@ try {
 
   assert.equal(negativeRegressionCount, 84, "inherited negative regression inventory changed without an explicit count update");
   assert.equal(integratedCaseCount, 11, "integrated case inventory changed without an explicit count update");
-  console.log(`verified relocated installable skill, ${negativeRegressionCount} inherited regressions, and ${integratedCaseCount} integrated boundary cases`);
+  assert.equal(managedTargetRegressionCount, 2, "managed target-selection regression inventory changed without an explicit count update");
+  console.log(`verified relocated installable skill, ${negativeRegressionCount} inherited regressions, ${integratedCaseCount} integrated boundary cases, and ${managedTargetRegressionCount} managed-target promotion regressions`);
 } finally {
   await rm(scratch, { recursive: true, force: true });
 }

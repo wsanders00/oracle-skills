@@ -3,8 +3,30 @@
 Read this reference when a flow publishes device telemetry, receives device
 messages, sends a command, uses an Object Storage or Notifications scenario
 role, or considers an ORDS, digital-twin, or flow-originated logging node. It
-contains decision boundaries and offline contracts, not a list of every editor
-field and not a live-service test.
+contains managed workflow evidence boundaries and conditional pinned-package
+contracts. Resolve the selected managed node through its target help before
+using package-specific fields.
+
+## Managed flow evidence
+
+Select the exact registered type, owning module/version and configuration
+parent from the managed target. Verify its input/output and authentication
+contract for the requested operation. A managed `oci-config` or
+`iot-send-command` is usable through that contract even when equivalence to
+the sample package is unknown. If a telemetry or subscription type is absent,
+record the target limitation and evaluate an independently supported route.
+
+For publication, distinguish submitted request, transport/service acceptance,
+adapter normalization and current/history readback. For subscription, verify
+the actual source and protocol before applying MQTT rules. For commands,
+distinguish request acceptance, returned correlation and observed device
+completion. These evidence stages apply across implementations; exact message
+properties, defaults, precedence and output fields do not.
+
+The implementation details below belong to the pinned sample package unless
+explicitly attributed to an Oracle scenario. Apply a detail only where
+affirmative evidence establishes it for the selected managed implementation.
+Matching type names or versions alone does not satisfy that check.
 
 ## Source ownership and classification
 
@@ -80,8 +102,14 @@ prove OCI API authorization, adapter normalization, or history persistence.
 
 ## Telemetry publication
 
-The managed `telemetry` role and the package `iot-telemetry` role must be
-selected explicitly. For either contract, preserve the following stages:
+For managed publication, use the selected publisher's supported topic, payload
+and authentication fields. Do not infer its transport, timestamp behavior or
+QoS from a documentation role or the sample node.
+
+### Conditional pinned `iot-telemetry` implementation
+
+The following transformation and precedence rules describe the pinned package
+only; they are not a contract for every managed telemetry node:
 
 1. Resolve the topic using the source implementation's precedence: a non-empty
    configured `Topic` wins; only when it is blank is trimmed `msg.topic` used.
@@ -121,8 +149,14 @@ device-host acceptance.
 
 ## Subscription and command-response boundaries
 
-For a `subscribe`/`iot-subscribe` role, validate MQTT filters before creating a
-session:
+For a managed subscription, establish its actual source, protocol, filters and
+outputs first. Apply the MQTT wildcard rules below only to an established MQTT
+path.
+
+### Conditional pinned `iot-subscribe` implementation
+
+The package node uses a device MQTTS session. Its parser, topic suffix and QoS
+details are conditional package behavior:
 
 - `+` occupies exactly one complete topic level; it cannot be embedded in a
   level such as `sensor+`.
@@ -150,9 +184,15 @@ separate topic/payload contract, with correlation preserved.
 
 ## Send-command contract
 
-The managed `send command` role and package `iot-send-command` role have
-different source classifications but the same evidence stages. Link the node
-to the selected OCI API configuration and supply the exact request endpoint.
+For a managed command, verify the selected node's configuration parent, request
+and response fields, duration bounds, output correlation and error handling.
+Design from that contract and establish completion independently of request
+acceptance. A familiar node name does not select the implementation below.
+
+### Conditional pinned `iot-send-command` implementation
+
+Link the package node to its selected OCI API configuration and supply the
+exact request endpoint.
 `Request Endpoint` is required and may be overridden by `msg.requestEndpoint`;
 it is the endpoint/topic the device or gateway subscribes to. Do not synthesize
 an endpoint from a device MQTT host. `Response Endpoint` is a separate,
@@ -311,7 +351,7 @@ offline readiness only.
 | Request shape | Route |
 | --- | --- |
 | “Use `iot-config`” with no further context | Ask whether managed OCI Config or sample device MQTTS config is intended |
-| Publish telemetry | Choose managed `telemetry` or package `iot-telemetry` explicitly; preserve payload and separate service acceptance from normalization/history |
+| Publish telemetry | Select the supported publisher in the managed target; use verified fields and separate service acceptance from normalization/history; consult package details only when applicable |
 | Subscribe to commands | Validate wildcard/QoS and parsed-versus-string output; design explicit command-response publication |
 | Send a command and know whether it completed | Use managed send-command plus its documented status/correlation contract; keep accepted request separate from completion |
 | Poll command status | Use the selected official SQL flow contract or an explicitly gated ORDS extension; do not merge them |

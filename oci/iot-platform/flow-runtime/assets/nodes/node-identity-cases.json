@@ -6,18 +6,59 @@
   "matrixPath": "../../references/node-capability-matrix.md",
   "claimId": "FR-NODE-IDENTITY-001",
   "sourceRecords": [
-    { "sourceId": "O1", "role": "managed Flow Runtime editor and documented palette", "immutableRef": null },
-    { "sourceId": "C11", "role": "official batch Object Storage scenario role", "immutableRef": null },
-    { "sourceId": "C12", "role": "official monitoring/command/Notifications scenario role", "immutableRef": null },
-    { "sourceId": "O7", "role": "Oracle sample-package repository", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "release": "0.6.0" },
-    { "sourceId": "S4", "role": "Oracle sample-package node reference", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "release": "0.6.0" },
-    { "sourceId": "N1", "role": "generic Node-RED Function semantics", "immutableRef": null },
-    { "sourceId": "N2", "role": "generic Node-RED message semantics", "immutableRef": null },
-    { "sourceId": "N4", "role": "generic Node-RED error/status semantics", "immutableRef": null },
-    { "sourceId": "M1", "role": "MQTT protocol semantics", "immutableRef": null }
+    {
+      "sourceId": "O1",
+      "role": "managed Flow Runtime editor and documented palette",
+      "immutableRef": null
+    },
+    {
+      "sourceId": "C11",
+      "role": "official batch Object Storage scenario role",
+      "immutableRef": null
+    },
+    {
+      "sourceId": "C12",
+      "role": "official monitoring/command/Notifications scenario role",
+      "immutableRef": null
+    },
+    {
+      "sourceId": "O7",
+      "role": "Oracle sample-package repository",
+      "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.6.0"
+    },
+    {
+      "sourceId": "S4",
+      "role": "Oracle sample-package node reference",
+      "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.6.0"
+    },
+    {
+      "sourceId": "N1",
+      "role": "generic Node-RED Function semantics",
+      "immutableRef": null
+    },
+    {
+      "sourceId": "N2",
+      "role": "generic Node-RED message semantics",
+      "immutableRef": null
+    },
+    {
+      "sourceId": "N4",
+      "role": "generic Node-RED error/status semantics",
+      "immutableRef": null
+    },
+    {
+      "sourceId": "M1",
+      "role": "MQTT protocol semantics",
+      "immutableRef": null
+    }
   ],
   "samplePackageGate": {
-    "sourceIds": ["O7", "S4"],
+    "sourceIds": [
+      "O7",
+      "S4"
+    ],
     "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
     "release": "0.6.0",
     "status": "pinned-source-target-gated",
@@ -28,104 +69,523 @@
   "cases": [
     {
       "caseId": "managed-iot-config-context",
-      "request": "Use the managed editor's OCI Config for a telemetry node",
+      "request": "Classify the managed editor's documented OCI Config role label",
       "surfaceContext": "managed-editor",
       "name": "iot-config",
-      "expected": { "decision": "select", "classification": "managed-documented", "canonicalName": "iot-config", "paletteLabel": "OCI Config", "sourceOwner": "O1", "authenticationFamily": "oci-configuration", "configurationParent": null, "targetGate": "managed-palette-and-runtime-inspection" }
+      "expected": {
+        "decision": "classify-source-role",
+        "classification": "managed-documented",
+        "documentedNodeLabel": "iot-config",
+        "paletteLabel": "OCI Config",
+        "sourceOwner": "O1",
+        "authenticationFamily": "oci-configuration",
+        "targetSelection": "requires-selected-target-observation"
+      }
     },
     {
       "caseId": "sample-device-iot-config-context",
       "request": "Use the sample package's device MQTTS connection config",
       "surfaceContext": "sample-package-device-mqtt",
       "name": "iot-config",
-      "expected": { "decision": "select-but-gate", "classification": "sample-package", "canonicalName": "iot-config", "paletteLabel": "sample device MQTT config", "sourceOwner": "S4", "sourceIds": ["O7", "S4"], "authenticationFamily": "device-mqtts", "configurationParent": null, "targetGate": "immutable-package-and-target-palette" }
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "sample-package",
+        "canonicalName": "iot-config",
+        "paletteLabel": "sample device MQTT config",
+        "sourceOwner": "S4",
+        "sourceIds": [
+          "O7",
+          "S4"
+        ],
+        "authenticationFamily": "device-mqtts",
+        "configurationParent": null,
+        "targetGate": "immutable-package-and-target-palette"
+      }
     },
     {
       "caseId": "sample-cloud-oci-config-context",
       "request": "Use the sample package OCI REST authentication for a command node",
       "surfaceContext": "sample-package-oci-rest",
       "name": "oci-config",
-      "expected": { "decision": "select-but-gate", "classification": "sample-package", "canonicalName": "oci-config", "paletteLabel": "sample OCI config", "sourceOwner": "S4", "sourceIds": ["O7", "S4"], "authenticationFamily": "oci-api", "configurationParent": null, "targetGate": "immutable-package-and-target-palette" }
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "sample-package",
+        "canonicalName": "oci-config",
+        "paletteLabel": "sample OCI config",
+        "sourceOwner": "S4",
+        "sourceIds": [
+          "O7",
+          "S4"
+        ],
+        "authenticationFamily": "oci-api",
+        "configurationParent": null,
+        "targetGate": "immutable-package-and-target-palette"
+      }
     },
     {
       "caseId": "bare-iot-config-requires-clarification",
       "request": "Configure iot-config",
       "surfaceContext": null,
       "name": "iot-config",
-      "expected": { "decision": "clarify", "reason": "ambiguous-name", "candidateIdentities": ["managed-iot-config", "sample-device-iot-config"], "authenticationFamilies": ["oci-configuration", "device-mqtts"], "sourceOwners": ["O1", "S4"] }
+      "expected": {
+        "decision": "clarify",
+        "reason": "ambiguous-name",
+        "candidateIdentities": [
+          "managed-iot-config",
+          "sample-device-iot-config"
+        ],
+        "authenticationFamilies": [
+          "oci-configuration",
+          "device-mqtts"
+        ],
+        "sourceOwners": [
+          "O1",
+          "S4"
+        ]
+      }
     },
     {
       "caseId": "managed-label-does-not-select-sample",
       "request": "A sample iot-config should be treated as OCI Config because the labels match",
       "surfaceContext": "sample-package-device-mqtt",
       "name": "iot-config",
-      "expected": { "decision": "reject", "reason": "authentication-family-mismatch", "classification": "sample-package", "authenticationFamily": "device-mqtts", "mustNotBe": "managed-documented", "sourceOwner": "S4", "sourceIds": ["O7", "S4"] }
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch",
+        "classification": "sample-package",
+        "authenticationFamily": "device-mqtts",
+        "mustNotBe": "managed-documented",
+        "sourceOwner": "S4",
+        "sourceIds": [
+          "O7",
+          "S4"
+        ]
+      }
     },
     {
       "caseId": "oci-config-is-not-device-config",
       "request": "Use oci-config credentials for an iot-telemetry device session",
       "surfaceContext": "sample-package-oci-rest",
       "name": "oci-config",
-      "expected": { "decision": "reject", "reason": "authentication-family-mismatch", "classification": "sample-package", "authenticationFamily": "oci-api", "mustNotAuthenticate": "device-mqtts", "sourceOwner": "S4", "sourceIds": ["O7", "S4"] }
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch",
+        "classification": "sample-package",
+        "authenticationFamily": "oci-api",
+        "mustNotAuthenticate": "device-mqtts",
+        "sourceOwner": "S4",
+        "sourceIds": [
+          "O7",
+          "S4"
+        ]
+      }
     },
     {
       "caseId": "managed-database-child-parent",
       "request": "Choose the SQL node from the managed database palette",
       "surfaceContext": "managed-editor",
       "name": "sql",
-      "expected": { "decision": "select", "classification": "managed-documented", "sourceOwner": "O1", "configurationParent": "managed-db-connection", "authenticationFamily": "oracle-database", "targetGate": "managed-palette-and-database-contract" }
+      "expected": {
+        "decision": "select",
+        "classification": "managed-documented",
+        "sourceOwner": "O1",
+        "configurationParent": "managed-db-connection",
+        "authenticationFamily": "oracle-database",
+        "targetGate": "managed-palette-and-database-contract"
+      }
     },
     {
       "caseId": "official-object-storage-role",
       "request": "Download the next CSV object in Oracle's batch scenario",
       "surfaceContext": "official-scenario-batch",
       "name": "Object Storage download",
-      "expected": { "decision": "select-but-gate", "classification": "official-scenario", "sourceOwner": "C11", "exactPaletteIdentity": "not-established", "targetGate": "scenario-role-and-target-palette", "offlineAllowed": true }
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "official-scenario",
+        "sourceOwner": "C11",
+        "exactPaletteIdentity": "not-established",
+        "targetGate": "scenario-role-and-target-palette",
+        "offlineAllowed": true
+      }
     },
     {
       "caseId": "official-notifications-role",
       "request": "Publish the formatted command alert from Oracle's monitoring scenario",
       "surfaceContext": "official-scenario-monitoring",
       "name": "OCI Notifications publication",
-      "expected": { "decision": "select-but-gate", "classification": "official-scenario", "sourceOwner": "C12", "exactPaletteIdentity": "not-established", "targetGate": "scenario-role-and-target-palette", "publicationIsNotSubscriberDelivery": true, "offlineAllowed": true }
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "official-scenario",
+        "sourceOwner": "C12",
+        "exactPaletteIdentity": "not-established",
+        "targetGate": "scenario-role-and-target-palette",
+        "publicationIsNotSubscriberDelivery": true,
+        "offlineAllowed": true
+      }
     },
     {
       "caseId": "mutable-sample-reference-cannot-be-normative",
       "request": "Copy package-specific iot-subscribe behavior from the current repository main branch",
       "surfaceContext": "sample-package",
       "name": "iot-subscribe",
-      "expected": { "decision": "reject-normative-use", "classification": "sample-package", "sourceOwner": "S4", "sourceIds": ["O7", "S4"], "reason": "immutable-reference-required", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "selectedRevision": "main", "mutableMainSatisfiesGate": false, "targetGate": "pinned-source-target-gated" }
+      "expected": {
+        "decision": "reject-normative-use",
+        "classification": "sample-package",
+        "sourceOwner": "S4",
+        "sourceIds": [
+          "O7",
+          "S4"
+        ],
+        "reason": "immutable-reference-required",
+        "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+        "selectedRevision": "main",
+        "mutableMainSatisfiesGate": false,
+        "targetGate": "pinned-source-target-gated"
+      }
     },
     {
       "caseId": "generic-mqtt-is-not-oci-device-node",
       "request": "Use mqtt in to prove an OCI device subscription",
       "surfaceContext": "generic-node-red",
       "name": "mqtt in",
-      "expected": { "decision": "reject-claim", "classification": "generic-core", "sourceOwner": "N2", "sourceIds": ["N2", "M1"], "reason": "generic-semantics-do-not-prove-oci-device-session", "authenticationFamily": "generic-broker" }
+      "expected": {
+        "decision": "reject-claim",
+        "classification": "generic-core",
+        "sourceOwner": "N2",
+        "sourceIds": [
+          "N2",
+          "M1"
+        ],
+        "reason": "generic-semantics-do-not-prove-oci-device-session",
+        "authenticationFamily": "generic-broker"
+      }
     },
     {
       "caseId": "fusion-scm-routes-elsewhere",
       "request": "Add a Fusion SCM node to this OCI IoT skill",
       "surfaceContext": null,
       "name": "Fusion SCM",
-      "expected": { "decision": "route-elsewhere", "classification": "routed-elsewhere", "sourceOwner": "none", "reason": "outside-skill-boundary" }
+      "expected": {
+        "decision": "route-elsewhere",
+        "classification": "routed-elsewhere",
+        "sourceOwner": "none",
+        "reason": "outside-skill-boundary"
+      }
     },
     {
       "caseId": "arbitrary-community-node-routes-elsewhere",
       "request": "Install an arbitrary community node in the managed runtime",
       "surfaceContext": "managed-editor",
       "name": "community-example",
-      "expected": { "decision": "route-elsewhere", "classification": "routed-elsewhere", "sourceOwner": "none", "reason": "self-hosted-or-unverified-module" }
+      "expected": {
+        "decision": "route-elsewhere",
+        "classification": "routed-elsewhere",
+        "sourceOwner": "none",
+        "reason": "self-hosted-or-unverified-module"
+      }
     }
   ],
   "offlineProof": [
     "Explicit context resolves managed iot-config, sample device iot-config, and sample oci-config without merging identities.",
     "Every case carries one classification and one source owner, including routed-out requests.",
-    "The recorded immutable revision permits exact-revision source evidence while the absent target palette inspection keeps sample nodes compatibility-gated and rejects mutable-main substitution."
+    "The recorded immutable revision permits exact-revision source evidence while the absent target palette inspection keeps sample nodes compatibility-gated and rejects mutable-main substitution.",
+    "Target selection uses exact observed module and node type independently from source-role labels. Target contract evidence must bind implementation fields, outputs, authentication, module identity, and provenance; it can plan only a bounded managed test, never live acceptance or authorization."
   ],
   "cannotProve": [
     "managed palette availability, target runtime/version/region compatibility, or package permission",
     "OCI IAM/resource-principal authorization, device MQTTS connection, database/queue access, or service reachability",
-    "telemetry normalization/history, command completion, Notification subscriber delivery, or any live side effect"
-  ]
+    "telemetry normalization/history, command completion, Notification subscriber delivery, or any live side effect",
+    "managed target live compatibility, successful service behavior, or authorization from target-selection evidence"
+  ],
+  "targetSelectionCases": [
+    {
+      "caseId": "managed-target-uses-exact-observed-config-type",
+      "request": "Select the managed OCI API config from the selected target",
+      "sourceRoleCaseId": "managed-iot-config-context",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "oci-config",
+          "available": true
+        },
+        "targetContractEvidence": null,
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "expected": {
+        "decision": "compatibility-gate",
+        "selectedNodeType": "oci-config",
+        "contract": "unverified",
+        "reason": "affirmative-target-contract-evidence-required",
+        "liveCompatibility": "unproven",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "selected-managed-target-lacks-telemetry-subscribe",
+      "request": "Subscribe to device telemetry on the selected managed target",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "iot-subscribe",
+          "available": false
+        },
+        "targetContractEvidence": null,
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "requiredCapability": "telemetry-subscribe",
+      "expected": {
+        "decision": "unavailable",
+        "selectedNodeType": "iot-subscribe",
+        "availability": "absent-on-selected-target",
+        "liveCompatibility": "unproven",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "unknown-selected-palette-requires-inspection",
+      "request": "Choose a command node on the selected managed target",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "unknown",
+        "node": {
+          "type": null,
+          "available": true
+        },
+        "targetContractEvidence": null,
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "requiredCapability": "command-send",
+      "expected": {
+        "decision": "inspect-palette",
+        "availability": "unknown",
+        "liveCompatibility": "unproven",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "matching-name-and-version-without-contract-stays-gated",
+      "request": "Use the matching-looking command node based on name and module version only",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "iot-send-command",
+          "available": true
+        },
+        "targetContractEvidence": null,
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "requiredCapability": "command-send",
+      "expected": {
+        "decision": "compatibility-gate",
+        "selectedNodeType": "iot-send-command",
+        "contract": "unverified",
+        "reason": "affirmative-target-contract-evidence-required",
+        "liveCompatibility": "unproven",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "sample-0-6-contract-cannot-transfer-to-observed-0-5-module",
+      "request": "Apply pinned sample package 0.6.0 command fields to observed managed module 0.5.0",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "iot-send-command",
+          "available": true
+        },
+        "targetContractEvidence": {
+          "status": "verified",
+          "kind": "immutable-package-implementation",
+          "reference": "synthetic-pinned-sample",
+          "nodeType": "iot-send-command",
+          "moduleIdentity": "node-red-contrib-oracle-iot",
+          "moduleVersion": "0.6.0",
+          "fields": [
+            "command"
+          ],
+          "outputs": [
+            "request"
+          ],
+          "auth": "sample package OCI API config",
+          "provenance": "synthetic-target-contract-evidence",
+          "targetRuntimeProvenance": "synthetic-selected-target-inventory"
+        },
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "expected": {
+        "decision": "compatibility-gate",
+        "selectedNodeType": "iot-send-command",
+        "contract": "unverified-for-selected-target",
+        "reason": "module-identity-or-version-mismatch",
+        "liveCompatibility": "unproven",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "verified-exact-target-contract-plans-only-bounded-test",
+      "request": "Plan a bounded managed test for the verified exact OCI config contract",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "oci-config",
+          "available": true
+        },
+        "targetContractEvidence": {
+          "status": "verified",
+          "kind": "target-inspection",
+          "reference": "synthetic-inspection-record",
+          "nodeType": "oci-config",
+          "moduleIdentity": "oci-nodes",
+          "moduleVersion": "0.5.0",
+          "fields": [
+            "authenticationMode",
+            "profile"
+          ],
+          "outputs": [
+            "ociClientConfig"
+          ],
+          "auth": "OCI API signing configuration",
+          "provenance": "synthetic-target-contract-evidence",
+          "targetRuntimeProvenance": "synthetic-selected-target-inventory"
+        },
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "requiredCapability": "oci-api-config",
+      "expected": {
+        "decision": "plan-bounded-managed-test",
+        "selectedNodeType": "oci-config",
+        "contract": "verified-exact-target",
+        "liveCompatibility": "unproven-until-live-test",
+        "liveAcceptance": "not-run",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "matching-immutable-package-implementation-plans-only-bounded-test",
+      "request": "Plan bounded test where immutable implementation matches selected module identity and version",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "iot-send-command",
+          "available": true
+        },
+        "targetContractEvidence": {
+          "status": "verified",
+          "kind": "immutable-package-implementation",
+          "reference": "synthetic-immutable-revision",
+          "nodeType": "iot-send-command",
+          "moduleIdentity": "oci-nodes",
+          "moduleVersion": "0.5.0",
+          "fields": [
+            "twinId",
+            "command"
+          ],
+          "outputs": [
+            "requestId"
+          ],
+          "auth": "OCI API signing configuration",
+          "provenance": "synthetic-target-contract-evidence",
+          "targetRuntimeProvenance": "synthetic-selected-target-inventory"
+        },
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "requiredCapability": "command-send",
+      "expected": {
+        "decision": "plan-bounded-managed-test",
+        "selectedNodeType": "iot-send-command",
+        "contract": "verified-matching-immutable-implementation",
+        "liveCompatibility": "unproven-until-live-test",
+        "liveAcceptance": "not-run",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "standalone-version-match-is-outside-managed-acceptance",
+      "request": "Use standalone Node-RED version match to claim managed runtime compatibility",
+      "target": {
+        "product": "standalone-node-red",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "oci-config",
+          "available": true
+        },
+        "targetContractEvidence": null,
+        "runtimeProvenance": "synthetic-selected-target-inventory"
+      },
+      "expected": {
+        "decision": "route-outside-managed-runtime",
+        "reason": "standalone-runtime-is-not-managed-target",
+        "liveAcceptance": "not-established",
+        "authorization": "not-granted"
+      }
+    },
+    {
+      "caseId": "missing-managed-runtime-provenance-stops-target-promotion",
+      "request": "Select a node based on module version without selected runtime provenance",
+      "target": {
+        "product": "managed-flow-runtime",
+        "runtimeVersion": "5.0.1",
+        "nodeRedVersion": "5.0.1",
+        "moduleIdentity": "oci-nodes",
+        "moduleVersion": "0.5.0",
+        "paletteStatus": "inspected",
+        "node": {
+          "type": "iot-send-command",
+          "available": true
+        },
+        "targetContractEvidence": null
+      },
+      "expected": {
+        "decision": "inspect-target-provenance",
+        "selectedNodeType": "iot-send-command",
+        "availability": "observed",
+        "liveCompatibility": "unproven",
+        "authorization": "not-granted"
+      }
+    }
+  ],
+  "targetSelectionFixtureOnly": {
+    "targetIdentity": "fictional",
+    "versionValues": "illustrative only; not a claim of inspected compatibility",
+    "contractProvenance": "synthetic fixture evidence only",
+    "liveInspectionPerformed": false
+  }
 }
