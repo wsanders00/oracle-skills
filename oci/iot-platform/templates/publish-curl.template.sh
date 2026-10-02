@@ -15,7 +15,14 @@ set -euo pipefail
 : "${OCI_REGION:?set OCI_REGION}"
 
 REFERENCE_ENDPOINT="${REFERENCE_ENDPOINT:-/sampletopic}"
-REFERENCE_ENDPOINT="/${REFERENCE_ENDPOINT#/}"
+if [[ "$REFERENCE_ENDPOINT" == *"://"* || "$REFERENCE_ENDPOINT" == *[[:space:]]* ]]; then
+  echo "REFERENCE_ENDPOINT must be a path without whitespace or a URL scheme" >&2
+  exit 2
+fi
+while [[ "$REFERENCE_ENDPOINT" == /* ]]; do
+  REFERENCE_ENDPOINT="${REFERENCE_ENDPOINT#/}"
+done
+REFERENCE_ENDPOINT="/$REFERENCE_ENDPOINT"
 URL="https://${DOMAIN_SHORT_ID}.device.iot.${OCI_REGION}.oci.oraclecloud.com${REFERENCE_ENDPOINT}"
 TS="$(date -u +"%Y-%m-%dT%H:%M:%S").000000Z"
 
@@ -27,7 +34,7 @@ PAYLOAD="$(cat <<JSON
 JSON
 )"
 
-curl -sS -u "${DEVICE_USER}:${DEVICE_SECRET}" \
+curl -sS --fail -u "${DEVICE_USER}:${DEVICE_SECRET}" \
   -H "Content-Type: application/json" \
   -d "${PAYLOAD}" \
   "${URL}"

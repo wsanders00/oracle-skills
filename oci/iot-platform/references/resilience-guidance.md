@@ -2,6 +2,16 @@
 
 Use this reference when an OCI IoT task involves troubleshooting, large fleets, gateway topology, raw commands, publish failures, cleanup, or uncertainty about CLI, SDK, or MCP behavior.
 
+Choose the operator CLI signer and global options with
+[operator-authentication.md](operator-authentication.md). In the same Bash
+shell, initialize `OCI_CLI_GLOBAL_ARGS` as shown in
+[cli-workflows.md](cli-workflows.md) and reuse it unchanged in every OCI CLI
+command below. Include `--profile` only for a selected config profile and
+`--auth` when the selected operator method needs it; do not assume a profile is
+required for workload identity. This is operator authentication for the CLI.
+It is separate from the Flow Runtime's resource principal and device publishing
+credentials.
+
 ## Default Operator Posture
 
 - Read before changing. Capture current resource state before create, update, delete, publish, or command operations.
@@ -17,10 +27,10 @@ Use the OCI CLI as the default public path because it is broadly available and m
 Before using recently added flags or when CLI docs, SDK docs, and local behavior differ, verify the local command shape:
 
 ```bash
-oci iot digital-twin-instance list --help
-oci iot digital-twin-instance create --help
-oci iot digital-twin-relationship list --help
-oci iot digital-twin-instance invoke-raw-json-command --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance list --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance create --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-relationship list --help
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance invoke-raw-json-command --help
 ```
 
 Use the Python SDK when the task needs repeatable structured pagination, programmatic reporting, or fields that are exposed in the SDK before examples appear in CLI docs.
@@ -32,7 +42,7 @@ MCP is optional. Use an OCI IoT MCP server only when it is already available in 
 For first-pass discovery, avoid unbounded domain-wide reads:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance list \
   --iot-domain-id <iot_domain_ocid> \
   --lifecycle-state ACTIVE \
   --limit 100 \
@@ -44,7 +54,7 @@ If a response includes a next page token, continue only while the next token is 
 For operator summaries, use targeted filters first:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance list \
   --iot-domain-id <iot_domain_ocid> \
   --digital-twin-model-id <digital_twin_model_ocid> \
   --connectivity-type DIRECT \
@@ -60,7 +70,7 @@ Use `--all` only after confirming the domain is small enough or the user explici
 Always request metadata when checking current state:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get-content \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance get-content \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --should-include-metadata true \
   --output json
@@ -75,7 +85,7 @@ Digital twin instances can be direct devices, gateways, indirect devices, or non
 When creating a digital twin instance, do not assume `INDIRECT` connectivity. If the request is for a normal publishing device and no gateway routing is mentioned, use or recommend `DIRECT` and explain the required auth resource. Use `INDIRECT` only when the user explicitly asks for a downstream/gateway-routed device or provides a gateway routing requirement.
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance list \
   --iot-domain-id <iot_domain_ocid> \
   --connectivity-type GATEWAY \
   --lifecycle-state ACTIVE \
@@ -86,7 +96,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance list
 For indirect devices, inspect the instance and confirm the `gateways` field:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance get \
   --digital-twin-instance-id <indirect_twin_ocid> \
   --output json
 ```
@@ -94,7 +104,7 @@ oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance get 
 When creating an indirect twin, pass a gateway list only after confirming the gateway twin is `ACTIVE` and has `connectivityType` of `GATEWAY`:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance create \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance create \
   --iot-domain-id <iot_domain_ocid> \
   --connectivity-type INDIRECT \
   --gateways '["<gateway_twin_ocid>"]' \
@@ -118,7 +128,7 @@ Relationship direction matters. Before creating or troubleshooting a relationshi
 - filter by source, target, and content path instead of reading all relationships
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-relationship list \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-relationship list \
   --iot-domain-id <iot_domain_ocid> \
   --source-digital-twin-instance-id <source_twin_ocid> \
   --target-digital-twin-instance-id <target_twin_ocid> \
@@ -135,20 +145,20 @@ If a relationship appears missing, check the reverse direction before creating a
 After create, update, or delete operations, capture the work request ID when the CLI returns one. For failures or slow state transitions, inspect status, errors, and logs:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> work-request get \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request get \
   --work-request-id <work_request_ocid> \
   --output json
 ```
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> work-request list-errors \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request list-errors \
   --work-request-id <work_request_ocid> \
   --limit 100 \
   --output json
 ```
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> work-request list-logs \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request list-logs \
   --work-request-id <work_request_ocid> \
   --limit 100 \
   --output json
@@ -180,7 +190,7 @@ For raw commands, a `202` response means the command was accepted for processing
 When a response is expected, include response endpoint and duration fields:
 
 ```bash
-oci iot --profile <oci_profile> --region <oci_region> digital-twin-instance invoke-raw-json-command \
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance invoke-raw-json-command \
   --digital-twin-instance-id <digital_twin_instance_ocid> \
   --request-endpoint <request_endpoint> \
   --request-duration PT30S \

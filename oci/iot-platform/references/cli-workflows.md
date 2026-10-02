@@ -8,6 +8,7 @@ Use this file for the public, CLI-first operator path. For large fleets, gateway
 - `OCI_CLI_PROFILE` only when the chosen auth mode uses a named OCI CLI config profile
 - `OCI_CLI_AUTH` when selecting a non-default CLI auth mode
 - `OCI_REGION` when not derivable from the domain
+- the target compartment OCID when listing domain groups or Flow Runtimes
 - resource identifiers already known by the user:
   - digital twin model ID
   - digital twin adapter ID
@@ -32,6 +33,11 @@ bash scripts/derive_domain_context.sh "${OCI_CLI_GLOBAL_ARGS[@]}" \
 ```
 
 The helper accepts `--profile` and `--auth` when needed. Omit `--auth` when relying on the CLI default. Do not assume a named profile is required for instance, resource, or workload identity authentication.
+For a CLI session/security token, use Oracle's
+[token-based CLI authentication guide](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/clitoken.htm)
+to create or refresh the session, validate it with `oci session validate`, and
+then include the selected `--profile` and `--auth security_token` consistently
+in `OCI_CLI_GLOBAL_ARGS`.
 
 ## Command Capability Check
 
@@ -56,10 +62,18 @@ oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain get \
   --output json
 ```
 
-List domain groups only when the user needs tenancy discovery:
+List domain groups only when needed for a specific target compartment. This
+command is compartment-scoped and does not perform root-tenancy discovery;
+gather the intended compartment and region along with the operator auth context
+before running it. Start with a bounded first page and use filters supported by
+the installed CLI's `--help` output:
 
 ```bash
-oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot domain-group list --all
+oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> domain-group list \
+  --compartment-id <target_compartment_ocid> \
+  --lifecycle-state ACTIVE \
+  --limit 100 \
+  --output json
 ```
 
 List active digital twin instances with a bounded first page:

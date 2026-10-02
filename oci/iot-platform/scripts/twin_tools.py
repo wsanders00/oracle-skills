@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -88,6 +89,8 @@ def iter_records(payload: Any) -> Iterable[Dict[str, Any]]:
                 for item in value:
                     if isinstance(item, dict):
                         yield item
+            elif key == "data" and isinstance(value, dict):
+                yield value
 
 
 def get_key_path(data: Dict[str, Any], path: Optional[str]) -> Any:
@@ -156,6 +159,8 @@ def cmd_offline(args: argparse.Namespace) -> int:
     now = parse_time(args.now) if args.now else datetime.now(timezone.utc)
     if now is None:
         raise SystemExit("--now must be ISO8601")
+    if not math.isfinite(args.threshold_minutes) or args.threshold_minutes < 0:
+        raise SystemExit("--threshold-minutes must be a finite non-negative number")
     threshold_seconds = args.threshold_minutes * 60.0
     latest_by_device: Dict[str, datetime] = {}
 

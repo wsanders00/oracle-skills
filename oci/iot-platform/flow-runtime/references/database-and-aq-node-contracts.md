@@ -96,13 +96,17 @@ opened. Keep transactions short and do not hold one across slow HTTP, MQTT,
 or OCI calls unless the selected contract explicitly requires and bounds that
 coupling.
 
-Commit is the durability boundary for transaction-owned database and AQ work.
-Before commit, an offline model may say only `accepted-in-transaction`; it may
-not say durable. Rollback must make pending work ineligible for durable
-visibility. Timeout, connection loss, commit failure, and a context that has
-already ended are distinct outcomes requiring a selected recovery decision;
-blind retry can duplicate an enqueue or DML operation. An already-ended
-context is terminal for that handle and must not be reused.
+Commit is the transaction boundary for database work and persistent AQ
+messages. Before commit, an offline model may say only
+`accepted-in-transaction`; it may not say durable. Rollback must make pending
+database work and persistent AQ messages ineligible for durable visibility.
+Buffered AQ messages remain transient even when the node or transaction path
+reports commit; check the selected target's buffered enqueue semantics rather
+than inferring durability or rollback behavior. Timeout, connection loss,
+commit failure, and a context that has already ended are distinct outcomes
+requiring a selected recovery decision; blind retry can duplicate an enqueue
+or DML operation. An already-ended context is terminal for that handle and
+must not be reused.
 
 ## Enqueue: payload, recipient, delivery, and commit
 
@@ -128,13 +132,18 @@ fields in the selected contract:
   Thick driver mode. Buffered RAW/ADT is not durable across a database
   restart. Verify exact restrictions and queue configuration in the target AQ
   contract.
-- Distinguish standalone operation from transaction-owned operation. A
-  transaction-owned enqueue is durable only after its owning transaction
-  commits; rollback leaves no durable enqueue in the model. The pinned enqueue
-  node's standalone path opens its own connection, enqueues, explicitly
-  commits, and closes it. A successful standalone enqueue is therefore
-  durable at that explicit commit boundary; a commit failure is an
-  error/uncertain outcome, not a success to retry blindly.
+- Distinguish delivery mode as well as standalone versus transaction-owned
+  operation. For `persistent` delivery, a transaction-owned enqueue becomes
+  durable only after its owning transaction commits; rollback leaves no durable
+  enqueue in the model. The pinned enqueue node's standalone path opens its own
+  connection, enqueues, explicitly commits, and closes it, so a successful
+  standalone `persistent` enqueue reaches the database commit boundary. For
+  `buffered` delivery, acceptance or a successful node/transaction commit does
+  not make the message persistent: buffered messages reside in Oracle shared
+  memory and can be lost on database restart. Verify which delivery modes the
+  selected AQ queue and transaction path support; do not infer persistent
+  durability or transactional rollback protection for buffered messages. A
+  commit failure is an error/uncertain outcome, not a success to retry blindly.
 - Pass-through means the downstream message keeps its correlation and
   non-secret fields while the enqueue result is attached in the documented
   result location. It does not mean the consumer has read or processed the

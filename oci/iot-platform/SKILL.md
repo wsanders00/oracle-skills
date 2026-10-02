@@ -90,6 +90,11 @@ accessing or changing live state, and the
 freshness. The examples prepare or simulate messages offline; they do not
 publish to OCI, prove target compatibility, or authorize a live operation.
 
+Run commands that reference this skill's top-level `scripts/` or `templates/`
+from the installed skill root (the directory containing this `SKILL.md`). For
+commands under `flow-runtime/`, use the `flow-runtime/` subdirectory as stated
+above.
+
 ## Bundled Resources
 
 - Run [scripts/derive_domain_context.sh](scripts/derive_domain_context.sh) to derive:

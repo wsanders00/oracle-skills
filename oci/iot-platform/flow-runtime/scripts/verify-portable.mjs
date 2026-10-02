@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { lstat, readdir, readFile } from "node:fs/promises";
+import { lstat, readdir, readFile, realpath } from "node:fs/promises";
 import { basename, dirname, extname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
@@ -150,7 +150,10 @@ for (const [name, expectedSha256] of executableIntegrity) {
   assert.equal(actualSha256, expectedSha256, `executable integrity mismatch: ${name}`);
 }
 
-const skillText = await readFile(resolve(skillRoot, "SKILL.md"), "utf8");
+const skillPath = resolve(skillRoot, "SKILL.md");
+const skillStat = await lstat(skillPath);
+assert.equal(skillStat.isFile(), true, "parent SKILL.md must be a regular file, not a symlink or special file");
+const skillText = await readFile(skillPath, "utf8");
 scanBytes(Buffer.from(skillText, "utf8"), "SKILL.md");
 assert.match(skillText, /^---\r?\n[\s\S]*?\r?\n---\r?\n/, "SKILL.md must start with YAML frontmatter");
 const frontmatter = skillText.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/)[1];
@@ -158,6 +161,27 @@ assert.match(frontmatter, /^name:\s+oci-iot-platform\s*$/m, "SKILL.md has the wr
 assert.match(frontmatter, /^description:\s+\S.+$/m, "SKILL.md needs a description");
 for (const pattern of [/OCI IoT/i, /managed Node-RED/i, /self-hosted Node-RED/i, /explicit approval/i, /(?:do|does)\s+not\s+publish/i]) {
   assert.match(skillText, pattern, `SKILL.md is missing a required boundary: ${pattern}`);
+}
+assert.match(skillText, /\]\(flow-runtime\/references\/flow-runtime\.md\)/, "parent SKILL.md must route to the managed Flow Runtime reference");
+assert.match(skillText, /\]\(flow-runtime\/references\/safety-and-live-gates\.md\)/, "parent SKILL.md must route to live-operation gates");
+const installableRoot = skillRoot;
+const installableRealRoot = await realpath(installableRoot);
+const parentLinks = [
+  /!?(?:\[[^\]]*\])\(([^)]+)\)/g,
+  /^\s*\[[^\]]+\]:\s*(\S+)/gm
+];
+for (const rawTarget of parentLinks.flatMap((pattern) => [...skillText.matchAll(pattern)].map((match) => match[1]))) {
+  let target = rawTarget.trim();
+  if (target.startsWith("<") && target.endsWith(">")) target = target.slice(1, -1);
+  target = target.split(/\s+["']/)[0];
+  if (/^(?:https?:\/\/|mailto:|#)/i.test(target)) continue;
+  assert.doesNotMatch(target, /^(?:\/|~|[A-Za-z]:[\\/])/, `SKILL.md has an absolute local link: ${target}`);
+  const cleanTarget = target.split(/[?#]/, 1)[0];
+  const targetPath = resolve(dirname(skillPath), cleanTarget);
+  assert.equal(targetPath === installableRoot || targetPath.startsWith(`${installableRoot}${sep}`), true, `SKILL.md has a link escaping the installable skill: ${target}`);
+  assert.equal(await isFile(targetPath), true, `SKILL.md has a link to a missing file: ${target}`);
+  const resolvedTargetPath = await realpath(targetPath);
+  assert.equal(resolvedTargetPath === installableRealRoot || resolvedTargetPath.startsWith(`${installableRealRoot}${sep}`), true, `SKILL.md has a link escaping the installable skill: ${target}`);
 }
 const editorReference = texts.get(resolve(packageRoot, "references/flows-editor-and-collaboration.md"));
 assert.match(editorReference, /management-side Flows tab[\s\S]*update-flows API or CLI replace that complete document/i, "management complete-flow replacement boundary is missing");
