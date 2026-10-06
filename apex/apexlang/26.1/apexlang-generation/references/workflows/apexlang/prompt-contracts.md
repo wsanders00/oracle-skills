@@ -80,6 +80,25 @@ Minimum required fields:
 - progressive disclosure trace references
 - compiler-truth evidence references when required
 
+For each requirement, select native APEX components, templates, options, and
+declarative behavior that meet it on the target build. When custom rendering or
+scripting replaces a normally native function, briefly name the native
+candidate considered, the unmet requirement or explicit user preference, and
+the scope of custom code; include supporting evidence when the decision depends
+on build capability. An unknown native capability is an evidence gap, not proof
+that no native alternative exists. User preference does not authorize
+unsupported DSL or component behavior. In full-app plans, identify the affected
+region or regions and reference a shared rationale once from the existing
+region plan. Static copy, structural shells for native controls, declarative
+formatting, and supported custom visualizations do not need a custom-substitution
+rationale when they do not replace a normally native function.
+
+During critique, compare any custom substitution in the plan and draft against
+the requirement and a suitable native alternative. Suggest a supported native
+option when it appears to meet the requirement; keep the suggestion advisory and
+do not automatically rewrite the plan or introduce a validator error solely for
+the custom choice.
+
 Required response order for non-trivial structural generation:
 
 1. `Compiler Truth Evidence` when required
