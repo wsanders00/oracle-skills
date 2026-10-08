@@ -37,6 +37,33 @@ Validate at least one clean or minimally configured operator environment with a 
 7. confirm the HTTPS publish URL includes the adapter `inboundEnvelope.referenceEndpoint`; posting to the bare device host is not a valid publish test
 8. confirm normal publishing-device twins are `DIRECT` unless the validation intentionally covers a gateway/downstream topology
 
+Also exercise the workflow routing offline with synthetic or explicitly
+selected local inputs:
+
+- Offline modeling or analysis of exported data must not require credentials,
+  an IoT domain, network access, Data API, or a database.
+- Offline catalog search should use only the explicitly selected raw model
+  exports, retain root/interface/component scope, and explain issues and
+  coverage limits. An empty result must not imply absence from OCI; index
+  creation time must not imply source freshness. No dependency fetch or
+  background scan is part of this task.
+- A current-twin request should route to OCI CLI and preserve the selected
+  operator authentication context. Cover both a workstation profile-based
+  method (such as API key or session authentication) and a principal method
+  that does not require a local profile.
+- With no target domain supplied, the skill must ask for clarification or keep
+  any discovery bounded and separately authorized; it must not invent a target
+  or imply that static context proves the domain exists.
+- Historized, raw, rejected, and command-record requests should route to the
+  optional data-access guidance. When its separate identity, retention, or
+  network prerequisites are unknown, report the gap without falling back to
+  automatic login, SQLcl, tunnel setup, MCP, or a live read.
+
+These offline scenarios validate routing only. They do not establish live
+credentials, IAM access, target tenancy, domain availability, network
+connectivity, data retention, or service compatibility, and they do not replace
+the operator-environment and data-access validation required for release.
+
 If Data API or direct DB guidance ships in the release, validate at least one example there too.
 
 For the bundled managed Flow Runtime guidance, the smoke check runs the

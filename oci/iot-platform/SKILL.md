@@ -8,23 +8,48 @@ description: Explore, create, and troubleshoot Oracle Cloud Infrastructure Inter
 ## Quick Start
 
 1. Confirm the user is working with Oracle Cloud Infrastructure Internet of Things Platform.
-2. Ask for the minimum context needed before giving commands:
+2. For live operator commands, ask for the minimum context needed:
    - `IOT_DOMAIN_ID` when available
    - the operator's available OCI authentication method and execution environment
    - `OCI_CLI_PROFILE` only when that method uses a config profile
    - `OCI_CLI_AUTH` or equivalent CLI option when a nondefault method is selected
    - `OCI_REGION` if it cannot be derived from the domain
    - intended operation: inspect, create, update, delete, or publish test telemetry
-3. Prefer this execution order:
+3. For live operator work, prefer this execution order:
    - discover the domain and current state
    - inspect the relevant model, adapter, or twin
    - check local CLI capability with `oci ... --help` when using newer filters or gateway/raw-command options
    - make the smallest required change
    - verify the result with a fresh read
 
+## Choose the workflow
+
+- Offline modeling and analysis of explicitly supplied exports need only those
+  local inputs; do not require OCI credentials, a domain, Data API, or database
+  access.
+- For current twin state, use the OCI CLI path by default. Ask for or discover
+  the target domain only when the task needs one. If it is missing, clarify or
+  perform bounded read-only discovery only when that access is authorized; do
+  not invent a target.
+- Select the operator authentication context for the execution environment.
+  Use a named CLI profile only when the chosen method needs one; principal
+  methods do not require a local profile. See
+  [operator authentication](references/operator-authentication.md).
+- Route historized, raw, rejected, and command-record inspection through the
+  optional [data-access guidance](references/data-access.md). These paths may
+  require separate identity, retention, or network prerequisites; current twin
+  CLI access does not establish them. If a required prerequisite is unknown,
+  report the gap and stay within the available path.
+
+This workflow selection does not validate credentials, IAM grants, target
+tenancy, domain existence, connectivity, or retained data. Use the existing
+[live-operation gates](flow-runtime/references/safety-and-live-gates.md) for
+live access and actions. Do not automatically refresh credentials, configure
+data access, create a tunnel, or launch SQLcl or MCP.
+
 ## Default Workflow
 
-1. Start with read-only OCI CLI discovery.
+1. For live control-plane work, start with read-only OCI CLI discovery.
 2. Use [references/operator-authentication.md](references/operator-authentication.md) to select the operator's CLI/SDK authentication context; keep credential tenancy, resource tenancy, and grants distinct. Use `scripts/derive_domain_context.sh` when the user only has `IOT_DOMAIN_ID`.
 3. Use [references/platform-surface.md](references/platform-surface.md) when the task needs orientation on OCI IoT resource families, data flow, connectivity types, or which surface to use.
 4. Use [references/cli-workflows.md](references/cli-workflows.md) for control-plane actions:
@@ -46,7 +71,7 @@ description: Explore, create, and troubleshoot Oracle Cloud Infrastructure Inter
    - publish rejection triage
    - raw-command final-state validation
    - cleanup or rollback planning
-7. Use [references/modeling-guidance.md](references/modeling-guidance.md) when the request involves DTDL authoring or adapter payload design.
+7. Use [references/modeling-guidance.md](references/modeling-guidance.md) when the request involves DTDL authoring, adapter payload design, or optional offline telemetry catalog search over explicitly selected model exports.
 8. Use [references/data-access.md](references/data-access.md) only when the user explicitly needs Data API, ORDS, direct database access, or APEX-oriented workflows.
 9. Use [references/release-validation.md](references/release-validation.md) before calling the skill package ready to share publicly.
 
@@ -158,6 +183,8 @@ above.
 
 For each task, return:
 
-1. The exact command sequence with placeholders filled or called out.
+1. The exact command sequence when commands are needed, with placeholders
+   filled or called out. For offline analysis, identify the selected inputs
+   and local analysis steps instead.
 2. The key IDs, state, or timestamps that matter.
 3. The next verification step.

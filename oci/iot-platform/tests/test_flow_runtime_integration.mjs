@@ -882,7 +882,7 @@ try {
   await expectIntegratedFailure("omitted-parent-live-gate-route", async (target) => {
     const path = resolve(target, "SKILL.md");
     const value = await readFile(path, "utf8");
-    await writeFile(path, value.replace("[live-operation gates](flow-runtime/references/safety-and-live-gates.md)", "live-operation gates"));
+    await writeFile(path, value.replace(/\[[^\]]+\]\(flow-runtime\/references\/safety-and-live-gates\.md\)/g, "live-operation gates"));
   }, /must route to live-operation gates/);
 
   await expectIntegratedFailure("broken-parent-module-route", async (target) => {
