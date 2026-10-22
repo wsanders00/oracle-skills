@@ -8,16 +8,16 @@
     {
       "sourceId": "O7",
       "role": "Oracle sample node package",
-      "release": "0.6.0",
-      "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.8.0",
+      "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
       "sourcePath": "oci-nodes/package.json",
       "anchor": "lines 1-33"
     },
     {
       "sourceId": "S4",
       "role": "Oracle sample node reference and implementation files",
-      "release": "0.6.0",
-      "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.8.0",
+      "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
       "sourcePath": "docs/node-reference.md and oci-nodes/nodes/*.js,*.html",
       "anchor": "docs lines 592-729; exact node anchors are in contracts"
     },
@@ -42,7 +42,7 @@
     "classification": "sample-package-compatibility-gated",
     "sourceOwner": "S4",
     "immutableReferenceRequired": true,
-    "release": "0.6.0",
+    "release": "0.8.0",
     "targetGate": [
       "targetRuntimeVersion",
       "region",
@@ -303,5 +303,26 @@
     "OCI Logging ingestion, retention, alarms, or log searchability",
     "Log Analytics ingestion, parsing, indexing, retention, analytics, or alerting",
     "any real OCID, endpoint, credential, secret, payload, file, or generated runtime state"
+  ],
+  "refreshCases": [
+    {"caseId": "object-saved-flow-default-limit", "kind": "response-limit", "input": {"bytes": 16777217}, "expected": {"route": "Catch", "code": "OCI_RESPONSE_TOO_LARGE", "outputs": 0, "fileWrites": 0}},
+    {"caseId": "object-limit-boundary-accepted", "kind": "response-limit", "input": {"bytes": 16777216}, "expected": {"bytes": 16777216, "limit": 16777216}},
+    {"caseId": "object-invalid-limit-before-read", "kind": "response-limit", "input": {"bytes": 1, "limit": 0}, "expected": {"route": "Catch", "code": "OCI_RESPONSE_LIMIT_INVALID", "outputs": 0, "fileWrites": 0}},
+    {"caseId": "ords-token-short-lifetime-margin", "kind": "token-lifetime", "input": {"expiresIn": 10}, "expected": {"usableMs": 9000}},
+    {"caseId": "ords-token-normal-lifetime-margin", "kind": "token-lifetime", "input": {"expiresIn": 3600}, "expected": {"usableMs": 3570000}},
+    {"caseId": "ords-token-invalid-lifetime", "kind": "token-lifetime", "input": {"expiresIn": 0}, "expected": {"route": "Catch", "cached": false}},
+    {"caseId": "ords-token-missing-lifetime-fallback", "kind": "token-lifetime", "input": {}, "expected": {"usableMs": 3600000}},
+    {"caseId": "ords-poll-deadline-includes-queue", "kind": "poll-lifecycle", "input": {"deadline": 100, "now": 100, "queued": true}, "expected": {"timedOut": true, "outputs": 1, "attempts": 0, "aborted": true}},
+    {"caseId": "ords-poll-close-suppresses-output", "kind": "poll-lifecycle", "input": {"closed": true, "deadline": 100, "now": 20}, "expected": {"route": "Catch", "outputs": 0, "aborted": true}},
+    {"caseId": "ords-contained-path-0", "kind": "ords-containment", "input": {"path": "../escape"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-contained-path-1", "kind": "ords-containment", "input": {"path": "%2e%2e/escape"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-contained-path-2", "kind": "ords-containment", "input": {"path": "%252e%252e/escape"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-contained-path-3", "kind": "ords-containment", "input": {"path": "record%2fescape"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-contained-path-4", "kind": "ords-containment", "input": {"path": "record%255cescape"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-contained-path-5", "kind": "ords-containment", "input": {"path": "//elsewhere.invalid/x"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-contained-path-6", "kind": "ords-containment", "input": {"path": "https://elsewhere.invalid/x"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-path-remains-under-base", "kind": "ords-containment", "input": {"path": "/20250531/rawData/synthetic"}, "expected": {"valid": true, "pathname": "/base/20250531/rawData/synthetic"}},
+    {"caseId": "ords-request-record-id-escape", "kind": "ords-containment", "input": {"path": "/20250531/rawData", "recordId": "../escape"}, "expected": {"valid": false, "calls": 0}},
+    {"caseId": "ords-poll-record-id-encoded-escape", "kind": "ords-containment", "input": {"path": "/20250531/rawCommandData", "recordId": "%252e%252e/escape"}, "expected": {"valid": false, "calls": 0}}
   ]
 }

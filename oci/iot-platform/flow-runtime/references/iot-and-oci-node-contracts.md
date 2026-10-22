@@ -37,8 +37,8 @@ pages own the scenario roles: Object Storage in `C11` and Notifications in
 `C12`. The public Oracle node reference (`S4`) is a separate package source;
 it is not evidence that a package node is installed in a managed runtime.
 
-The source manifest pins the Oracle sample package to release `0.6.0`, commit
-`d1f886fed04f456b28527d578be140fbc7a6c2f1`, and the node-reference file at
+The source manifest pins the Oracle sample package to release `0.8.0`, commit
+`cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb`, and the node-reference file at
 that commit. This makes package-specific behavior attributable to that exact
 source revision, but it still does **not** prove that the selected Flow
 Runtime palette/version accepts the module. Keep package guidance
@@ -51,11 +51,11 @@ service guarantee.
 | Managed editor | `telemetry` | managed-documented | linked managed OCI Config | `O1`; inspect target palette/version and endpoint policy |
 | Managed editor | `subscribe` | managed-documented | linked managed OCI Config | `O1`; inspect target palette/version and source permissions |
 | Managed editor | `send command` | managed-documented | linked managed OCI Config and command policy | `O1`; inspect target palette/version and response contract |
-| Oracle sample package | `iot-config` | sample-package | device-side MQTTS credentials/certificate and TLS session | `S4` at pinned `0.6.0` commit; target palette gate required |
-| Oracle sample package | `iot-telemetry` | sample-package | device-side MQTTS session | `S4` at pinned `0.6.0` commit; target palette gate required |
-| Oracle sample package | `iot-subscribe` | sample-package | device-side MQTTS session | `S4` at pinned `0.6.0` commit; target palette gate required |
-| Oracle sample package | `oci-config` | sample-package | OCI SDK/API authentication | `S4` at pinned `0.6.0` commit; target palette gate required |
-| Oracle sample package | `iot-send-command` | sample-package | OCI SDK/API authentication | `S4` at pinned `0.6.0` commit; target palette gate required |
+| Oracle sample package | `iot-config` | sample-package | device-side MQTTS credentials/certificate and TLS session | `S4` at pinned `0.8.0` commit; target palette gate required |
+| Oracle sample package | `iot-telemetry` | sample-package | device-side MQTTS session | `S4` at pinned `0.8.0` commit; target palette gate required |
+| Oracle sample package | `iot-subscribe` | sample-package | device-side MQTTS session | `S4` at pinned `0.8.0` commit; target palette gate required |
+| Oracle sample package | `oci-config` | sample-package | OCI SDK/API authentication | `S4` at pinned `0.8.0` commit; target palette gate required |
+| Oracle sample package | `iot-send-command` | sample-package | OCI SDK/API authentication | `S4` at pinned `0.8.0` commit; target palette gate required |
 | Oracle scenario | Object Storage download/upload role | official-scenario | runtime resource principal and Object Storage policy | `C11`; node installation, policy, and reachability are live-only |
 | Oracle scenario | Notifications publication role | official-scenario | runtime resource principal and Notifications policy | `C12`; topic existence and subscriber delivery are live-only |
 | Optional package role | ORDS, digital-twin content/relationship, Logging, or Log Analytics | sample-package / compatibility-gated | selected package auth configuration | `S4`; immutable revision and target palette inspection required |
@@ -118,8 +118,8 @@ only; they are not a contract for every managed telemetry node:
    node wraps a non-object payload as `{value: payload}` and passes an object
    through; it does not validate a telemetry schema. Because JavaScript's
    `typeof null` is `object`, a null payload is serialized and passed through
-   unchanged when auto-timestamp is off, but auto-timestamp attempts
-   `payload.time` and fails with a TypeError before publish. Arrays also take
+   unchanged when auto-timestamp is off. Enabling auto-timestamp for null
+   raises a guarded error and routes to Catch before publish. Arrays also take
    the object branch and are serialized as arrays unchanged; an auto-timestamp
    assignment to an array's named `time` property is not included by
    `JSON.stringify`.
@@ -146,6 +146,11 @@ only; they are not a contract for every managed telemetry node:
 The external-broker topic rewrite in the existing ingress fixture is a pure
 preparation example. It is not a telemetry publish and does not establish
 device-host acceptance.
+
+Telemetry timestamp insertion and serialization are guarded: null with a
+timestamp request, circular objects, BigInt, or another serialization failure
+route to Catch before any publish attempt. No publication is established by
+preparing the payload.
 
 ## Subscription and command-response boundaries
 
@@ -181,6 +186,29 @@ Receipt of a subscribed message is not a command acknowledgement. The
 subscription node does not automatically publish a response. A flow that
 acknowledges a command must have an explicit response-publication node and a
 separate topic/payload contract, with correlation preserved.
+
+## Twin identity, authentication, and lifecycle
+
+For sample Get Content and Send Command, an own `msg.digitalTwinInstanceOcid`
+property takes precedence and must be a nonempty string (trimmed). Invalid
+values fail without falling back. When absent, legacy `msg.digitalTwinOcid`
+remains message-first for Get Content, but configured-first for Send Command.
+These are different legacy contracts.
+
+Simple/API-key configuration reads the selected private-key file, validates its
+PEM contents and passphrase, and supplies contents to the provider. Loading or
+validation errors expose a generic `OCI_PRIVATE_KEY_INVALID` diagnostic. The
+configuration owner closes the shared auth provider once; service-node client
+cleanup stops client circuit breakers without closing that shared identity.
+Clients still initializing at close are disposed on arrival; open-state checks
+suppress late successful output for client-managed requests. These rules do
+not establish cancellation of an already accepted service operation.
+
+Projected Catch errors use redacted messages/response data, status, code and
+request ID; raw provider requests/headers/credentials are not relayed in the
+error passed to `done`. Telemetry errors preserve the original payload while
+projecting the diagnostic. Subscription callbacks receive independent payload
+clones, so one subscriber cannot mutate the next subscriber's payload.
 
 ## Send-command contract
 
@@ -295,14 +323,11 @@ the companion fixture are bounded shape examples only.
   non-empty after trimming. The pinned parser splits at the first `->` and
   first `:`, so extra delimiters inside a part are currently accepted by the
   implementation even though they are outside the intended grammar. The
-  implementation's effective key precedence is also narrower than the prose
-  fallback: a non-null `msg.relationshipKey` is selected first (an exact empty
-  string then permits `msg.payload.relationshipKey`), otherwise the configured
-  default is selected; the payload key is not consulted when a non-empty
-  configured default already exists. Content uses `msg.content` whenever the
-  property exists (even `null`), otherwise `msg.payload.content` whenever the
-  payload is a plain object (even when that property is absent), otherwise the
-  configured JSON-object default. A successful update is service acceptance
+  implementation selects a non-null/nonempty `msg.relationshipKey`, then
+  `msg.payload.relationshipKey`, then the configured default. Independently,
+  content uses defined `msg.content`, then defined `msg.payload.content`, then
+  the configured JSON-object default. Explicit null content is invalid and
+  blocks fallback; an absent payload content property permits the default. A successful update is service acceptance
   only; it is not proof of a complete relationship or digital-twin CRUD
   workflow.
 - **Flow-originated logging:** OCI Custom Logging and Log Analytics upload

@@ -18,6 +18,7 @@ const scratch = await mkdtemp(join(tmpdir(), "oci-iot-integrated-portability-"))
 let negativeRegressionCount = 0;
 let integratedCaseCount = 0;
 let managedTargetRegressionCount = 0;
+let refreshRegressionCount = 0;
 
 const runValidator = async (target) => run(process.execPath, [resolve(target, validatorRel)], {
   cwd: scratch,
@@ -78,12 +79,32 @@ try {
   await expectManagedTargetFailure("sample-contract-promoted-to-wrong-managed-module", async (target) => {
     const path = packagePath(target, "assets/nodes/node-identity-cases.json");
     const fixture = JSON.parse(await readFile(path, "utf8"));
-    fixture.targetSelectionCases.find((item) => item.caseId === "sample-0-6-contract-cannot-transfer-to-observed-0-5-module").expected = {
+    fixture.targetSelectionCases.find((item) => item.caseId === "sample-0-8-contract-cannot-transfer-to-observed-0-5-module").expected = {
       decision: "plan-bounded-managed-test", selectedNodeType: "iot-send-command", contract: "verified-matching-immutable-implementation",
       liveCompatibility: "confirmed", liveAcceptance: "passed", authorization: "granted"
     };
     await writeFile(path, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
   });
+
+  for (const [name, fixtureName, caseId, field, unsafe] of [
+    ["aq-recipient-delivery-construction", "database-aq", "enqueue-recipients-per-message", "messages", []],
+    ["telemetry-serialization-publish", "iot-node", "telemetry-cycle-no-publish", "publishes", 1],
+    ["new-instance-id-rejection", "iot-node", "instance-ocid-invalid-no-fallback", "calls", 1],
+    ["independent-enqueue-owner", "database-aq", "enqueue-independent-preserves-incoming-owner", "incomingCommits", 1],
+    ["saved-object-response-limit", "optional-oci-node", "object-saved-flow-default-limit", "fileWrites", 1],
+    ["ords-node-close-late-output", "optional-oci-node", "ords-poll-close-suppresses-output", "outputs", 1],
+    ["dequeue-condition-validation", "database-aq", "dequeue-continuous-message-condition-rejected", "code", "accepted"]
+  ]) {
+    refreshRegressionCount += 1;
+    const target = await makeCopy(name);
+    const path = packagePath(target, `assets/nodes/${fixtureName}-contract-cases.json`);
+    const fixture = JSON.parse(await readFile(path, "utf8"));
+    fixture.refreshCases.find((item) => item.caseId === caseId).expected[field] = unsafe;
+    await writeFile(path, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
+    let failure;
+    try { await runValidator(target); } catch (error) { failure = `${error.stdout ?? ""}\n${error.stderr ?? ""}`; }
+    assert.match(failure ?? "", /0.8.0 source contract mismatch/, `${name}: unsafe refreshed contract was accepted`);
+  }
 
   const standalone = await makeCopy("standalone");
   const copied = await runValidator(standalone);
@@ -920,6 +941,8 @@ try {
   assert.equal(negativeRegressionCount, 84, "inherited negative regression inventory changed without an explicit count update");
   assert.equal(integratedCaseCount, 11, "integrated case inventory changed without an explicit count update");
   assert.equal(managedTargetRegressionCount, 2, "managed target-selection regression inventory changed without an explicit count update");
+  assert.equal(refreshRegressionCount, 7, "sample refresh negative inventory changed");
+  console.log(`verified ${refreshRegressionCount} v0.8.0 negative contract regressions`);
   console.log(`verified relocated installable skill, ${negativeRegressionCount} inherited regressions, ${integratedCaseCount} integrated boundary cases, and ${managedTargetRegressionCount} managed-target promotion regressions`);
 } finally {
   await rm(scratch, { recursive: true, force: true });

@@ -91,7 +91,7 @@
         "O7",
         "S4"
       ],
-      "role": "release 0.6.0 behavior is pinned but not presumed applicable; use only after affirmative evidence matches the selected managed target and supports a bounded test plan",
+      "role": "release 0.8.0 behavior is pinned but not presumed applicable; use only after affirmative evidence matches the selected managed target and supports a bounded test plan",
       "targetAvailability": "not-proven",
       "offlineAllowed": true,
       "liveRequired": [

@@ -51,8 +51,8 @@ There are two evidence sets that must not be silently merged:
   dependencies.
 
 The package-specific contracts in this skill use the [pinned Oracle node
-reference](https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/docs/node-reference.md)
-from release `0.6.0`. That makes them normative for the exact source revision,
+reference](https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/docs/node-reference.md)
+from release `0.8.0`. That makes them normative for the exact source revision,
 but does not prove the package or version is available in a particular managed
 Flow Runtime. Verify the relevant implementation/field contract as well as
 availability before using those details. Preserve the sample source owner even
@@ -84,5 +84,5 @@ recorded immutable release/commit supports exact-source behavior only; it does
 not satisfy the target palette gate.
 
 For current claims, consult the [OCI Node-RED editor documentation](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm),
-the [pinned Oracle node reference](https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/docs/node-reference.md),
+the [pinned Oracle node reference](https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/docs/node-reference.md),
 and the [Node-RED message documentation](https://nodered.org/docs/user-guide/messages).

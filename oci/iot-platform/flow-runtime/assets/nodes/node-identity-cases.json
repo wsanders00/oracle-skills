@@ -24,14 +24,14 @@
     {
       "sourceId": "O7",
       "role": "Oracle sample-package repository",
-      "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
-      "release": "0.6.0"
+      "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+      "release": "0.8.0"
     },
     {
       "sourceId": "S4",
       "role": "Oracle sample-package node reference",
-      "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
-      "release": "0.6.0"
+      "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+      "release": "0.8.0"
     },
     {
       "sourceId": "N1",
@@ -59,8 +59,8 @@
       "O7",
       "S4"
     ],
-    "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
-    "release": "0.6.0",
+    "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+    "release": "0.8.0",
     "status": "pinned-source-target-gated",
     "blocker": "No selected Flow Runtime palette or permitted module/version inspection is recorded; the pinned source is not proof of managed availability.",
     "mutableMainSatisfiesGate": false,
@@ -237,7 +237,7 @@
           "S4"
         ],
         "reason": "immutable-reference-required",
-        "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+        "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
         "selectedRevision": "main",
         "mutableMainSatisfiesGate": false,
         "targetGate": "pinned-source-target-gated"
@@ -404,8 +404,8 @@
       }
     },
     {
-      "caseId": "sample-0-6-contract-cannot-transfer-to-observed-0-5-module",
-      "request": "Apply pinned sample package 0.6.0 command fields to observed managed module 0.5.0",
+      "caseId": "sample-0-8-contract-cannot-transfer-to-observed-0-5-module",
+      "request": "Apply pinned sample package 0.8.0 command fields to observed managed module 0.5.0",
       "target": {
         "product": "managed-flow-runtime",
         "runtimeVersion": "5.0.1",
@@ -423,7 +423,7 @@
           "reference": "synthetic-pinned-sample",
           "nodeType": "iot-send-command",
           "moduleIdentity": "node-red-contrib-oracle-iot",
-          "moduleVersion": "0.6.0",
+          "moduleVersion": "0.8.0",
           "fields": [
             "command"
           ],

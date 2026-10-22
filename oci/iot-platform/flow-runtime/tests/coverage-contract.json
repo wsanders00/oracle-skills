@@ -442,20 +442,20 @@
     },
     {
       "id": "O7",
-      "uri": "https://github.com/oracle-samples/node-red-nodes/tree/d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "uri": "https://github.com/oracle-samples/node-red-nodes/tree/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
       "kind": "public-repository",
-      "observed_date": "2026-09-16",
-      "immutable_ref": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
-      "release": "0.6.0",
+      "observed_date": "2026-10-22",
+      "immutable_ref": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+      "release": "0.8.0",
       "normative": true
     },
     {
       "id": "S4",
-      "uri": "https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/docs/node-reference.md",
+      "uri": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/docs/node-reference.md",
       "kind": "public-repository",
-      "observed_date": "2026-09-16",
-      "immutable_ref": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
-      "release": "0.6.0",
+      "observed_date": "2026-10-22",
+      "immutable_ref": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+      "release": "0.8.0",
       "normative": true
     },
     {
@@ -895,7 +895,7 @@
       "heading_or_fragment": "Database Nodes; transactional dequeue; SQL source behavior",
       "observed_date": "2026-09-16",
       "sensitivity_class": "official_repository",
-      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+      "recheck_rule": "exact release 0.8.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
     },
     {
       "id": "FR-IOT-TRANSPORT-001",
@@ -907,7 +907,7 @@
       "heading_or_fragment": "iot-config; iot-telemetry; iot-subscribe; iot-send-command",
       "observed_date": "2026-09-16",
       "sensitivity_class": "official_repository",
-      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+      "recheck_rule": "exact release 0.8.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
     },
     {
       "id": "FR-SCENARIO-NODE-CONTRACTS-001",
@@ -931,7 +931,7 @@
       "heading_or_fragment": "ORDS; digital-twin content; relationship update",
       "observed_date": "2026-09-16",
       "sensitivity_class": "official_repository",
-      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+      "recheck_rule": "exact release 0.8.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
     },
     {
       "id": "FR-FLOW-LOGGING-NODES-001",
@@ -943,7 +943,7 @@
       "heading_or_fragment": "OCI Logging and Log Analytics flow-originated nodes",
       "observed_date": "2026-09-16",
       "sensitivity_class": "official_repository",
-      "recheck_rule": "exact release 0.6.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
+      "recheck_rule": "exact release 0.8.0 contract; recheck the pinned source before changing package-specific behavior and inspect the target before live use"
     }
   ],
   "routing_cases": [
@@ -1571,5 +1571,225 @@
       "integrated_boundary_cases": 11
     },
     "contract": "Source-role classification is independent of target selection. Target selection binds exact runtime provenance, palette node type, module identity/version, and affirmative contract evidence for fields, outputs, authentication, and provenance. Verified evidence can plan a bounded managed test only; it cannot assert live compatibility, acceptance, or authorization."
+  },
+  "sample_refresh": {
+    "release": "0.8.0",
+    "immutable_ref": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+    "verification": "synthetic selected-contract simulation; no npm package, service, credential or managed-runtime execution",
+    "dispositions": [
+      {
+        "disposition": "corrected",
+        "behavior": "twin-identity",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/lib/iot-identity.js#L6-L23",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "instance-ocid-new-alias-wins",
+          "instance-ocid-invalid-no-fallback",
+          "instance-ocid-nonstring-rejected",
+          "legacy-get-message-first",
+          "legacy-send-config-first",
+          "legacy-get-empty-blocks-default"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "relationship-fallback",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/iot-update-relationship.js#L140-L162",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "relationship-independent-fallbacks",
+          "relationship-null-content-blocks-default"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "telemetry-failure",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/iot-telemetry.js#L108-L135",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "telemetry-bigint-serialization-no-publish",
+          "telemetry-cycle-no-publish",
+          "telemetry-null-timestamp-no-publish"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "subscription-isolation",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/iot-config.js#L199-L213",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "subscription-payload-isolation"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "key-validation",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/oci-config.js#L45-L59",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "simple-key-validation-failure-projected",
+          "simple-key-contents-not-path"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "client-lifecycle",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/lib/oci-client.js#L42-L115",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "pending-client-close-disposes-on-arrival",
+          "request-close-after-dispatch-suppresses-success"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "provider-lifecycle",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/oci-config.js#L81-L172",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "config-owns-shared-provider"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "error-projection",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/lib/oci-error.js#L1-L107",
+        "fixture": "assets/nodes/iot-node-contract-cases.json",
+        "case_ids": [
+          "oci-error-safe-catch-projection"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "driver-default",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/db-nodes/nodes/db-connection.js#L125-L139",
+        "fixture": "assets/nodes/database-aq-contract-cases.json",
+        "case_ids": [
+          "connection-omitted-mode-defaults-thin",
+          "connection-encrypted-thin-wallet"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "enqueue-owner",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/db-nodes/nodes/enqueue.js#L46-L165",
+        "fixture": "assets/nodes/database-aq-contract-cases.json",
+        "case_ids": [
+          "enqueue-independent-preserves-incoming-owner",
+          "enqueue-joined-leaves-commit-to-owner",
+          "enqueue-independent-error-not-owner-rollback"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "recipients",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/db-nodes/lib/oracle-aq.js#L82-L105",
+        "fixture": "assets/nodes/database-aq-contract-cases.json",
+        "case_ids": [
+          "enqueue-recipients-per-message",
+          "enqueue-recipients-empty-member-rejected"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "condition",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/db-nodes/lib/oracle-aq.js#L126-L186",
+        "fixture": "assets/nodes/database-aq-contract-cases.json",
+        "case_ids": [
+          "dequeue-message-condition",
+          "dequeue-continuous-message-condition-rejected",
+          "dequeue-condition-newline-rejected",
+          "dequeue-condition-byte-bound"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "transaction-registry",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/db-nodes/lib/db-transaction.js#L24-L164",
+        "fixture": "assets/nodes/database-aq-contract-cases.json",
+        "case_ids": [
+          "transaction-clone-rejoins-registry",
+          "transaction-failed-work-rollback-only"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "sql-bind-scan",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/db-nodes/nodes/sql.js#L45-L225",
+        "fixture": "assets/nodes/database-aq-contract-cases.json",
+        "case_ids": [
+          "sql-bind-case-insensitive",
+          "sql-qquote-not-a-bind",
+          "sql-quoted-bind-case-sensitive",
+          "sql-json-colon-not-bind"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "response-limit",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/lib/oci-response.js#L1-L108",
+        "fixture": "assets/nodes/optional-oci-node-contract-cases.json",
+        "case_ids": [
+          "object-saved-flow-default-limit",
+          "object-limit-boundary-accepted",
+          "object-invalid-limit-before-read"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "token-lifetime",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/ords-config.js#L356-L377",
+        "fixture": "assets/nodes/optional-oci-node-contract-cases.json",
+        "case_ids": [
+          "ords-token-short-lifetime-margin",
+          "ords-token-normal-lifetime-margin",
+          "ords-token-invalid-lifetime",
+          "ords-token-missing-lifetime-fallback"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "poll-lifecycle",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/oci-ords-poll.js#L203-L321",
+        "fixture": "assets/nodes/optional-oci-node-contract-cases.json",
+        "case_ids": [
+          "ords-poll-deadline-includes-queue",
+          "ords-poll-close-suppresses-output"
+        ]
+      },
+      {
+        "disposition": "corrected",
+        "behavior": "ords-containment",
+        "source": "https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/nodes/ords-config.js#L185-L216",
+        "fixture": "assets/nodes/optional-oci-node-contract-cases.json",
+        "case_ids": [
+          "ords-contained-path-0",
+          "ords-contained-path-1",
+          "ords-contained-path-2",
+          "ords-contained-path-3",
+          "ords-contained-path-4",
+          "ords-contained-path-5",
+          "ords-contained-path-6",
+          "ords-path-remains-under-base",
+          "ords-request-record-id-escape",
+          "ords-poll-record-id-encoded-escape"
+        ]
+      }
+    ],
+    "retained_unchanged": [
+      "managed target selection gates (9 cases)",
+      "Notifications acceptance vs delivery",
+      "distinct Custom Logging and Log Analytics APIs",
+      "portable stricter SQL bind parity and finite retry policy"
+    ],
+    "outside_coverage": [
+      "API Request",
+      "Monitoring",
+      "Streaming/Kafka",
+      "Queue",
+      "Functions",
+      "Vault",
+      "Certificates"
+    ]
   }
 }

@@ -43,7 +43,7 @@ installation to make the palette resemble an example.
   scenario does not guarantee that the node is available in every runtime.
 - **Sample-package:** behavior comes from the public
   `oracle-samples/node-red-nodes` package. The detailed contracts are pinned to
-  release `0.6.0`; treat mutable `main` as discovery-only and keep live use
+  release `0.8.0`; treat mutable `main` as discovery-only and keep live use
   gated until the target permits that module/version.
 - **Generic core:** standard Node-RED semantics only; do not infer OCI
   authorization, persistence, or service reachability.
@@ -142,3 +142,14 @@ Before enabling a node, separately approve the exact runtime, module/version,
 region, IAM/resource-principal policy, network route, endpoint, payload,
 transaction and retry plan, and cleanup. A successful offline fixture is not a
 live health check.
+
+## Credential references
+
+The [September 2026 release](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-09292026.htm)
+and [managed editor guide](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm)
+describe supported credential references. Use a reference only where the
+selected managed node documents it in its editor/help contract. Verify the
+reference kind, field and runtime access before use; these sources do not
+establish a universal credential-field syntax for every node. Keep secret
+values out of flows and exports. Sample `oci-config` key-file handling does
+not establish the managed credential-reference implementation.

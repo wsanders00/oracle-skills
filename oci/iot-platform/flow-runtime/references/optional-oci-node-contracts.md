@@ -2,8 +2,8 @@
 
 Use this reference when a flow names one of the optional OCI service or ORDS
 nodes below. These are **sample-package** contracts, not managed Flow Runtime
-palette guarantees. The source is Oracle's `oci-nodes` package release `0.6.0`
-at commit `d1f886fed04f456b28527d578be140fbc7a6c2f1` (source IDs `O7`/`S4`).
+palette guarantees. The source is Oracle's `oci-nodes` package release `0.8.0`
+at commit `cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb` (source IDs `O7`/`S4`).
 The package pin makes the recorded behavior attributable to one immutable
 revision; it does not establish that a selected Flow Runtime permits the
 module, dependencies, or target API. Start managed-node discovery with the
@@ -20,8 +20,8 @@ separate evidence.
 
 The package manifest registers each exact node type. The node HTML file owns
 the palette label and configuration-parent type; the node JS file owns runtime
-resolution, API call, and output behavior. The pinned [package manifest](https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/oci-nodes/package.json#L17-L33)
-and [node reference](https://github.com/oracle-samples/node-red-nodes/blob/d1f886fed04f456b28527d578be140fbc7a6c2f1/docs/node-reference.md#L592-L729)
+resolution, API call, and output behavior. The pinned [package manifest](https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/oci-nodes/package.json#L13-L65)
+and [node reference](https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/docs/node-reference.md#L1034-L1311)
 are the source-owned records.
 
 | Exact type | Palette label | Configuration parent | Auth/API family | Source-owned implementation anchors |
@@ -48,8 +48,8 @@ versions or permission to install a module does not establish equivalence.
 
 Before live use, record all of the following for the selected Flow Runtime:
 target runtime/version and region, exact palette label/type, permitted module
-and dependency versions (the package declares `oci-sdk` `2.137.0` and `mqtt`
-`5.15.2`), authentication context, network route, endpoint/object/topic/log
+and dependency versions (the package declares split OCI SDK modules at `2.142.2` and `mqtt`
+`5.16.0`), authentication context, network route, endpoint/object/topic/log
 policy, and explicit live approval. A passing offline case is only a shape and
 routing check.
 
@@ -95,7 +95,10 @@ payload is a summary with `eTag`, `versionId`, `opcRequestId`, and
 `statusCode`. If neither payload nor file path is available, the node errors
 before `putObject` rather than attempting an empty or undefined upload.
 
-For download, the response body is collected to a Buffer. `downloadOutput` is
+For download, `maxResponseBytes` defaults to 16 MiB, including saved flows
+that omit the setting. It must be a positive safe integer within the Buffer
+limit. Content-Length and accumulated stream bytes enforce the limit; oversized
+responses fail before success output or file writes. The response body is collected to a Buffer. `downloadOutput` is
 `buffer` by default or explicitly converted to text using `encoding`. With no
 file path, that Buffer/string is `msg.payload`; with a file path, the exact
 path is written and `msg.payload` becomes `{ content, savedToPath, outputType }`
@@ -133,7 +136,11 @@ maximum use the upper clamp, rather than creating an unbounded loop.
 
 The config caches an OAuth token, coalesces concurrent token acquisition, and
 refreshes once after a request receives `401`; it does not provide a generic
-retry loop. Child paths must be relative; headers/query maps are plain objects
+retry loop. If `expires_in` is supplied it must be a positive finite number
+or numeric string; cache lifetime subtracts the smaller of 30 seconds or 10%.
+Absent `expires_in` uses the configured fallback without that margin. Child
+paths must be relative; dot segments, encoded separators, nested encoded
+escapes, and base-path escapes are rejected before a request. Headers/query maps are plain objects
 without reserved keys. Closing the config aborts active fetches and rejects
 queued polls.
 
@@ -203,10 +210,11 @@ is present) or one of those terminal states. `CANCELED` is not a source-defined
 delivery terminal. When response data alone completes a poll, the resulting
 `deliveryStatus` field is explicitly `null` and must never be rendered as the
 string `UNDEFINED`. The poll establishes a deadline
-before its first request and checks the next interval against that deadline
-after each response, so a terminal response is returned even when it arrives
-at the deadline; otherwise the last nonterminal response is a timed-out
-bounded result. Output includes the last body, `pollComplete`, `pollTimedOut`,
+at input admission, including time spent queued, with an abort timer and
+checks before and after each request. A response arriving at or after the
+deadline cannot establish completion. Timeout aborts work and returns the
+last accepted body (or null), with `pollTimedOut=true`. Node close aborts active
+polls and suppresses successful output, routing a sanitized error to Catch. Output includes the last body, `pollComplete`, `pollTimedOut`,
 `pollAttempts`, `deliveryStatus`, status, headers, and URL. A timeout is not
 completion evidence. Likewise, an offline response sequence that ends before
 the finite attempt budget is exhausted is an incomplete timeline, not proof

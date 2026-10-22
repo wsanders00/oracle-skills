@@ -13,8 +13,8 @@ its managed palette (`db-connection`, `begin transaction`, `end transaction`,
 not every field, driver option, payload shape, output property, or version
 behavior. The public Oracle sample package and its node reference (`O7` and
 `S4`) are separate source surfaces. Package-specific details here are pinned
-to release `0.6.0` at commit
-`d1f886fed04f456b28527d578be140fbc7a6c2f1`; they are normative only for that
+to release `0.8.0` at commit
+`cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb`; they are normative only for that
 exact revision and must not be attributed to the managed service.
 
 ## Managed database workflow
@@ -84,7 +84,9 @@ Thin versus thick is a driver boundary, not a promise made by the managed node:
 In the pinned package, driver mode is process-wide in one Node-RED runtime. The first database
 connection that initializes node-oracledb chooses Thin or Thick; a later node
 requesting the other mode continues with the initialized mode and logs a
-warning. Thick is the source node's default. A mode switch in that source
+warning. New configurations and saved configurations with an omitted driver mode default to Thin.
+The encrypted Thin wallet credential is separate from the database password;
+Thick wallet handling remains a different driver path. A mode switch in that source
 requires a new runtime process. This skill does not prescribe a standalone
 restart or driver installation for a managed runtime. Any required managed
 software or lifecycle operation uses OCI's supported procedure and a separate
@@ -109,7 +111,12 @@ unacquired --begin--> active --end(commit)--> committed --close--> closed
                          +--timeout--------> rollback/close attempt
 ```
 
-The transaction handle is runtime state, not ordinary `msg.payload`. Preserve
+The transaction handle is runtime state, not ordinary `msg.payload`. The runtime
+registry uses the enumerable `_dbTransaction` ID to reattach a cloned message to
+its owner; the actual `transaction` connection property is non-enumerable.
+Admission and finalization are serialized; repeated end/finalize calls share
+one completion, failed joined work marks rollback-only, and a connection closes
+once. A stale/foreign handle must not acquire a replacement transaction. Preserve
 it through the supported node path; do not assume that cloning or serializing
 a message preserves a driver handle. Reuse means the SQL/enqueue/dequeue node
 uses the already-acquired context, not that a second connection is silently
@@ -130,6 +137,16 @@ or DML operation. An already-ended context is terminal for that handle and
 must not be reused.
 
 ## Enqueue: payload, recipient, delivery, and commit
+
+The editor Auto-commit choice is `independentTransaction` in this source. When
+true, enqueue obtains, commits, and closes a separate connection even if the
+incoming message has a transaction owner. It preserves that incoming owner in
+its output and must not commit or mark it rollback-only on independent failure.
+When false, an active incoming owner retains commit/rollback responsibility;
+without one, enqueue owns its standalone connection.
+Recipients are normalized from a comma-separated string and copied onto every
+enqueued message, not merely assigned as a queue option. Empty member names
+and control characters are rejected. This proves request construction only.
 
 Treat enqueue as queue acceptance, not consumer processing. Capture these
 fields in the selected contract:
@@ -231,6 +248,13 @@ the pinned node opens its own connection, dequeues, auto-commits, and closes.
 With an active transaction context, dequeue leaves commit/rollback to the
 explicit end-transaction owner.
 
+Dequeue conditions default to none. An editor condition works in either mode;
+`msg.dequeueCondition` is permitted only in transactional mode. Selected
+conditions must be nonempty single-line strings of at most 4000 UTF-8 bytes.
+A changed condition resets queue navigation to the first message; subsequent
+selection advances navigation. Conditions are database expressions, not a new
+SQL helper or an authorization filter.
+
 ## SQL source, binds, results, and transaction behavior
 
 Separate the SQL source modes:
@@ -272,7 +296,9 @@ blocks. A portable policy may reject concatenated blocks, but that stricter
 rule must be explicitly labeled portable rather than attributed to the pinned
 source. SQL appended after `END;` is a chain and is rejected when the heuristic
 does not classify the full text as an anonymous block. Bind scanning ignores
-placeholders in string literals and line/block comments. Neither SQL nor bind
+placeholders in string literals (including Oracle alternative quoting), JSON
+member separators, and line/block comments. Unquoted names are case-insensitive;
+quoted bind names preserve case. DDL bypasses application-bind parity checks. Neither SQL nor bind
 values may appear in Catch output. The source checks required bind
 names/counts but does not establish that extra object/array values are
 rejected; the portable contract rejects extras to prevent silently ignored

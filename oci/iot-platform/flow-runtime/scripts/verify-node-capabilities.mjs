@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const loadJson = async (path) => JSON.parse(await readFile(resolve(packageRoot, path), "utf8"));
-const sampleRevision = "d1f886fed04f456b28527d578be140fbc7a6c2f1";
+const sampleRevision = "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb";
 const qosValid = (value) => value !== null && value !== undefined && value !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 2;
 const normalizeQos = (value, fallback) => {
   const parsed = Number(value);
@@ -338,7 +338,7 @@ const iotDecision = (item) => {
       ...(runtimeOverride && runtimeQos === null ? { qosAction: "invalid-runtime-override-fell-back-to-configured", warning: true } : {})
     };
     const sourceTreatsAsObject = typeof input.payload === "object";
-    if (input.payload === null && input.insertTimestamp) return { valid: false, route: "node-error", reason: "null-payload-timestamp-TypeError", beforePublish: true };
+    if (input.payload === null && input.insertTimestamp) return { valid: false, route: "Catch", reason: "Cannot add a timestamp to a null telemetry payload", beforePublish: true };
     const payload = sourceTreatsAsObject ? structuredClone(input.payload) : { value: input.payload };
     let timestampAction = "preserved";
     if (input.insertTimestamp && payload.time == null) {
@@ -408,12 +408,8 @@ const iotDecision = (item) => {
     if (input.mode) return { mode: input.mode, contentReturned: input.content !== undefined, metadata: ["etag", "opcRequestId"], crudEstablished: false, route: "compatibility-gate" };
     if (Object.hasOwn(input, "topLevelContent") && !plainObject(input.topLevelContent)) return { valid: false, route: "Catch", reason: "Missing or invalid content. Provide an object in msg.content or msg.payload.content", precedence: "defined-msg.content-including-null" };
     if (Object.hasOwn(input, "configuredRelationshipKey")) {
-      const explicitTopLevel = input.topLevelRelationshipKey !== undefined && input.topLevelRelationshipKey !== null;
-      let selectedKey = explicitTopLevel ? input.topLevelRelationshipKey : input.configuredRelationshipKey;
-      if (selectedKey === undefined || selectedKey === null || selectedKey === "") selectedKey = input.payloadRelationshipKey;
-      const precedence = explicitTopLevel && input.topLevelRelationshipKey === "" && input.configuredRelationshipKey
-        ? "explicit-empty-top-level-bypasses-default-and-falls-through-to-payload"
-        : (!explicitTopLevel && input.configuredRelationshipKey ? "configured-default-before-payload-key" : "empty-top-level-and-default-fall-through-to-payload");
+      const selectedKey = input.topLevelRelationshipKey || input.payloadRelationshipKey || input.configuredRelationshipKey;
+      const precedence = "message-key-then-payload-key-then-default";
       return { valid: relationshipKey(selectedKey) !== null, selectedKey, precedence, route: "compatibility-gate" };
     }
     const parsed = relationshipKey(input.relationshipKey);
@@ -713,3 +709,168 @@ assert.deepEqual(optionalDecision({ family: "oci-ords-poll", input: { pollType: 
 assert.deepEqual(optionalDecision({ family: "oci-object-storage", input: { config: { operation: "download", namespace: "fixture-ns", bucketName: "fixture-bucket", objectName: "fixture-object", downloadOutput: "buffer" }, msg: {}, bytes: "fixture-bytes" } }), { decision: "accepted-shape", effectiveOperation: "download", branch: "download", runtimeOperationProvided: false, serviceCall: "getObject", fileWritten: "", outputType: "buffer" }, "Object Storage must dispatch from the resolved configured operation");
 
 console.log(`verified ${identity.cases.length} source-role identity, ${identity.targetSelectionCases.length} managed-target selection, ${database.cases.length} database/AQ, ${iot.cases.length} core IoT/OCI, and ${optional.cases.length} optional OCI node capability cases`);
+
+// Selected 0.8.0 source contracts, simulated with synthetic inputs only.
+// No package import, key file read, SDK, database, or service execution occurs.
+const containedOrdsPath = (path) => {
+  const raw = String(path).trim();
+  if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("//")) throw new Error("absolute path");
+  const segments = raw.split("?")[0].replace(/^\/+/, "").split("/").filter(Boolean).map((part) => {
+    const decoded = decodeURIComponent(part);
+    let checked = decoded;
+    for (let depth = 0; ; depth += 1) {
+      if (checked === "." || checked === ".." || /[/\\\u0000-\u001f\u007f]/.test(checked)) throw new Error("path escape");
+      if (!/%[0-9a-f]{2}/i.test(checked)) break;
+      if (depth >= 8) throw new Error("nested encoding");
+      try { checked = decodeURIComponent(checked); } catch { break; }
+    }
+    return encodeURIComponent(decoded);
+  });
+  const base = new URL("https://example.invalid/base/");
+  const result = new URL(segments.join("/"), base);
+  if (result.origin !== base.origin || !result.pathname.startsWith(base.pathname)) throw new Error("outside base");
+  return result.pathname;
+};
+const scanCurrentSqlNames = (sql) => {
+  // Ignore Oracle alternative literals before the existing lexical blanking pass.
+  const withoutAlternative = sql.replace(/q'([\[{(<])([\s\S]*?)([\]})>])'/gi, (whole, open, _text, close) => ({ "[": "]", "{": "}", "(": ")", "<": ">" })[open] === close ? " ".repeat(whole.length) : whole);
+  const quotedNames = [];
+  const quotedBinds = withoutAlternative.replace(/:\s*"([^"]*)"/g, (whole, name) => { quotedNames.push(name); return " ".repeat(whole.length); });
+  // JSON member separators following a string literal are not application binds.
+  const withoutJsonColons = quotedBinds.replace(/'(?:[^']|'')*'\s*:/g, (whole) => whole.replace(/:$/, " "));
+  return [...new Set([...quotedNames, ...bindPlaceholders(withoutJsonColons).named.map((name) => name.toUpperCase())])];
+};
+const refreshDecision = async ({ kind, input: x }) => {
+  if (kind === "twin-identity") {
+    const msg = x.msg;
+    if (Object.hasOwn(msg, "digitalTwinInstanceOcid")) {
+      if (typeof msg.digitalTwinInstanceOcid !== "string" || !msg.digitalTwinInstanceOcid.trim()) return { route: "Catch", code: "OCI_INPUT_INVALID", calls: 0 };
+      return { id: msg.digitalTwinInstanceOcid.trim() };
+    }
+    return { id: x.node === "get" ? String(msg.digitalTwinOcid ?? x.configured ?? "").trim() : x.configured || msg.digitalTwinOcid };
+  }
+  if (kind === "relationship-fallback") {
+    let key = x.msg.relationshipKey;
+    if ((key === undefined || key === null || key === "") && plainObject(x.msg.payload)) key = x.msg.payload.relationshipKey;
+    if (key === undefined || key === null || key === "") key = x.defaultKey;
+    let content = x.msg.content;
+    if (content === undefined && plainObject(x.msg.payload)) content = x.msg.payload.content;
+    if (content === undefined) content = x.defaultContent;
+    return { key, content };
+  }
+  if (kind === "telemetry-failure") {
+    let payload = x.failure === "bigint" ? { value: 1n } : x.failure === "cycle" ? {} : null;
+    if (x.failure === "cycle") payload.self = payload;
+    const original = payload;
+    let publishes = 0;
+    try {
+      if (x.failure === "null-timestamp" && payload === null) throw new Error("null timestamp");
+      JSON.stringify(payload);
+      publishes += 1;
+    } catch { return { route: "Catch", publishes, payloadPreserved: payload === original }; }
+    return { publishes };
+  }
+  if (kind === "subscription-isolation") {
+    const first = structuredClone(x.payload);
+    const second = structuredClone(x.payload);
+    first.nested.value = 9;
+    return { secondValue: second.nested.value, originalValue: x.payload.nested.value };
+  }
+  if (kind === "key-validation") return !x.readOk || !x.pemValid ? { route: "Catch", code: "OCI_PRIVATE_KEY_INVALID", providerCreated: false } : { providerInput: "validated-PEM-contents" };
+  if (kind === "client-lifecycle") {
+    let closed = false, cleanup = 0, outputs = 0;
+    const pending = Promise.resolve().then(() => {
+      const client = { release: () => { cleanup += 1; } };
+      if (closed) client.release(); else outputs += 1;
+    });
+    if (x.closeBeforeReady) closed = true;
+    await pending;
+    return { circuitBreakerCleanup: cleanup, outputs, providerClosedByClient: false };
+  }
+  if (kind === "request-late-output") {
+    let closed = false, outputs = 0;
+    const pending = Promise.resolve().then(() => {
+      if (closed) throw Object.assign(new Error("closed"), { code: "OCI_NODE_CLOSED" });
+      outputs += 1;
+    });
+    if (x.closeDuringRequest) closed = true;
+    try { await pending; } catch (error) { return { outputs, route: "Catch", code: error.code, serviceAcceptance: "unknown" }; }
+    return { outputs };
+  }
+  if (kind === "provider-lifecycle") {
+    let closePromise, providerCleanup = 0;
+    const close = () => closePromise ??= Promise.resolve().then(() => { providerCleanup += 1; });
+    await Promise.all(Array.from({ length: x.closeCalls }, close));
+    return { providerCleanup };
+  }
+  if (kind === "error-projection") {
+    const clean = Object.fromEntries(Object.entries(x.response).map(([key, value]) => [key, /token|secret|authorization/i.test(key) ? "[redacted]" : value]));
+    const projected = { message: clean.message, code: x.serviceCode };
+    return { statusCode: x.status, code: projected.code, requestId: x.requestId, response: clean, catchHasRawRequest: Object.hasOwn(projected, "rawRequest") };
+  }
+  if (kind === "driver-default") return { mode: x.mode === undefined ? "thin" : x.mode, walletCredentialSeparate: true };
+  if (kind === "enqueue-owner") {
+    const ownConnection = x.independent === true || !x.incomingOwner;
+    return { ownConnection, commits: ownConnection && !x.error ? 1 : 0, incomingCommits: 0, incomingRollbackOnly: Boolean(x.error && !x.independent && x.incomingOwner), outgoingOwnerPreserved: Boolean(x.incomingOwner) };
+  }
+  if (kind === "recipients") {
+    if (typeof x.recipients !== "string" || /[\x00-\x1f\x7f]/.test(x.recipients)) return { route: "Catch", calls: 0 };
+    const names = x.recipients.trim() ? x.recipients.split(",").map((name) => name.trim()) : [];
+    if (names.some((name) => !name)) return { route: "Catch", calls: 0 };
+    const messages = x.payloads.map((payload) => ({ payload, ...(names.length ? { recipients: names.slice() } : {}) }));
+    return { messages, isolatedRecipients: messages.length < 2 || messages[0].recipients !== messages[1].recipients };
+  }
+  if (kind === "condition") {
+    if (x.source === "none") return { condition: "" };
+    const value = x.repeat ? x.value.repeat(x.repeat) : x.value;
+    if (!["editor", "msg"].includes(x.source) || (x.source === "msg" && x.mode === "continuous") || typeof value !== "string" || !value.trim() || /[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(value) || Buffer.byteLength(value) > 4000) return { route: "Catch", code: "DB_AQ_CONDITION_INVALID" };
+    return { condition: value.trim() };
+  }
+  if (kind === "transaction-registry") {
+    const txn = { connection: {}, rollbackOnly: x.rollbackOnly, completion: null };
+    const registry = new Map([["synthetic-owner", txn]]);
+    const msg = { _dbTransaction: "synthetic-owner" };
+    Object.defineProperty(msg, "transaction", { value: txn, enumerable: false });
+    const clones = Array.from({ length: x.clones }, () => structuredClone(msg));
+    let commits = 0, closes = 0;
+    const finish = (clone) => {
+      const owner = registry.get(clone._dbTransaction);
+      return owner.completion ??= Promise.resolve().then(() => { if (!owner.rollbackOnly) commits += 1; closes += 1; });
+    };
+    await Promise.all(Array.from({ length: x.finishCalls }, (_, index) => finish(clones[index % clones.length])));
+    return { connections: new Set(clones.map((clone) => registry.get(clone._dbTransaction).connection)).size, commits, closes, serializedConnection: Object.hasOwn(clones[0], "transaction") };
+  }
+  if (kind === "sql-bind-scan") {
+    const names = scanCurrentSqlNames(x.sql);
+    const bindNames = Object.keys(x.binds).map((name) => name.startsWith('"') && name.endsWith('"') ? name.slice(1, -1) : name.toUpperCase());
+    return { names, valid: names.every((name) => bindNames.includes(name)) };
+  }
+  if (kind === "response-limit") {
+    const limit = x.limit === undefined ? 16 * 1024 * 1024 : Number(x.limit);
+    const code = !Number.isSafeInteger(limit) || limit <= 0 ? "OCI_RESPONSE_LIMIT_INVALID" : x.bytes > limit ? "OCI_RESPONSE_TOO_LARGE" : null;
+    return code ? { route: "Catch", code, outputs: 0, fileWrites: 0 } : { bytes: x.bytes, limit };
+  }
+  if (kind === "token-lifetime") {
+    if (x.expiresIn === undefined) return { usableMs: 60 * 60 * 1000 };
+    const seconds = Number(x.expiresIn);
+    if (!["number", "string"].includes(typeof x.expiresIn) || !Number.isFinite(seconds) || seconds <= 0) return { route: "Catch", cached: false };
+    return { usableMs: (seconds - Math.min(30, seconds / 10)) * 1000 };
+  }
+  if (kind === "ords-containment") {
+    try { return { valid: true, pathname: containedOrdsPath(x.recordId === undefined ? x.path : `${x.path}/${x.recordId}`) }; } catch { return { valid: false, calls: 0 }; }
+  }
+  if (kind === "poll-lifecycle") {
+    if (x.closed) return { route: "Catch", outputs: 0, aborted: true };
+    return { timedOut: x.now >= x.deadline, outputs: 1, attempts: x.queued ? 0 : 1, aborted: x.now >= x.deadline };
+  }
+  assert.fail(`unknown refresh kind: ${kind}`);
+};
+let refreshCount = 0;
+for (const fixture of [database, iot, optional]) {
+  assert.ok(fixture.refreshCases?.length, "0.8.0 refresh cases required");
+  for (const item of fixture.refreshCases) {
+    assert.deepEqual(await refreshDecision(item), item.expected, `${item.caseId}: 0.8.0 source contract mismatch`);
+    refreshCount += 1;
+  }
+}
+console.log(`verified ${refreshCount} additional synthetic 0.8.0 source-contract cases (no npm/runtime execution)`);

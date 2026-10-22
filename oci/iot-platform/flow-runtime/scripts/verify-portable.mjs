@@ -140,7 +140,7 @@ for (const path of files) {
 const executableIntegrity = new Map([
   ["scripts/verify-runtime.mjs", "76af7c4b07a0679b17dcf6b33d7fdabb07cd312975ea7ed33aced839f0156848"],
   ["scripts/verify-workflows.mjs", "6169e24aaae9aa702bb58b41c235243ee4e8e1aa839e654f5f73530626422273"],
-  ["scripts/verify-node-capabilities.mjs", "946a2eba7e66ac96cb217cc9260226589084eb5a4331e58e64c4d7b97b14275e"],
+  ["scripts/verify-node-capabilities.mjs", "0086fefc93bccd8369cfc5691cf1b857b0ab4b33ce6d79c7ba605ad8be3e5f56"],
   ["assets/node-red/oci-iot-ingress-core.json", "fe51bd106564a35829bd4691c31f79c432189122f2c688b875ce080e82e773b4"]
 ]);
 for (const [name, expectedSha256] of executableIntegrity) {
@@ -565,7 +565,7 @@ await import("./verify-node-capabilities.mjs");
 
 // Independent anchors prevent synchronized changes to the focused node
 // verifier and fixtures from redefining the highest-risk contracts.
-const pinnedSampleRevision = "d1f886fed04f456b28527d578be140fbc7a6c2f1";
+const pinnedSampleRevision = "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb";
 for (const sourceId of ["O7", "S4"]) {
   const source = sourceById.get(sourceId);
   assert.equal(source?.immutable_ref, pinnedSampleRevision, `hardcoded ${sourceId} immutable revision contract failed`);
@@ -649,7 +649,7 @@ assert.deepEqual(
   { valid: true, keyShape: "sourceTwinOcid->targetTwinOcid:contentPath", parsed: { source: "fixture-source", target: "fixture-target", contentPath: "fixture-related" }, contentUsed: "message", updateAcceptance: "unknown", route: "compatibility-gate" },
   "hardcoded relationship-key grammar contract failed"
 );
-assert.deepEqual(iotCasesById.get("telemetry-null-payload-auto-timestamp-errors-before-publish")?.expected, { valid: false, route: "node-error", reason: "null-payload-timestamp-TypeError", beforePublish: true }, "hardcoded telemetry null timestamp failure contract failed");
+assert.deepEqual(iotCasesById.get("telemetry-null-payload-auto-timestamp-errors-before-publish")?.expected, { valid: false, route: "Catch", reason: "Cannot add a timestamp to a null telemetry payload", beforePublish: true }, "hardcoded telemetry null timestamp failure contract failed");
 assert.equal(iotCasesById.get("telemetry-null-qos-does-not-override-configured")?.expected?.qos, 2, "hardcoded telemetry null QoS fallback contract failed");
 for (const caseId of ["telemetry-empty-runtime-qos-normalizes-to-zero", "telemetry-null-configured-qos-normalizes-to-zero", "telemetry-empty-configured-qos-normalizes-to-zero"]) {
   assert.equal(iotCasesById.get(caseId)?.expected?.qos, 0, `hardcoded telemetry source QoS normalization failed: ${caseId}`);
@@ -662,6 +662,13 @@ assert.equal(iotCasesById.get("relationship-explicit-empty-top-level-bypasses-co
 
 const optionalCasesFixture = JSON.parse(await readFile(resolve(packageRoot, "assets/nodes/optional-oci-node-contract-cases.json"), "utf8"));
 const optionalCasesById = new Map(optionalCasesFixture.cases.map((item) => [item.caseId, item]));
+
+const refreshCase = (fixture, id) => fixture.refreshCases.find((item) => item.caseId === id);
+assert.equal(refreshCase(iotCasesFixture, "instance-ocid-invalid-no-fallback")?.expected?.calls, 0, "hardcoded new twin identity rejection failed");
+assert.equal(refreshCase(databaseCasesFixture, "enqueue-independent-preserves-incoming-owner")?.expected?.incomingCommits, 0, "hardcoded independent enqueue ownership failed");
+assert.equal(refreshCase(databaseCasesFixture, "enqueue-recipients-per-message")?.expected?.messages?.[1]?.recipients?.[1], "b", "hardcoded per-message AQ recipients failed");
+assert.equal(refreshCase(optionalCasesFixture, "object-saved-flow-default-limit")?.expected?.fileWrites, 0, "hardcoded saved-flow response limit failed");
+assert.equal(refreshCase(optionalCasesFixture, "ords-poll-close-suppresses-output")?.expected?.outputs, 0, "hardcoded late poll suppression failed");
 assert.deepEqual(optionalCasesById.get("ords-poll-custom-times-out-finitely")?.expected, { decision: "bounded-result", pollComplete: false, pollTimedOut: true, pollAttempts: 3, genericRetry: false }, "hardcoded bounded ORDS polling contract failed");
 assert.deepEqual(optionalCasesById.get("ords-poll-custom-default-items-not-empty-completes")?.expected, { decision: "bounded-result", pollComplete: true, pollTimedOut: false, pollAttempts: 1, genericRetry: false }, "hardcoded ORDS custom-success defaults failed");
 assert.deepEqual(optionalCasesById.get("ords-poll-incomplete-response-timeline-does-not-prove-timeout")?.expected, { decision: "insufficient-timeline", pollComplete: false, pollTimedOut: "unproven", pollAttempts: 2, genericRetry: false }, "hardcoded incomplete ORDS timeline evidence boundary failed");

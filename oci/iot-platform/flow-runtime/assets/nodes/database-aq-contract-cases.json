@@ -6,8 +6,8 @@
   "sourceClaimId": "FR-DB-AQ-DETAIL-001",
   "sourceEvidence": [
     { "sourceId": "O1", "role": "managed editor Database/AQ role inventory", "observed": "2026-09-16", "immutableRef": null },
-    { "sourceId": "O7", "role": "Oracle sample package release 0.6.0", "observed": "2026-09-16", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1" },
-    { "sourceId": "S4", "role": "Oracle sample node reference at release 0.6.0", "observed": "2026-09-16", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1" },
+    { "sourceId": "O7", "role": "Oracle sample package release 0.8.0", "observed": "2026-10-22", "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb" },
+    { "sourceId": "S4", "role": "Oracle sample node reference at release 0.8.0", "observed": "2026-10-22", "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb" },
     { "sourceId": "N2", "role": "Node-RED message and payload conventions", "observed": "2026-09-11", "immutableRef": null },
     { "sourceId": "N4", "role": "Node-RED Catch/error routing conventions", "observed": "2026-09-11", "immutableRef": null }
   ],
@@ -19,7 +19,7 @@
       "selectionRequired": true,
       "thinThickBoundary": {
         "driverModes": ["thick", "thin"],
-        "default": "thick",
+        "default": "thin",
         "scope": "process-wide-after-first-driver-initialization",
         "mixedRequest": "later request continues in initialized mode and warns",
         "restartRequiredToSwitch": true,
@@ -234,5 +234,24 @@
     "SQL execution, result metadata, DML effects, PL/SQL behavior, isolation, or commit durability",
     "target palette/version compatibility or availability of the pinned sample package",
     "runtime recovery after crash or network interruption"
+  ],
+  "refreshCases": [
+    {"caseId": "connection-omitted-mode-defaults-thin", "kind": "driver-default", "input": {}, "expected": {"mode": "thin", "walletCredentialSeparate": true}},
+    {"caseId": "connection-encrypted-thin-wallet", "kind": "driver-default", "input": {"mode": "thin", "encryptedWallet": true}, "expected": {"mode": "thin", "walletCredentialSeparate": true}},
+    {"caseId": "enqueue-independent-preserves-incoming-owner", "kind": "enqueue-owner", "input": {"incomingOwner": true, "independent": true}, "expected": {"ownConnection": true, "commits": 1, "incomingCommits": 0, "incomingRollbackOnly": false, "outgoingOwnerPreserved": true}},
+    {"caseId": "enqueue-joined-leaves-commit-to-owner", "kind": "enqueue-owner", "input": {"incomingOwner": true, "independent": false}, "expected": {"ownConnection": false, "commits": 0, "incomingCommits": 0, "incomingRollbackOnly": false, "outgoingOwnerPreserved": true}},
+    {"caseId": "enqueue-independent-error-not-owner-rollback", "kind": "enqueue-owner", "input": {"incomingOwner": true, "independent": true, "error": true}, "expected": {"ownConnection": true, "commits": 0, "incomingCommits": 0, "incomingRollbackOnly": false, "outgoingOwnerPreserved": true}},
+    {"caseId": "enqueue-recipients-per-message", "kind": "recipients", "input": {"recipients": " a, b ", "payloads": [1, 2]}, "expected": {"messages": [{"payload": 1, "recipients": ["a", "b"]}, {"payload": 2, "recipients": ["a", "b"]}], "isolatedRecipients": true}},
+    {"caseId": "enqueue-recipients-empty-member-rejected", "kind": "recipients", "input": {"recipients": "a,,b", "payloads": [1]}, "expected": {"route": "Catch", "calls": 0}},
+    {"caseId": "dequeue-message-condition", "kind": "condition", "input": {"source": "msg", "mode": "transactional", "value": " tab.user_data.id = 7 "}, "expected": {"condition": "tab.user_data.id = 7"}},
+    {"caseId": "dequeue-continuous-message-condition-rejected", "kind": "condition", "input": {"source": "msg", "mode": "continuous", "value": "x = 1"}, "expected": {"route": "Catch", "code": "DB_AQ_CONDITION_INVALID"}},
+    {"caseId": "dequeue-condition-newline-rejected", "kind": "condition", "input": {"source": "editor", "value": "x = 1\nOR x = 2"}, "expected": {"route": "Catch", "code": "DB_AQ_CONDITION_INVALID"}},
+    {"caseId": "dequeue-condition-byte-bound", "kind": "condition", "input": {"source": "editor", "value": "x", "repeat": 4001}, "expected": {"route": "Catch", "code": "DB_AQ_CONDITION_INVALID"}},
+    {"caseId": "transaction-clone-rejoins-registry", "kind": "transaction-registry", "input": {"clones": 2, "finishCalls": 2}, "expected": {"connections": 1, "commits": 1, "closes": 1, "serializedConnection": false}},
+    {"caseId": "transaction-failed-work-rollback-only", "kind": "transaction-registry", "input": {"clones": 1, "finishCalls": 2, "rollbackOnly": true}, "expected": {"connections": 1, "commits": 0, "closes": 1, "serializedConnection": false}},
+    {"caseId": "sql-bind-case-insensitive", "kind": "sql-bind-scan", "input": {"sql": "select :Value from dual", "binds": {"value": 7}}, "expected": {"names": ["VALUE"], "valid": true}},
+    {"caseId": "sql-qquote-not-a-bind", "kind": "sql-bind-scan", "input": {"sql": "select q'[do not bind :hidden]' from dual where id=:id", "binds": {"id": 7}}, "expected": {"names": ["ID"], "valid": true}},
+    {"caseId": "sql-quoted-bind-case-sensitive", "kind": "sql-bind-scan", "input": {"sql": "select :\"MiXeD\" from dual", "binds": {"\"MiXeD\"": 7}}, "expected": {"names": ["MiXeD"], "valid": true}},
+    {"caseId": "sql-json-colon-not-bind", "kind": "sql-bind-scan", "input": {"sql": "select json_object('name': 'text') from dual", "binds": {}}, "expected": {"names": [], "valid": true}}
   ]
 }

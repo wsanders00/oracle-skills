@@ -6,8 +6,8 @@
   "sourceClaimId": "FR-IOT-TRANSPORT-001",
   "sourceEvidence": [
     {"sourceId": "O1", "role": "managed Flow Runtime OCI IoT role inventory", "observed": "2026-09-16", "immutableRef": null},
-    {"sourceId": "O7", "role": "Oracle sample node package release 0.6.0", "observed": "2026-09-16", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
-    {"sourceId": "S4", "role": "Oracle sample node reference at release 0.6.0", "observed": "2026-09-16", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+    {"sourceId": "O7", "role": "Oracle sample node package release 0.8.0", "observed": "2026-10-22", "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
+    {"sourceId": "S4", "role": "Oracle sample node reference at release 0.8.0", "observed": "2026-10-22", "immutableRef": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
     {"sourceId": "C11", "role": "official batch Object Storage scenario", "observed": "2026-09-16", "immutableRef": null},
     {"sourceId": "C12", "role": "official monitoring, command, and Notifications scenario", "observed": "2026-09-16", "immutableRef": null},
     {"sourceId": "C6", "role": "Flow Runtime system logging configuration boundary", "observed": "2026-09-16", "immutableRef": null},
@@ -35,8 +35,8 @@
     "samplePackage": {
       "sourceIds": ["S4"],
       "classification": "sample-package",
-      "immutableReference": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
-      "release": "0.6.0",
+      "immutableReference": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb",
+      "release": "0.8.0",
       "status": "pinned-source-target-gated",
       "gate": "target palette/version, module permission, dependencies, and authentication still require inspection before live use"
     },
@@ -91,7 +91,7 @@
     "telemetry": {
       "roles": ["telemetry", "iot-telemetry"],
       "topicSelection": "configured non-empty topic wins; trimmed msg.topic is used only when configured topic is blank",
-      "payload": "non-object payload becomes {value: payload}; null passes through unchanged when auto-timestamp is off but errors on payload.time access when enabled; arrays pass through as arrays (named time is not JSON-stringified)",
+      "payload": "non-object payload becomes {value: payload}; null passes through unchanged when auto-timestamp is off but routes to Catch before publish when timestamp is enabled; arrays pass through as arrays (named time is not JSON-stringified)",
       "timestamp": "pinned iot-telemetry addTimestamp inserts epoch microseconds when payload.time == null; existing values are not unit-validated",
       "qos": "configured/runtime values are Number-normalized independently of payload shape; invalid runtime msg.qos warns and falls back to configured QoS",
       "acceptanceBoundary": "transport/service acceptance is not normalization, history, or device processing"
@@ -145,8 +145,8 @@
       "relationship": {
         "keyGrammar": "sourceTwinOcid->targetTwinOcid:contentPath",
         "parser": "first -> and first : delimiters; trim and require non-empty source, target, and contentPath",
-        "keyPrecedenceImplementation": "non-null msg.relationshipKey wins even when it is explicitly empty (empty then permits payload key); null/absent top-level key uses configured default, and payload key is skipped when that default is selected",
-        "contentPrecedenceImplementation": "defined msg.content, then plain-object msg.payload.content, then configured object default; defined null or missing payload.content blocks later fallback",
+        "keyPrecedenceImplementation": "non-null/nonempty message key, then payload key, then configured default",
+        "contentPrecedenceImplementation": "defined msg.content, then defined payload.content, then configured default; null is defined and invalid",
         "contentRequirement": "plain non-array object"
       },
       "logging": ["oci-custom-logging-upload", "log-analytics-upload"],
@@ -280,13 +280,7 @@
       "input": {"configuredTopic": "data", "configuredQos": 2, "payload": null, "insertTimestamp": false},
       "expected": {"valid": true, "topic": "data", "qos": 2, "payload": null, "acceptance": "transport-only"}
     },
-    {
-      "caseId": "telemetry-null-payload-auto-timestamp-errors-before-publish",
-      "family": "telemetry",
-      "sourceIds": ["S4"],
-      "input": {"configuredTopic": "data", "configuredQos": 2, "payload": null, "insertTimestamp": true},
-      "expected": {"valid": false, "route": "node-error", "reason": "null-payload-timestamp-TypeError", "beforePublish": true}
-    },
+    {"caseId": "telemetry-null-payload-auto-timestamp-errors-before-publish", "family": "telemetry", "sourceIds": ["S4"], "input": {"configuredTopic": "data", "configuredQos": 2, "payload": null, "insertTimestamp": true}, "expected": {"valid": false, "route": "Catch", "reason": "Cannot add a timestamp to a null telemetry payload", "beforePublish": true}},
     {
       "caseId": "telemetry-array-payload-without-auto-timestamp-preserves-array",
       "family": "telemetry",
@@ -501,7 +495,7 @@
       "caseId": "ords-poll-is-bounded-and-refreshes-401-once",
       "family": "optional-ords",
       "sourceIds": ["S4"],
-      "input": {"immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "pollIntervalMs": 1000, "timeoutMs": 5000, "concurrency": 1, "queueLimit": 2, "responses": [{"status": 401}, {"status": 200, "body": "synthetic-status"}], "refreshAttempts": 0},
+      "input": {"immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb", "pollIntervalMs": 1000, "timeoutMs": 5000, "concurrency": 1, "queueLimit": 2, "responses": [{"status": 401}, {"status": 200, "body": "synthetic-status"}], "refreshAttempts": 0},
       "expected": {"classification": "sample-package-compatibility-gated", "validBounds": true, "refreshOn401": "once", "polls": 2, "route": "compatibility-gate", "reason": "target palette/version and module permission remain unverified"}
     },
     {
@@ -515,56 +509,38 @@
       "caseId": "digital-twin-content-read-preserves-evidence",
       "family": "optional-digital-twin",
       "sourceIds": ["S4"],
-      "input": {"mode": "iot-get-content", "content": {"value": "synthetic"}, "etag": "fixture-etag-content", "opcRequestId": "fixture-request-content", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "input": {"mode": "iot-get-content", "content": {"value": "synthetic"}, "etag": "fixture-etag-content", "opcRequestId": "fixture-request-content", "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
       "expected": {"mode": "iot-get-content", "contentReturned": true, "metadata": ["etag", "opcRequestId"], "crudEstablished": false, "route": "compatibility-gate"}
     },
     {
       "caseId": "relationship-update-requires-exact-string-key-and-content-precedence",
       "family": "optional-digital-twin",
       "sourceIds": ["S4"],
-      "input": {"relationshipKey": "fixture-source->fixture-target:fixture-related", "configuredContent": {"mode": "configured"}, "messageContent": {"mode": "message"}, "contentPrecedence": "message", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "input": {"relationshipKey": "fixture-source->fixture-target:fixture-related", "configuredContent": {"mode": "configured"}, "messageContent": {"mode": "message"}, "contentPrecedence": "message", "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
       "expected": {"valid": true, "keyShape": "sourceTwinOcid->targetTwinOcid:contentPath", "parsed": {"source": "fixture-source", "target": "fixture-target", "contentPath": "fixture-related"}, "contentUsed": "message", "updateAcceptance": "unknown", "route": "compatibility-gate"}
     },
     {
       "caseId": "relationship-key-extra-delimiters-follow-first-delimiter-parser",
       "family": "optional-digital-twin",
       "sourceIds": ["S4"],
-      "input": {"relationshipKey": "source->target->embedded:path:subpath", "content": {"state": "synthetic"}, "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "input": {"relationshipKey": "source->target->embedded:path:subpath", "content": {"state": "synthetic"}, "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
       "expected": {"valid": true, "keyShape": "sourceTwinOcid->targetTwinOcid:contentPath", "parsed": {"source": "source", "target": "target->embedded", "contentPath": "path:subpath"}, "parserNote": "implementation accepts extra delimiters after the first -> and first :", "route": "compatibility-gate"}
     },
     {
       "caseId": "relationship-key-missing-content-path-is-rejected",
       "family": "optional-digital-twin",
       "sourceIds": ["S4"],
-      "input": {"relationshipKey": "source->target:", "content": {"state": "synthetic"}, "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "input": {"relationshipKey": "source->target:", "content": {"state": "synthetic"}, "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
       "expected": {"valid": false, "route": "Catch", "reason": "Invalid relationshipKey format. Expected sourceTwinId->targetTwinId:contentPath"}
     },
-    {
-      "caseId": "relationship-payload-key-does-not-beat-configured-default",
-      "family": "optional-digital-twin",
-      "sourceIds": ["S4"],
-      "input": {"topLevelRelationshipKey": null, "configuredRelationshipKey": "configured-source->configured-target:configured-path", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
-      "expected": {"valid": true, "selectedKey": "configured-source->configured-target:configured-path", "precedence": "configured-default-before-payload-key", "route": "compatibility-gate"}
-    },
-    {
-      "caseId": "relationship-empty-key-uses-payload-key-when-default-empty",
-      "family": "optional-digital-twin",
-      "sourceIds": ["S4"],
-      "input": {"topLevelRelationshipKey": "", "configuredRelationshipKey": "", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
-      "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "empty-top-level-and-default-fall-through-to-payload", "route": "compatibility-gate"}
-    },
-    {
-      "caseId": "relationship-explicit-empty-top-level-bypasses-configured-default",
-      "family": "optional-digital-twin",
-      "sourceIds": ["S4"],
-      "input": {"topLevelRelationshipKey": "", "configuredRelationshipKey": "configured-source->configured-target:configured-path", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
-      "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "explicit-empty-top-level-bypasses-default-and-falls-through-to-payload", "route": "compatibility-gate"}
-    },
+    {"caseId": "relationship-payload-key-beats-configured-default", "family": "optional-digital-twin", "sourceIds": ["S4"], "input": {"topLevelRelationshipKey": null, "configuredRelationshipKey": "configured-source->configured-target:configured-path", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"}, "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "message-key-then-payload-key-then-default", "route": "compatibility-gate"}},
+    {"caseId": "relationship-empty-key-uses-payload-key-when-default-empty", "family": "optional-digital-twin", "sourceIds": ["S4"], "input": {"topLevelRelationshipKey": "", "configuredRelationshipKey": "", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"}, "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "message-key-then-payload-key-then-default", "route": "compatibility-gate"}},
+    {"caseId": "relationship-explicit-empty-top-level-bypasses-configured-default", "family": "optional-digital-twin", "sourceIds": ["S4"], "input": {"topLevelRelationshipKey": "", "configuredRelationshipKey": "configured-source->configured-target:configured-path", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"}, "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "message-key-then-payload-key-then-default", "route": "compatibility-gate"}},
     {
       "caseId": "relationship-defined-null-content-blocks-fallback",
       "family": "optional-digital-twin",
       "sourceIds": ["S4"],
-      "input": {"topLevelContent": null, "payloadContent": {"mode": "payload"}, "configuredContent": {"mode": "configured"}, "relationshipKey": "source->target:path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "input": {"topLevelContent": null, "payloadContent": {"mode": "payload"}, "configuredContent": {"mode": "configured"}, "relationshipKey": "source->target:path", "immutableRevision": "cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb"},
       "expected": {"valid": false, "route": "Catch", "reason": "Missing or invalid content. Provide an object in msg.content or msg.payload.content", "precedence": "defined-msg.content-including-null"}
     },
     {
@@ -632,5 +608,25 @@
     "ORDS response, relationship update effective state, Logging/Log Analytics indexing, searchability, or analytics",
     "database/AQ state or SQL polling result",
     "production OCIDs, endpoints, payloads, secrets, certificates, or runtime state"
+  ],
+  "refreshCases": [
+    {"caseId": "instance-ocid-new-alias-wins", "kind": "twin-identity", "input": {"node": "get", "configured": "configured", "msg": {"digitalTwinInstanceOcid": " new ", "digitalTwinOcid": "legacy"}}, "expected": {"id": "new"}},
+    {"caseId": "instance-ocid-invalid-no-fallback", "kind": "twin-identity", "input": {"node": "send", "configured": "configured", "msg": {"digitalTwinInstanceOcid": "", "digitalTwinOcid": "legacy"}}, "expected": {"route": "Catch", "code": "OCI_INPUT_INVALID", "calls": 0}},
+    {"caseId": "instance-ocid-nonstring-rejected", "kind": "twin-identity", "input": {"node": "get", "msg": {"digitalTwinInstanceOcid": 17}}, "expected": {"route": "Catch", "code": "OCI_INPUT_INVALID", "calls": 0}},
+    {"caseId": "legacy-get-message-first", "kind": "twin-identity", "input": {"node": "get", "configured": "configured", "msg": {"digitalTwinOcid": " legacy "}}, "expected": {"id": "legacy"}},
+    {"caseId": "legacy-send-config-first", "kind": "twin-identity", "input": {"node": "send", "configured": "configured", "msg": {"digitalTwinOcid": "legacy"}}, "expected": {"id": "configured"}},
+    {"caseId": "legacy-get-empty-blocks-default", "kind": "twin-identity", "input": {"node": "get", "configured": "configured", "msg": {"digitalTwinOcid": ""}}, "expected": {"id": ""}},
+    {"caseId": "relationship-independent-fallbacks", "kind": "relationship-fallback", "input": {"msg": {"payload": {"relationshipKey": "payload-key"}}, "defaultKey": "default-key", "defaultContent": {"ok": true}}, "expected": {"key": "payload-key", "content": {"ok": true}}},
+    {"caseId": "relationship-null-content-blocks-default", "kind": "relationship-fallback", "input": {"msg": {"content": null, "payload": {"content": {"ok": true}}}, "defaultKey": "default-key", "defaultContent": {"ok": true}}, "expected": {"key": "default-key", "content": null}},
+    {"caseId": "telemetry-bigint-serialization-no-publish", "kind": "telemetry-failure", "input": {"failure": "bigint"}, "expected": {"route": "Catch", "publishes": 0, "payloadPreserved": true}},
+    {"caseId": "telemetry-cycle-no-publish", "kind": "telemetry-failure", "input": {"failure": "cycle"}, "expected": {"route": "Catch", "publishes": 0, "payloadPreserved": true}},
+    {"caseId": "telemetry-null-timestamp-no-publish", "kind": "telemetry-failure", "input": {"failure": "null-timestamp"}, "expected": {"route": "Catch", "publishes": 0, "payloadPreserved": true}},
+    {"caseId": "subscription-payload-isolation", "kind": "subscription-isolation", "input": {"payload": {"nested": {"value": 1}}}, "expected": {"secondValue": 1, "originalValue": 1}},
+    {"caseId": "simple-key-validation-failure-projected", "kind": "key-validation", "input": {"readOk": true, "pemValid": false}, "expected": {"route": "Catch", "code": "OCI_PRIVATE_KEY_INVALID", "providerCreated": false}},
+    {"caseId": "simple-key-contents-not-path", "kind": "key-validation", "input": {"readOk": true, "pemValid": true}, "expected": {"providerInput": "validated-PEM-contents"}},
+    {"caseId": "pending-client-close-disposes-on-arrival", "kind": "client-lifecycle", "input": {"closeBeforeReady": true}, "expected": {"circuitBreakerCleanup": 1, "outputs": 0, "providerClosedByClient": false}},
+    {"caseId": "config-owns-shared-provider", "kind": "provider-lifecycle", "input": {"closeCalls": 2}, "expected": {"providerCleanup": 1}},
+    {"caseId": "oci-error-safe-catch-projection", "kind": "error-projection", "input": {"status": 403, "serviceCode": "Denied", "requestId": "synthetic-request", "response": {"message": "denied", "access_token": "synthetic-value"}, "rawRequest": {"header": "synthetic-value"}}, "expected": {"statusCode": 403, "code": "Denied", "requestId": "synthetic-request", "response": {"message": "denied", "access_token": "[redacted]"}, "catchHasRawRequest": false}},
+    {"caseId": "request-close-after-dispatch-suppresses-success", "kind": "request-late-output", "input": {"closeDuringRequest": true}, "expected": {"outputs": 0, "route": "Catch", "code": "OCI_NODE_CLOSED", "serviceAcceptance": "unknown"}}
   ]
 }
