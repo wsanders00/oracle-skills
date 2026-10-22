@@ -44,8 +44,12 @@ class ModelCatalog(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(prefix="iot-model-index-")
         self.root = Path(self.tmp.name).resolve()
         self.wrapper = self.root / "isolated_cli.py"
-        self.wrapper.write_text('''import json, os, pathlib, runpy, sys
+        self.wrapper.write_text('''import argparse, json, os, pathlib, runpy, sys
 sys.dont_write_bytecode = True
+# Warm trusted stdlib parser dependencies before the guard: Python 3.14 lazily
+# imports shutil/compression while constructing its formatter. No helper or
+# selected input executes here; all catalog operations remain under the hook.
+argparse.ArgumentParser(prog="offline-index-test")
 policy = json.loads(sys.argv[1])
 helper = pathlib.Path(policy["helper"]).resolve()
 readable = {pathlib.Path(path).absolute() for path in policy["inputs"]}
@@ -78,6 +82,15 @@ runpy.run_path(str(helper), run_name="__main__")
         path.write_text(body if isinstance(body, str) else json.dumps(body), encoding="utf-8")
         return path
 
+    def copied_helper(self, relative_skill_root):
+        # Exercise output boundaries in task-owned layouts, never the real
+        # package or its ancestors. Both repository and installed shapes matter.
+        scripts = self.root / relative_skill_root / "scripts"
+        scripts.mkdir(parents=True)
+        helper = scripts / HELPER.name
+        helper.write_bytes(HELPER.read_bytes())
+        return helper
+
     def run_index(self, inputs, *options, outputs=(), helper=HELPER):
         policy = {"helper": str(helper), "inputs": [str(path) for path in inputs],
                   "outputs": [str(path) for path in outputs],
@@ -92,6 +105,25 @@ runpy.run_path(str(helper), run_name="__main__")
         self.assertEqual(result.returncode, status, result.stderr)
         self.assertEqual(result.stderr, "")
         return json.loads(result.stdout)
+
+    def test_audit_guard_blocks_forbidden_helper_operations(self):
+        unselected = self.export("unselected.json", {"synthetic": "unselected"})
+        unapproved_output = self.root / "unapproved-output.json"
+        cases = (
+            ("listdir", "import os; os.listdir('.')", "directory enumeration forbidden"),
+            ("scandir", "import os; list(os.scandir('.'))", "directory enumeration forbidden"),
+            ("process", "import os; os.system('true')", "external execution forbidden"),
+            ("socket", "import socket; socket.socket()", "external execution forbidden"),
+            ("read", "open(" + repr(str(unselected)) + ").read()", "read outside selected inputs forbidden"),
+            ("write", "open(" + repr(str(unapproved_output)) + ", 'w').write('synthetic')", "write outside selected output forbidden"),
+        )
+        for name, script, expected in cases:
+            with self.subTest(operation=name):
+                helper = self.export("forbidden-" + name + ".py", script)
+                result = self.run_index([], helper=helper)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected, result.stderr)
+        self.assertFalse(unapproved_output.exists())
 
     def test_single_interface_has_scoped_metadata_and_unknown_freshness(self):
         source = self.export("sensor.json", interface(contents=[telemetry(unit="degreeCelsius")]))
@@ -351,32 +383,24 @@ runpy.run_path(str(helper), run_name="__main__")
         result = self.run_index([source], "--output", str(link), outputs=[link])
         self.assertEqual(result.returncode, 2)
         self.assertEqual(target.read_text(), "preserve me")
-        destination = SKILL_ROOT / (self.root.name + ".json")
-        try:
-            result = self.run_index([source], "--output", str(destination), outputs=[destination])
-            self.assertEqual(result.returncode, 2)
-            self.assertFalse(destination.exists())
-        finally:
-            if destination.exists():
-                destination.unlink()  # Only this unique test-owned artifact.
+        helper = self.copied_helper("protected-skill")
+        destination = helper.parent.parent / "catalog.json"
+        result = self.run_index([source], "--output", str(destination), outputs=[destination], helper=helper)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertFalse(destination.exists())
 
     def test_repository_root_output_is_rejected(self):
         source = self.export("source.json", interface())
-        destination = SKILL_ROOT.parent.parent / (self.root.name + ".json")
-        try:
-            result = self.run_index([source], "--output", str(destination), outputs=[destination])
-            self.assertEqual(result.returncode, 2)
-            self.assertFalse(destination.exists())
-        finally:
-            if destination.exists():
-                destination.unlink()  # Only this unique test-owned artifact.
+        repository = self.root / "repository"
+        helper = self.copied_helper("repository/oci/iot-platform")
+        destination = repository / "catalog.json"
+        result = self.run_index([source], "--output", str(destination), outputs=[destination], helper=helper)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertFalse(destination.exists())
 
     def test_standalone_skill_can_write_outside_its_source_directory(self):
         source = self.export("source.json", interface())
-        scripts = self.root / "portable-skill" / "scripts"
-        scripts.mkdir(parents=True)
-        helper = scripts / HELPER.name
-        helper.write_bytes(HELPER.read_bytes())
+        helper = self.copied_helper("portable-skill")
         destination = self.root / "portable-catalog.json"
         result = self.run_index([source], "--output", str(destination), outputs=[destination], helper=helper)
         self.assertEqual(result.returncode, 0, result.stderr)
