@@ -1,0 +1,72 @@
+{
+  "fixtureId": "runtime-flow-document-cases-v1",
+  "scope": "offline-example",
+  "description": "Pure decisions for complete flows-document replacement; no OCI calls.",
+  "cannotProve": [
+    "IAM authorization",
+    "credential restoration",
+    "runtime health",
+    "effective deployed state"
+  ],
+  "cases": [
+    {
+      "caseId": "matching-etag-replacement",
+      "name": "Matching ETag permits complete replacement",
+      "current": { "flowsDocumentId": "flows-current-a", "etag": "etag-a", "checksum": "sha256:current-a" },
+      "candidate": { "flowsDocumentId": "flows-candidate-b", "checksum": "sha256:candidate-b" },
+      "preflight": { "backupSaved": true, "candidateIsCompleteJson": true, "secretsEmbedded": false },
+      "ifMatch": "etag-a",
+      "expected": { "decision": "replace", "request": "PUT-complete-flows", "readbackRequired": true, "effectiveFlowsDocumentId": "flows-candidate-b" }
+    },
+    {
+      "caseId": "stale-etag-aborts",
+      "name": "Stale ETag aborts without retry",
+      "current": { "flowsDocumentId": "flows-current-new", "etag": "etag-new", "checksum": "sha256:current-new" },
+      "candidate": { "flowsDocumentId": "flows-old-candidate", "checksum": "sha256:old-candidate" },
+      "preflight": { "backupSaved": true, "candidateIsCompleteJson": true, "secretsEmbedded": false },
+      "ifMatch": "etag-old",
+      "response": { "status": 412 },
+      "expected": { "decision": "abort", "retry": false, "effectiveFlowsDocumentId": "flows-current-new" }
+    },
+    {
+      "caseId": "missing-etag-aborts",
+      "name": "Missing current ETag stops before mutation",
+      "current": { "flowsDocumentId": "flows-current-a", "etag": null },
+      "candidate": { "flowsDocumentId": "flows-candidate-b", "checksum": "sha256:candidate-b" },
+      "preflight": { "backupSaved": true, "candidateIsCompleteJson": true, "secretsEmbedded": false },
+      "ifMatch": null,
+      "expected": { "decision": "abort", "requestSent": false }
+    },
+    {
+      "caseId": "backup-before-replacement",
+      "name": "Backup is required before replacement",
+      "current": { "flowsDocumentId": "flows-current-a", "etag": "etag-a" },
+      "candidate": { "flowsDocumentId": "flows-candidate-b" },
+      "preflight": { "backupSaved": false, "candidateIsCompleteJson": true, "secretsEmbedded": false },
+      "ifMatch": "etag-a",
+      "expected": { "decision": "abort", "requestSent": false, "reason": "backup-required" }
+    },
+    {
+      "caseId": "effective-state-readback",
+      "name": "Successful replacement requires effective readback",
+      "current": { "flowsDocumentId": "flows-current-a", "etag": "etag-a" },
+      "candidate": { "flowsDocumentId": "flows-candidate-b", "checksum": "sha256:candidate-b" },
+      "preflight": { "backupSaved": true, "candidateIsCompleteJson": true, "secretsEmbedded": false },
+      "ifMatch": "etag-a",
+      "response": { "status": 200, "returnedFlowsDocumentId": "flows-candidate-b" },
+      "readback": { "flowsDocumentId": "flows-candidate-b", "checksum": "sha256:candidate-b" },
+      "expected": { "decision": "replace-and-confirm", "readbackMatches": true }
+    },
+    {
+      "caseId": "readback-mismatch-escalates",
+      "name": "Readback mismatch is unresolved",
+      "current": { "flowsDocumentId": "flows-current-a", "etag": "etag-a" },
+      "candidate": { "flowsDocumentId": "flows-candidate-b", "checksum": "sha256:candidate-b" },
+      "preflight": { "backupSaved": true, "candidateIsCompleteJson": true, "secretsEmbedded": false },
+      "ifMatch": "etag-a",
+      "response": { "status": 200 },
+      "readback": { "flowsDocumentId": "flows-other", "checksum": "sha256:other" },
+      "expected": { "decision": "escalate", "reason": "effective-state-mismatch", "retry": false }
+    }
+  ]
+}

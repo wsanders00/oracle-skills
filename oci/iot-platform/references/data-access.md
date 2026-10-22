@@ -45,8 +45,16 @@ If these prerequisites are missing, say so clearly before giving commands.
 - Verify the user actually needs raw, rejected, or historized records before steering them here.
 - Use the domain-group short ID and domain short ID to form the ORDS/Data API base path.
 - Treat snapshot, raw, historized, rejected, and raw-command data as separate collections with different verification value.
-- Keep list windows bounded by time, twin filter, limit, or another narrow query parameter.
+- Use only documented collection filters. Do not replace an unavailable targeted filter with a broader request unless that scope is separately authorized.
 - Fetch a record by ID when a list response omits payload details needed for diagnosis.
+
+For a read-only, one-page twin-filtered `rawData` request and offline historian,
+rejected-ingest, or existing-command summaries, use
+[Data diagnostics](data-diagnostics.md). The documented `q` twin filter is
+shown for `rawData`; the IoT API reference does not list query parameters for
+the other collections. Do not broaden an unavailable per-twin query into an
+unfiltered collection request. Client-side windows over a selected local export
+do not establish full-window completeness.
 
 Typical Data API base URL shape:
 
@@ -108,3 +116,24 @@ When using this reference:
 3. Give the smallest command set needed for the task.
 4. Include a verification step.
 5. Say whether a CLI/API fallback exists if an optional MCP helper was used.
+
+## Sources and limits
+
+The IoT Data API contract and collection paths are documented in the
+[IoT Data API reference](https://docs.oracle.com/en-us/iaas/tools/internet-of-things/data-api/index.html)
+(retrieved 2026-10-08). Its listed resources use the versioned
+`/20250531/<collection>` path below the `/ords/<domain-short-id>` base. Its
+examples show bearer authorization, collection fields, and by-ID resources.
+The documented `q` twin filter and bearer access pattern are shown for `rawData`
+in [Scenario: Connecting IoT Data to ORDS](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/connect-iot-ords.htm)
+and for IoT data inspection in [Scenario: Sending Structured Data in a Default
+Format using HTTPS](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/structured-default-https.htm)
+(both retrieved 2026-10-08). The public API reference does not list query
+parameters per collection. If `rawData` rejects this filter, stop; do not retry
+with an unfiltered collection request.
+
+These sources do not establish IoT-collection support for `limit`, `offset`,
+`hasMore`, ordering, or time filters. General ORDS paging documentation is not
+proof of those IoT-specific contracts. Do not infer that a response page is a
+complete window, even if a field resembles a continuation flag. Recheck the
+IoT API contract before publishing additional query parameters.

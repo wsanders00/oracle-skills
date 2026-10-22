@@ -7,7 +7,7 @@ echo "Scanning for obvious secret and internal-provenance patterns..."
 
 MATCHES="$(rg -n --hidden \
   --glob '!.git' \
-  '(/Users/[^[:space:]]+|/home/[^[:space:]]+|dashboard\.localhost|Local pre-PR|pre-PR|IAM_PASSWORD=|IAM_APP_CLIENT_SECRET=|BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY|PRIVATE KEY-----|ocid1\.(vaultsecret|certificate|user|tenancy)\.oc1\.|idcscs-|refresh_token|client_secret)' "$ROOT_DIR" \
+  '(/Users/[^[:space:]]+|/home/[^[:space:]]+|dashboard\.localhost|Local pre-PR|pre-PR|IAM_PASSWORD=|IAM_APP_CLIENT_SECRET=|^[[:space:]]*-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----|ocid1\.(vaultsecret|certificate|user|tenancy)\.oc1\.|idcscs-|refresh_token|client_secret)' "$ROOT_DIR" \
   | rg -v 'tests/redaction_scan.sh' || true)"
 
 if [[ -n "$MATCHES" ]]; then

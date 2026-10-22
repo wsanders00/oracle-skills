@@ -1,0 +1,636 @@
+{
+  "fixtureId": "iot-node-contract-cases-v1",
+  "schemaVersion": 1,
+  "scope": "offline-example",
+  "description": "Deterministic offline contracts for device MQTT, managed OCI IoT roles, official Object Storage/Notifications scenario boundaries, and compatibility-gated OCI extensions. No broker, device, OCI, ORDS, database, queue, notification, or logging call is made.",
+  "sourceClaimId": "FR-IOT-TRANSPORT-001",
+  "sourceEvidence": [
+    {"sourceId": "O1", "role": "managed Flow Runtime OCI IoT role inventory", "observed": "2026-09-16", "immutableRef": null},
+    {"sourceId": "O7", "role": "Oracle sample node package release 0.6.0", "observed": "2026-09-16", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+    {"sourceId": "S4", "role": "Oracle sample node reference at release 0.6.0", "observed": "2026-09-16", "immutableRef": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+    {"sourceId": "C11", "role": "official batch Object Storage scenario", "observed": "2026-09-16", "immutableRef": null},
+    {"sourceId": "C12", "role": "official monitoring, command, and Notifications scenario", "observed": "2026-09-16", "immutableRef": null},
+    {"sourceId": "C6", "role": "Flow Runtime system logging configuration boundary", "observed": "2026-09-16", "immutableRef": null},
+    {"sourceId": "M1", "role": "MQTT QoS, wildcard, session, and acknowledgement semantics", "observed": "2026-09-11", "immutableRef": null},
+    {"sourceId": "N2", "role": "Node-RED message and payload conventions", "observed": "2026-09-11", "immutableRef": null},
+    {"sourceId": "N4", "role": "Node-RED Catch/error routing conventions", "observed": "2026-09-11", "immutableRef": null}
+  ],
+  "claimOwners": [
+    "FR-IOT-TRANSPORT-001",
+    "FR-SCENARIO-NODE-CONTRACTS-001",
+    "FR-IOT-EXTENSIONS-001",
+    "FR-FLOW-LOGGING-NODES-001"
+  ],
+  "sourcePolicy": {
+    "managed": {
+      "sourceIds": ["O1"],
+      "classification": "managed-documented",
+      "freshness": "target-specific; inspect the selected Flow Runtime palette and version"
+    },
+    "officialScenarios": {
+      "sourceIds": ["C11", "C12"],
+      "classification": "official-scenario",
+      "freshness": "scenario and target-specific; inspect node availability and policy"
+    },
+    "samplePackage": {
+      "sourceIds": ["S4"],
+      "classification": "sample-package",
+      "immutableReference": "d1f886fed04f456b28527d578be140fbc7a6c2f1",
+      "release": "0.6.0",
+      "status": "pinned-source-target-gated",
+      "gate": "target palette/version, module permission, dependencies, and authentication still require inspection before live use"
+    },
+    "mqtt": {
+      "sourceIds": ["M1", "N2", "N4"],
+      "classification": "portable-protocol-and-message-semantics",
+      "freshness": "recheck protocol and target/package behavior before live use"
+    }
+  },
+  "contract": {
+    "authenticationFamilies": {
+      "managedIotConfig": {
+        "nodeType": "iot-config",
+        "paletteLabel": "OCI Config",
+        "classification": "managed-documented",
+        "authFamily": "oci-api",
+        "childRoles": ["telemetry", "subscribe", "send command"],
+        "deviceMqttSession": false,
+        "sourceIds": ["O1"]
+      },
+      "sampleDeviceIotConfig": {
+        "nodeType": "iot-config",
+        "paletteLabel": "iot-config",
+        "classification": "sample-package",
+        "authFamily": "device-mqtts",
+        "childRoles": ["iot-telemetry", "iot-subscribe"],
+        "deviceMqttSession": true,
+        "sourceIds": ["S4"],
+        "targetAvailability": "not-proven-without-target-palette-inspection"
+      },
+      "sampleOciConfig": {
+        "nodeType": "oci-config",
+        "paletteLabel": "oci-config",
+        "classification": "sample-package",
+        "authFamily": "oci-api",
+        "childRoles": ["iot-send-command", "iot-get-content", "iot-update-relationship"],
+        "deviceMqttSession": false,
+        "sourceIds": ["S4"],
+        "targetAvailability": "not-proven-without-target-palette-inspection"
+      }
+    },
+    "deviceMqtt": {
+      "transport": "MQTTS",
+      "documentedPort": 8883,
+      "tlsRequired": true,
+      "clientId": "unique-per-simultaneous-session",
+      "session": "persistent-session-is-a-selected package/target behavior; verify before relying on it",
+      "boundedSettings": ["keepalive", "connectTimeoutMs", "operationTimeoutMs", "reconnectAttempts", "reconnectBackoffMs"],
+      "proxy": "unsupported-unless-selected-node-revision-documents-proxy-support",
+      "qos": [0, 1, 2]
+    },
+    "telemetry": {
+      "roles": ["telemetry", "iot-telemetry"],
+      "topicSelection": "configured non-empty topic wins; trimmed msg.topic is used only when configured topic is blank",
+      "payload": "non-object payload becomes {value: payload}; null passes through unchanged when auto-timestamp is off but errors on payload.time access when enabled; arrays pass through as arrays (named time is not JSON-stringified)",
+      "timestamp": "pinned iot-telemetry addTimestamp inserts epoch microseconds when payload.time == null; existing values are not unit-validated",
+      "qos": "configured/runtime values are Number-normalized independently of payload shape; invalid runtime msg.qos warns and falls back to configured QoS",
+      "acceptanceBoundary": "transport/service acceptance is not normalization, history, or device processing"
+    },
+    "subscription": {
+      "roles": ["subscribe", "iot-subscribe"],
+      "wildcard": {"plus": "one complete level", "hash": "one complete final level"},
+      "qos": "invalid configured QoS falls back to 1 in the pinned package",
+      "payloadModes": ["parsed-any-valid-json-value", "original-string"],
+      "outputs": ["fullTopic", "topicSuffix"],
+      "suffix": "pattern ending /# returns remainder after prefix; fixed, +, and exact # return last received segment",
+      "acknowledgement": "receipt is not command acknowledgement; response publication must be explicit"
+    },
+    "sendCommand": {
+      "roles": ["send command", "iot-send-command"],
+      "requestEndpoint": "required exact endpoint/topic; msg.requestEndpoint overrides configured value",
+      "responseEndpoint": "required only when waitForResponse is true; msg.responseEndpoint overrides configured value and output is omitted when false",
+      "durations": "source regex after upper-casing: P date/time components with optional T and fractional seconds; syntax validation only",
+      "waitModes": ["wait-for-response", "no-wait"],
+      "outputs": ["status", "commandStatusLocation", "recordId", "rawCommandDataRecordId", "opcRequestId", "requestEndpoint", "responseEndpoint-when-waiting"],
+      "acceptedState": "accepted-unconfirmed",
+      "completion": "device completion requires API response or separate status evidence; this node does not poll"
+    },
+    "objectStorage": {
+      "classification": "official-scenario",
+      "sourceIds": ["C11"],
+      "selection": ["download", "upload"],
+      "downloadInputs": ["namespace", "bucket", "objectName"],
+      "uploadInputs": ["namespace", "bucket", "objectName", "filePathOrContent"],
+      "downloadOutput": "Buffer plus selected metadata",
+      "encoding": "explicit before text/CSV parsing",
+      "indexRule": "advance only after download success",
+      "acceptanceBoundary": "Object Storage acceptance is not device-host publication"
+    },
+    "notifications": {
+      "classification": "official-scenario",
+      "sourceIds": ["C12"],
+      "inputs": ["topic", "title", "body"],
+      "runtimeOverrides": "only documented message overrides",
+      "outputs": ["publishResult", "messageId"],
+      "acceptanceBoundary": "publication acceptance is not subscriber delivery"
+    },
+    "optionalExtensions": {
+      "classification": "sample-package-compatibility-gated",
+      "sourceIds": ["S4"],
+      "immutableRevisionRequired": true,
+      "boundedPoll": {"intervalMs": 1000, "timeoutMs": 5000, "concurrency": 1, "queueLimit": 2},
+      "ords": ["ords-config", "one-shot-request", "bounded-poll"],
+      "requestModes": ["raw-command", "raw-data", "rejected-data", "snapshot", "historized-data", "custom-relative-path"],
+      "digitalTwin": ["content-read", "relationship-content-update"],
+      "relationship": {
+        "keyGrammar": "sourceTwinOcid->targetTwinOcid:contentPath",
+        "parser": "first -> and first : delimiters; trim and require non-empty source, target, and contentPath",
+        "keyPrecedenceImplementation": "non-null msg.relationshipKey wins even when it is explicitly empty (empty then permits payload key); null/absent top-level key uses configured default, and payload key is skipped when that default is selected",
+        "contentPrecedenceImplementation": "defined msg.content, then plain-object msg.payload.content, then configured object default; defined null or missing payload.content blocks later fallback",
+        "contentRequirement": "plain non-array object"
+      },
+      "logging": ["oci-custom-logging-upload", "log-analytics-upload"],
+      "runtimeLoggingDistinct": true
+    }
+  },
+  "cases": [
+    {
+      "caseId": "ambiguous-iot-config-routes-to-clarification",
+      "family": "identity",
+      "sourceIds": ["O1", "S4"],
+      "input": {"request": "use iot-config"},
+      "expected": {"route": "clarify", "reason": "iot-config may mean managed OCI Config or sample device MQTTS config"}
+    },
+    {
+      "caseId": "managed-iot-config-selects-oci-api",
+      "family": "identity",
+      "sourceIds": ["O1"],
+      "input": {"surface": "managed-editor", "paletteLabel": "OCI Config", "nodeType": "iot-config"},
+      "expected": {"classification": "managed-documented", "authFamily": "oci-api", "deviceMqttSession": false, "childRoles": ["telemetry", "subscribe", "send command"]}
+    },
+    {
+      "caseId": "sample-iot-config-selects-device-mqtts",
+      "family": "identity",
+      "sourceIds": ["S4"],
+      "input": {"surface": "oracle-sample-package", "nodeType": "iot-config", "paletteLabel": "iot-config"},
+      "expected": {"classification": "sample-package", "authFamily": "device-mqtts", "deviceMqttSession": true, "targetGate": "target-palette-inspection"}
+    },
+    {
+      "caseId": "sample-oci-config-selects-oci-api",
+      "family": "identity",
+      "sourceIds": ["S4"],
+      "input": {"surface": "oracle-sample-package", "nodeType": "oci-config"},
+      "expected": {"classification": "sample-package", "authFamily": "oci-api", "deviceMqttSession": false, "targetGate": "target-palette-inspection"}
+    },
+    {
+      "caseId": "device-mqtt-valid-tls-session",
+      "family": "device-mqtt",
+      "sourceIds": ["S4", "M1"],
+      "input": {"authFamily": "device-mqtts", "tls": true, "port": 8883, "clientId": "fixture-device-a", "persistentSession": true, "reconnectAttempts": 3},
+      "expected": {"valid": true, "transport": "MQTTS", "risk": "none-offline", "cannotProve": ["certificate-validity", "broker-connectivity", "session-persistence"]}
+    },
+    {
+      "caseId": "device-mqtt-duplicate-client-id-risk",
+      "family": "device-mqtt",
+      "sourceIds": ["S4", "M1"],
+      "input": {"clientIds": ["fixture-device-a", "fixture-device-a"], "simultaneousSessions": 2},
+      "expected": {"valid": false, "route": "reject", "reason": "client ID must be unique per simultaneous session", "risk": "collision-or-reconnect"}
+    },
+    {
+      "caseId": "device-mqtt-proxy-requires-compatibility-gate",
+      "family": "device-mqtt",
+      "sourceIds": ["S4"],
+      "input": {"proxyConfigured": true, "selectedNodeSupportsProxy": false},
+      "expected": {"valid": false, "route": "compatibility-gate", "reason": "proxy behavior is not implied by TLS"}
+    },
+    {
+      "caseId": "telemetry-preserves-source-timestamp",
+      "family": "telemetry",
+      "sourceIds": ["O1", "S4"],
+      "input": {"configuredTopic": "hvacs/fixture-device-a", "messageTopic": "ignored/topic", "qos": 1, "payload": {"time": 1768485600000000, "temperature": 72.5}, "insertTimestamp": false},
+      "expected": {"valid": true, "topic": "hvacs/fixture-device-a", "qos": 1, "payload": {"time": 1768485600000000, "temperature": 72.5}, "timestampAction": "preserved", "timestampUnits": "epoch-microseconds-source-value-unchanged", "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-inserts-synthetic-timestamp-when-absent",
+      "family": "telemetry",
+      "sourceIds": ["O1", "S4"],
+      "input": {"configuredTopic": "", "messageTopic": " data ", "qos": 0, "payload": {"value": 17}, "insertTimestamp": true, "timestamp": 1768485660000000},
+      "expected": {"valid": true, "topic": "data", "qos": 0, "payload": {"value": 17, "time": 1768485660000000}, "timestampAction": "inserted", "timestampUnits": "epoch-microseconds", "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-invalid-qos-override-falls-back",
+      "family": "telemetry",
+      "sourceIds": ["O1", "M1"],
+      "input": {"configuredTopic": "data", "configuredQos": 2, "qos": 3, "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "data", "qos": 2, "qosAction": "invalid-runtime-override-fell-back-to-configured", "warning": true, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-null-qos-does-not-override-configured",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": 2, "qos": null, "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "data", "qos": 2, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-empty-runtime-qos-normalizes-to-zero",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": 2, "qos": "", "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "data", "qos": 0, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-null-configured-qos-normalizes-to-zero",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": null, "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "data", "qos": 0, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-empty-configured-qos-normalizes-to-zero",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": "", "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "data", "qos": 0, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-configured-topic-wins-over-message-topic",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "configured/topic", "messageTopic": "message/topic", "configuredQos": 1, "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "configured/topic", "topicSource": "configured", "messageTopicIgnored": true, "qos": 1, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-message-topic-used-only-when-configured-blank",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "", "messageTopic": " message/topic ", "configuredQos": 1, "payload": {"value": 17}},
+      "expected": {"valid": true, "topic": "message/topic", "topicSource": "msg.topic", "qos": 1, "payload": {"value": 17}, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-null-time-is-treated-as-missing",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "qos": 1, "payload": {"time": null, "value": 17}, "insertTimestamp": true, "timestamp": 1768485720000000},
+      "expected": {"valid": true, "topic": "data", "qos": 1, "payload": {"time": 1768485720000000, "value": 17}, "timestampAction": "inserted", "timestampUnits": "epoch-microseconds", "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-null-payload-without-auto-timestamp-preserves-null",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": 2, "payload": null, "insertTimestamp": false},
+      "expected": {"valid": true, "topic": "data", "qos": 2, "payload": null, "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-null-payload-auto-timestamp-errors-before-publish",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": 2, "payload": null, "insertTimestamp": true},
+      "expected": {"valid": false, "route": "node-error", "reason": "null-payload-timestamp-TypeError", "beforePublish": true}
+    },
+    {
+      "caseId": "telemetry-array-payload-without-auto-timestamp-preserves-array",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "configuredQos": 0, "payload": [1, {"value": 2}], "insertTimestamp": false},
+      "expected": {"valid": true, "topic": "data", "qos": 0, "payload": [1, {"value": 2}], "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-primitive-payload-is-wrapped",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": "data", "qos": 0, "payload": "fixture-text", "insertTimestamp": false},
+      "expected": {"valid": true, "topic": "data", "qos": 0, "payload": {"value": "fixture-text"}, "payloadAction": "wrapped-non-object", "acceptance": "transport-only"}
+    },
+    {
+      "caseId": "telemetry-empty-topic-is-rejected",
+      "family": "telemetry",
+      "sourceIds": ["S4"],
+      "input": {"configuredTopic": " ", "messageTopic": "", "qos": 1, "payload": {"value": 17}},
+      "expected": {"valid": false, "route": "node-error", "reason": "No topic"}
+    },
+    {
+      "caseId": "subscription-direct-topic-preserves-full-topic",
+      "family": "subscription",
+      "sourceIds": ["O1", "S4", "M1"],
+      "input": {"filter": "devices/fixture-device-a/commands", "receivedTopic": "devices/fixture-device-a/commands", "qos": 2, "payload": "{\"action\":\"open\"}", "jsonAutoDetect": true},
+      "expected": {"valid": true, "payloadMode": "parsed-json", "payload": {"action": "open"}, "fullTopic": "devices/fixture-device-a/commands", "topicSuffix": "commands", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-wildcard-plus-valid",
+      "family": "subscription",
+      "sourceIds": ["O1", "S4", "M1"],
+      "input": {"filter": "devices/+/commands", "receivedTopic": "devices/fixture-device-a/commands", "qos": 1, "payload": "plain fixture text", "jsonAutoDetect": true},
+      "expected": {"valid": true, "payloadMode": "original-string", "fullTopic": "devices/fixture-device-a/commands", "topicSuffix": "commands", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-plus-with-trailing-levels-uses-last-segment",
+      "family": "subscription",
+      "sourceIds": ["S4", "M1"],
+      "input": {"filter": "devices/+/commands/+", "receivedTopic": "devices/fixture-device-a/commands/open", "qos": 1, "payload": "fixture"},
+      "expected": {"valid": true, "payloadMode": "original-string", "fullTopic": "devices/fixture-device-a/commands/open", "topicSuffix": "open", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-wildcard-hash-valid-final-level",
+      "family": "subscription",
+      "sourceIds": ["O1", "S4", "M1"],
+      "input": {"filter": "devices/fixture-device-a/#", "receivedTopic": "devices/fixture-device-a/commands/open", "qos": 0, "payload": "{}"},
+      "expected": {"valid": true, "payloadMode": "parsed-json", "payload": {}, "fullTopic": "devices/fixture-device-a/commands/open", "topicSuffix": "commands/open", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-invalid-embedded-plus",
+      "family": "subscription",
+      "sourceIds": ["S4", "M1"],
+      "input": {"filter": "devices/fixture+device/commands"},
+      "expected": {"valid": false, "route": "reject", "reason": "plus wildcard must occupy one complete level"}
+    },
+    {
+      "caseId": "subscription-invalid-nonterminal-hash",
+      "family": "subscription",
+      "sourceIds": ["S4", "M1"],
+      "input": {"filter": "devices/#/commands"},
+      "expected": {"valid": false, "route": "reject", "reason": "hash wildcard must be one complete final level"}
+    },
+    {
+      "caseId": "subscription-invalid-config-qos-falls-back",
+      "family": "subscription",
+      "sourceIds": ["S4", "M1"],
+      "input": {"filter": "devices/+/commands", "qos": 4, "configuredQos": 4},
+      "expected": {"valid": true, "effectiveQos": 1, "qosAction": "invalid-config-fell-back-to-1", "payloadMode": "original-string", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-null-config-qos-normalizes-to-zero",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "devices/+/commands", "qos": null},
+      "expected": {"valid": true, "effectiveQos": 0, "qosAction": "selected", "payloadMode": "original-string", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-empty-config-qos-normalizes-to-zero",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "devices/+/commands", "qos": ""},
+      "expected": {"valid": true, "effectiveQos": 0, "qosAction": "selected", "payloadMode": "original-string", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-does-not-auto-ack-command",
+      "family": "subscription",
+      "sourceIds": ["O1", "S4"],
+      "input": {"receivedTopic": "devices/fixture-device-a/commands", "payload": {"action": "open"}, "responsePublicationNode": null},
+      "expected": {"valid": true, "acknowledgement": "none", "route": "explicit-response-node-required"}
+    },
+    {
+      "caseId": "subscription-json-scalar-is-parsed-before-output",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "devices/#", "receivedTopic": "devices/fixture/state", "qos": 1, "payload": "null"},
+      "expected": {"valid": true, "payloadMode": "parsed-json", "payload": null, "fullTopic": "devices/fixture/state", "topicSuffix": "fixture/state", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-invalid-json-remains-original-string",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "#", "receivedTopic": "devices/fixture/state", "qos": 0, "payload": "{not-json}"},
+      "expected": {"valid": true, "payloadMode": "original-string", "fullTopic": "devices/fixture/state", "topicSuffix": "state", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-hash-prefix-suffix-is-remainder",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "devices/fixture/#", "receivedTopic": "devices/fixture/commands/open", "qos": 1, "payload": "42"},
+      "expected": {"valid": true, "payloadMode": "parsed-json", "payload": 42, "fullTopic": "devices/fixture/commands/open", "topicSuffix": "commands/open", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-exact-hash-uses-last-segment",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "#", "receivedTopic": "devices/fixture/state", "qos": 1, "payload": "true"},
+      "expected": {"valid": true, "payloadMode": "parsed-json", "payload": true, "fullTopic": "devices/fixture/state", "topicSuffix": "state", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "subscription-hash-prefix-without-slash-is-source-edge",
+      "family": "subscription",
+      "sourceIds": ["S4"],
+      "input": {"filter": "devices/fixture/#", "receivedTopic": "devices/fixture", "qos": 1, "payload": "{}"},
+      "expected": {"valid": true, "payloadMode": "parsed-json", "payload": {}, "fullTopic": "devices/fixture", "topicSuffix": "devices/fixture", "acknowledgement": "receipt-only"}
+    },
+    {
+      "caseId": "send-command-no-wait-uses-request-only-and-returned-location",
+      "family": "send-command",
+      "sourceIds": ["O1", "S4"],
+      "input": {"authFamily": "oci-api", "requestEndpoint": "synthetic-command-request", "responseEndpoint": null, "requestDuration": "p1d", "responseDuration": "not-validated-when-no-wait", "waitForResponse": false, "apiResponse": {"location": "https://example.invalid/raw-command-data/fixture-record-001?view=status", "opcRequestId": "fixture-opc-001"}, "requestId": "fixture-request-001"},
+      "expected": {"valid": true, "state": "accepted-unconfirmed", "requestEndpoint": "synthetic-command-request", "responseEndpoint": "omitted", "requestDuration": "P1D", "commandStatusLocation": "https://example.invalid/raw-command-data/fixture-record-001?view=status", "recordId": "fixture-record-001", "rawCommandDataRecordId": "fixture-record-001", "opcRequestId": "fixture-opc-001", "requestId": "fixture-request-001", "polling": "not-performed-by-node", "completion": "unknown"}
+    },
+    {
+      "caseId": "send-command-wait-response-uses-api-wait-not-node-polling",
+      "family": "send-command",
+      "sourceIds": ["O1", "S4"],
+      "input": {"authFamily": "oci-api", "requestEndpoint": "synthetic-command-request", "responseEndpoint": "synthetic-command-response", "requestDuration": "PT5S", "responseDuration": "PT30S", "waitForResponse": true, "apiResponse": {"rawCommandResponse": {"status": "COMPLETED"}, "location": "https://example.invalid/raw-command-data/fixture-record-002", "opcRequestId": "fixture-opc-002"}, "requestId": "fixture-request-002"},
+      "expected": {"valid": true, "state": "completed", "requestEndpoint": "synthetic-command-request", "responseEndpoint": "synthetic-command-response", "requestDuration": "PT5S", "responseDuration": "PT30S", "requestId": "fixture-request-002", "commandStatusLocation": "https://example.invalid/raw-command-data/fixture-record-002", "recordId": "fixture-record-002", "rawCommandDataRecordId": "fixture-record-002", "opcRequestId": "fixture-opc-002", "polling": "not-performed-by-node", "completion": "api-response-evidence"}
+    },
+    {
+      "caseId": "send-command-invalid-duration",
+      "family": "send-command",
+      "sourceIds": ["O1", "S4"],
+      "input": {"requestEndpoint": "synthetic-command-request", "responseEndpoint": "synthetic-command-response", "requestDuration": "five seconds", "responseDuration": "PT5S", "waitForResponse": true},
+      "expected": {"valid": false, "route": "node-error", "reason": "Request Duration must be a valid ISO 8601 duration"}
+    },
+    {
+      "caseId": "send-command-missing-endpoint",
+      "family": "send-command",
+      "sourceIds": ["O1", "S4"],
+      "input": {"authFamily": "oci-api", "requestEndpoint": null, "responseEndpoint": null, "requestDuration": "PT5S", "waitForResponse": false},
+      "expected": {"valid": false, "route": "node-error", "reason": "Request Endpoint is required"}
+    },
+    {
+      "caseId": "send-command-device-mqtt-auth-is-rejected",
+      "family": "send-command",
+      "sourceIds": ["S4"],
+      "input": {"authFamily": "device-mqtts", "requestEndpoint": "synthetic-command-request", "requestDuration": "PT5S", "waitForResponse": false},
+      "expected": {"valid": false, "route": "reject", "reason": "OCI API authentication required"}
+    },
+    {
+      "caseId": "send-command-wait-requires-response-endpoint",
+      "family": "send-command",
+      "sourceIds": ["S4"],
+      "input": {"authFamily": "oci-api", "requestEndpoint": "synthetic-command-request", "responseEndpoint": "", "requestDuration": "PT5S", "responseDuration": "PT5S", "waitForResponse": true},
+      "expected": {"valid": false, "route": "node-error", "reason": "Response Endpoint is required when Wait for Response is enabled"}
+    },
+    {
+      "caseId": "send-command-location-may-be-absent",
+      "family": "send-command",
+      "sourceIds": ["S4"],
+      "input": {"authFamily": "oci-api", "requestEndpoint": "synthetic-command-request", "requestDuration": "PT0S", "waitForResponse": false, "apiResponse": {"rawCommandResponse": {"status": "ACCEPTED"}}},
+      "expected": {"valid": true, "state": "accepted-unconfirmed", "requestEndpoint": "synthetic-command-request", "responseEndpoint": "omitted", "commandStatusLocation": null, "recordId": null, "polling": "not-performed-by-node", "completion": "unknown"}
+    },
+    {
+      "caseId": "object-storage-download-advances-after-success",
+      "family": "object-storage",
+      "sourceIds": ["C11"],
+      "input": {"operation": "download", "namespace": "fixture-namespace", "bucket": "fixture-bucket", "objectName": "iot-data-1.csv", "initialIndex": 1, "download": "success", "bytes": "synthetic-csv-bytes", "encoding": "utf-8", "metadata": {"etag": "fixture-etag-1"}},
+      "expected": {"classification": "official-scenario", "download": "success", "index": 2, "outputType": "Buffer", "textEncoding": "utf-8", "metadataPreserved": ["objectName", "etag"], "acceptance": "object-storage-only", "deviceHostPublication": "unknown"}
+    },
+    {
+      "caseId": "object-storage-download-failure-keeps-index",
+      "family": "object-storage",
+      "sourceIds": ["C11"],
+      "input": {"operation": "download", "objectName": "iot-data-2.csv", "initialIndex": 2, "download": "error"},
+      "expected": {"classification": "official-scenario", "download": "error", "index": 2, "route": "Catch", "reason": "advance only after download success"}
+    },
+    {
+      "caseId": "object-storage-upload-is-not-device-publication",
+      "family": "object-storage",
+      "sourceIds": ["C11"],
+      "input": {"operation": "upload", "namespace": "fixture-namespace", "bucket": "fixture-bucket", "objectName": "fixture-output.csv", "content": "synthetic-text", "encoding": "utf-8", "upload": "accepted"},
+      "expected": {"classification": "official-scenario", "upload": "accepted", "acceptance": "object-storage-only", "deviceHostPublication": "not-proven"}
+    },
+    {
+      "caseId": "notifications-publish-accepted-not-delivered",
+      "family": "notifications",
+      "sourceIds": ["C12"],
+      "input": {"topic": "fixture-topic", "title": "fixture alert", "body": "fixture body", "publish": "accepted", "messageId": "fixture-message-001"},
+      "expected": {"classification": "official-scenario", "publishResult": "accepted", "messageId": "fixture-message-001", "subscriberDelivery": "unknown", "route": "publication-accepted"}
+    },
+    {
+      "caseId": "notifications-catch-on-publish-failure",
+      "family": "notifications",
+      "sourceIds": ["C12"],
+      "input": {"topic": "fixture-topic", "title": "fixture alert", "body": "fixture body", "publish": "error"},
+      "expected": {"classification": "official-scenario", "publishResult": "error", "route": "Catch", "subscriberDelivery": "not-attempted"}
+    },
+    {
+      "caseId": "ords-poll-is-bounded-and-refreshes-401-once",
+      "family": "optional-ords",
+      "sourceIds": ["S4"],
+      "input": {"immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1", "pollIntervalMs": 1000, "timeoutMs": 5000, "concurrency": 1, "queueLimit": 2, "responses": [{"status": 401}, {"status": 200, "body": "synthetic-status"}], "refreshAttempts": 0},
+      "expected": {"classification": "sample-package-compatibility-gated", "validBounds": true, "refreshOn401": "once", "polls": 2, "route": "compatibility-gate", "reason": "target palette/version and module permission remain unverified"}
+    },
+    {
+      "caseId": "ords-unbounded-poll-is-rejected",
+      "family": "optional-ords",
+      "sourceIds": ["S4"],
+      "input": {"pollIntervalMs": 1000, "timeoutMs": null, "concurrency": 1, "queueLimit": 2},
+      "expected": {"valid": false, "route": "reject", "reason": "poll timeout must be finite"}
+    },
+    {
+      "caseId": "digital-twin-content-read-preserves-evidence",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"mode": "iot-get-content", "content": {"value": "synthetic"}, "etag": "fixture-etag-content", "opcRequestId": "fixture-request-content", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"mode": "iot-get-content", "contentReturned": true, "metadata": ["etag", "opcRequestId"], "crudEstablished": false, "route": "compatibility-gate"}
+    },
+    {
+      "caseId": "relationship-update-requires-exact-string-key-and-content-precedence",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"relationshipKey": "fixture-source->fixture-target:fixture-related", "configuredContent": {"mode": "configured"}, "messageContent": {"mode": "message"}, "contentPrecedence": "message", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": true, "keyShape": "sourceTwinOcid->targetTwinOcid:contentPath", "parsed": {"source": "fixture-source", "target": "fixture-target", "contentPath": "fixture-related"}, "contentUsed": "message", "updateAcceptance": "unknown", "route": "compatibility-gate"}
+    },
+    {
+      "caseId": "relationship-key-extra-delimiters-follow-first-delimiter-parser",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"relationshipKey": "source->target->embedded:path:subpath", "content": {"state": "synthetic"}, "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": true, "keyShape": "sourceTwinOcid->targetTwinOcid:contentPath", "parsed": {"source": "source", "target": "target->embedded", "contentPath": "path:subpath"}, "parserNote": "implementation accepts extra delimiters after the first -> and first :", "route": "compatibility-gate"}
+    },
+    {
+      "caseId": "relationship-key-missing-content-path-is-rejected",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"relationshipKey": "source->target:", "content": {"state": "synthetic"}, "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": false, "route": "Catch", "reason": "Invalid relationshipKey format. Expected sourceTwinId->targetTwinId:contentPath"}
+    },
+    {
+      "caseId": "relationship-payload-key-does-not-beat-configured-default",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"topLevelRelationshipKey": null, "configuredRelationshipKey": "configured-source->configured-target:configured-path", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": true, "selectedKey": "configured-source->configured-target:configured-path", "precedence": "configured-default-before-payload-key", "route": "compatibility-gate"}
+    },
+    {
+      "caseId": "relationship-empty-key-uses-payload-key-when-default-empty",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"topLevelRelationshipKey": "", "configuredRelationshipKey": "", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "empty-top-level-and-default-fall-through-to-payload", "route": "compatibility-gate"}
+    },
+    {
+      "caseId": "relationship-explicit-empty-top-level-bypasses-configured-default",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"topLevelRelationshipKey": "", "configuredRelationshipKey": "configured-source->configured-target:configured-path", "payloadRelationshipKey": "payload-source->payload-target:payload-path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": true, "selectedKey": "payload-source->payload-target:payload-path", "precedence": "explicit-empty-top-level-bypasses-default-and-falls-through-to-payload", "route": "compatibility-gate"}
+    },
+    {
+      "caseId": "relationship-defined-null-content-blocks-fallback",
+      "family": "optional-digital-twin",
+      "sourceIds": ["S4"],
+      "input": {"topLevelContent": null, "payloadContent": {"mode": "payload"}, "configuredContent": {"mode": "configured"}, "relationshipKey": "source->target:path", "immutableRevision": "d1f886fed04f456b28527d578be140fbc7a6c2f1"},
+      "expected": {"valid": false, "route": "Catch", "reason": "Missing or invalid content. Provide an object in msg.content or msg.payload.content", "precedence": "defined-msg.content-including-null"}
+    },
+    {
+      "caseId": "flow-logging-is-distinct-from-runtime-console",
+      "family": "logging",
+      "sourceIds": ["S4", "C6"],
+      "input": {"request": "send flow event to OCI Custom Logging", "runtimeConsoleLogging": false, "flowLoggingNode": true, "upload": "accepted"},
+      "expected": {"route": "flow-originated-logging", "runtimeConsoleLogging": "separate-contract", "apiAcceptance": "accepted", "searchability": "unknown"}
+    },
+    {
+      "caseId": "runtime-console-logging-does-not-select-flow-node",
+      "family": "logging",
+      "sourceIds": ["C6", "S4"],
+      "input": {"request": "show Flow Runtime system logs", "runtimeConsoleLogging": true, "flowLoggingNode": false},
+      "expected": {"route": "runtime-system-console", "flowLogging": "not-selected", "searchability": "target-specific"}
+    },
+    {
+      "caseId": "logging-api-acceptance-is-not-searchability",
+      "family": "logging",
+      "sourceIds": ["S4"],
+      "input": {"upload": "accepted", "logGroup": "fixture-log-group", "message": "synthetic log"},
+      "expected": {"apiAcceptance": "accepted", "searchability": "unknown", "downstreamAnalytics": "unknown"}
+    },
+    {
+      "caseId": "sql-status-polling-remains-distinct-from-ords",
+      "family": "routing",
+      "sourceIds": ["C12", "S4"],
+      "input": {"request": "poll command status", "selectedStage": "official-sql", "ordsNode": false},
+      "expected": {"route": "database-sql-contract", "ords": "not-selected", "reason": "official SQL polling and optional ORDS polling are distinct"}
+    },
+    {
+      "caseId": "fusion-and-community-node-request-routes-out",
+      "family": "routing",
+      "sourceIds": ["O1", "S4"],
+      "input": {"request": "install arbitrary community node for Fusion SCM"},
+      "expected": {"route": "outside-skill", "reason": "Fusion SCM, self-hosted administration, and arbitrary community modules are routed elsewhere"}
+    }
+  ],
+  "invariants": [
+    "managed OCI Config, sample device MQTTS config, and sample OCI API config are distinct source-owned identities",
+    "device MQTT credentials are never OCI API credentials and an OCI API config never proves an MQTTS session",
+    "telemetry uses configured-topic precedence, microsecond auto-timestamps when time is null/missing, and configured QoS fallback for invalid runtime overrides",
+    "telemetry transport acceptance is separate from normalization, history, and device processing",
+    "subscription payload conversion is JSON.parse-or-original-string and topicSuffix follows the pinned /# versus last-segment implementation",
+    "subscription receipt is separate from explicit command acknowledgement publication",
+    "command request and optional response endpoints are distinct from returned status location and parsed record ID; the send-command node does not poll",
+    "command request acceptance is separate from device completion and status evidence",
+    "relationship keys use the source string grammar and relationship/content precedence is implementation-defined and explicitly recorded",
+    "Object Storage download success precedes sequential index advancement and service acceptance is not device publication",
+    "Notifications publication acceptance is not subscriber delivery",
+    "optional ORDS polling, request modes, content, relationship, and logging roles remain target- and package-gated with finite bounds",
+    "runtime system-console logging and flow-originated OCI Logging or Log Analytics are separate surfaces",
+    "all cases use synthetic values and offline fakes; no case proves live service, endpoint, device, subscriber, or target state"
+  ],
+  "cannotProve": [
+    "managed palette installation or target runtime/version compatibility",
+    "sample-package availability, dependency permission, or compatibility in the selected target despite the pinned source revision",
+    "target region availability and module dependency permission",
+    "OCI IAM, resource-principal policy, API keys, device credentials, certificates, tokens, or token refresh",
+    "broker/device connectivity, TLS handshake, MQTT persistent session, reconnect behavior, or device delivery",
+    "telemetry normalization, data-host persistence, historization, digital-twin effective state, or device command completion",
+    "send-command node polling or a status transition beyond the returned OCI API response/location",
+    "Object Storage namespace/bucket/object existence, service acceptance, or network reachability",
+    "Notifications topic policy, service acceptance, subscriber delivery, or downstream processing",
+    "ORDS response, relationship update effective state, Logging/Log Analytics indexing, searchability, or analytics",
+    "database/AQ state or SQL polling result",
+    "production OCIDs, endpoints, payloads, secrets, certificates, or runtime state"
+  ]
+}

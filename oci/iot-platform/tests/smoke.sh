@@ -16,13 +16,17 @@ required_files=(
   "$ROOT_DIR/references/cli-workflows.md"
   "$ROOT_DIR/references/data-access.md"
   "$ROOT_DIR/references/mcp-optional-use.md"
+  "$ROOT_DIR/references/operator-authentication.md"
   "$ROOT_DIR/references/modeling-guidance.md"
   "$ROOT_DIR/references/platform-surface.md"
   "$ROOT_DIR/references/resilience-guidance.md"
   "$ROOT_DIR/references/release-validation.md"
+  "$ROOT_DIR/flow-runtime/references/flow-runtime.md"
+  "$ROOT_DIR/flow-runtime/references/safety-and-live-gates.md"
+  "$ROOT_DIR/flow-runtime/scripts/verify-portable.mjs"
 )
 
-echo "[1/6] required file check"
+echo "[1/7] required file check"
 for path in "${required_files[@]}"; do
   if [[ ! -f "$path" ]]; then
     echo "Missing required file: $path" >&2
@@ -30,11 +34,11 @@ for path in "${required_files[@]}"; do
   fi
 done
 
-echo "[2/6] skill metadata check"
+echo "[2/7] skill metadata check"
 rg -n '^name: oci-iot-platform$' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n '^description:' "$ROOT_DIR/SKILL.md" >/dev/null
 
-echo "[3/6] resilience guidance coverage check"
+echo "[3/7] resilience guidance coverage check"
 rg -n 'references/resilience-guidance\.md' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n -i 'bounded|pagination|--limit' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
 rg -n -i 'lifecycle' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
@@ -65,7 +69,10 @@ rg -n -i 'domain group|digital twin model|digital twin adapter|digital twin inst
 rg -n -i 'configure-apex-data-access|configure-direct-data-access|configure-ords-data-access|change-data-retention-period|MQTTs' "$ROOT_DIR/references/platform-surface.md" "$ROOT_DIR/references/cli-workflows.md" "$ROOT_DIR/references/data-access.md" >/dev/null
 rg -n -i 'snapshotData|rawData|historizedData|rejectedData|rawCommandData' "$ROOT_DIR/references/data-access.md" >/dev/null
 rg -n -- '--auth' "$ROOT_DIR/scripts/derive_domain_context.sh" >/dev/null
-rg -n -- '--auth <oci_cli_auth>' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
+rg -n 'OCI_CLI_GLOBAL_ARGS' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
+rg -n -- '--auth "<oci_cli_auth>"' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
+rg -n 'flow-runtime list' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
+rg -n -- '--compartment-id <target_compartment_ocid>' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
 if rg -n -- '--file ' "$ROOT_DIR/references/cli-workflows.md" >/dev/null; then
   echo "Unsupported OCI CLI --file option found in CLI workflows; use --from-json or parameter-specific file:// inputs." >&2
   exit 1
@@ -75,10 +82,10 @@ if rg -n 'lastValue' "$ROOT_DIR/templates/adapter.default.template.json" "$ROOT_
   exit 1
 fi
 
-echo "[4/6] bootstrap helper syntax check"
+echo "[4/7] bootstrap helper syntax check"
 bash -n "$ROOT_DIR/scripts/derive_domain_context.sh"
 
-echo "[5/6] twin tool syntax and help checks"
+echo "[5/7] twin tool syntax and help checks"
 python3 -m py_compile "$ROOT_DIR/scripts/twin_tools.py"
 python3 "$ROOT_DIR/scripts/twin_tools.py" --help >/dev/null
 python3 "$ROOT_DIR/scripts/twin_tools.py" telemetry-template \
@@ -86,10 +93,13 @@ python3 "$ROOT_DIR/scripts/twin_tools.py" telemetry-template \
   --twin-id test-twin \
   --metric temperature=21.5 >/dev/null
 
-echo "[6/6] template sanity check"
+echo "[6/7] template sanity check"
 python3 -m json.tool "$ROOT_DIR/templates/adapter.default.template.json" >/dev/null
 python3 -m json.tool "$ROOT_DIR/templates/instance.template.json" >/dev/null
 python3 -m json.tool "$ROOT_DIR/templates/model.temperature-sensor.template.json" >/dev/null
 bash -n "$ROOT_DIR/templates/publish-curl.template.sh"
+
+echo "[7/7] managed Flow Runtime offline contract"
+node "$ROOT_DIR/flow-runtime/scripts/verify-portable.mjs"
 
 echo "smoke checks passed"

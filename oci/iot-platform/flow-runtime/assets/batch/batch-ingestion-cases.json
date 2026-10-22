@@ -1,0 +1,201 @@
+{
+  "scope": "offline-example",
+  "description": "Deterministic cases for the documented batch-ingestion shape. The object download is a fake stage; no Object Storage or device-host call is made.",
+  "oracleScenario": {
+    "objectNamePattern": "iot-data-<counter>.csv (counter begins at 1)",
+    "columns": ["deviceType", "externalId", "time", "cpuUtil", "memUtil", "diskUtil", "firmware", "temperature", "humidity", "pressure", "mode"],
+    "timestamp": "numeric Unix epoch represented in the scenario CSV"
+  },
+  "contract": {
+    "columns": ["deviceType", "externalKey", "timestamp", "temperature", "humidity"],
+    "oracleColumnAliases": { "externalKey": "externalId", "timestamp": "time" },
+    "supportedDeviceTypes": ["gateway", "hvacs"],
+    "timestamp": {
+      "string": "ISO-8601 UTC string",
+      "numeric": "non-negative integer Unix epoch microseconds represented as a CSV string",
+      "numericUnit": "microseconds"
+    },
+    "indexAdvance": "only after a successful object download",
+    "rowOutput": "{topic,payload,sourceTime,deviceType,externalKey}"
+  },
+  "cases": [
+    {
+      "name": "valid gateway row",
+      "objectName": "iot-data-1.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKZ2F0ZXdheSxndy0wMSwyMDI2LTAxLTE1VDE0OjAwOjAwLjAwMFosMjEuNSw0NS4yCg==",
+      "initialIndex": 1,
+      "expected": {
+        "download": "success",
+        "index": 2,
+        "rows": [
+          {
+            "topic": "data",
+            "payload": "{\"deviceType\":\"gateway\",\"externalKey\":\"gw-01\",\"time\":\"2026-01-15T14:00:00.000Z\",\"temperature\":21.5,\"humidity\":45.2}",
+            "sourceTime": "2026-01-15T14:00:00.000Z",
+            "deviceType": "gateway",
+            "externalKey": "gw-01"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "name": "valid child row",
+      "objectName": "iot-data-2.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtMDEsMTc2ODQ4NTYwMDAwMDAwMCw3Mi41LDQ1LjIK",
+      "initialIndex": 2,
+      "expected": {
+        "download": "success",
+        "index": 3,
+        "rows": [
+          {
+            "topic": "hvacs/child-01",
+            "payload": "{\"deviceType\":\"hvacs\",\"externalKey\":\"child-01\",\"time\":\"2026-01-15T14:00:00.000Z\",\"temperature\":72.5,\"humidity\":45.2}",
+            "sourceTime": "2026-01-15T14:00:00.000Z",
+            "deviceType": "hvacs",
+            "externalKey": "child-01"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "name": "Buffer to UTF-8 before CSV parsing",
+      "objectName": "iot-data-3.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKZ2F0ZXdheSxndy0wMSwyMDI2LTAxLTE1VDE0OjAwOjAwLjAwMFosMjEuNSw0NS4yCg==",
+      "initialIndex": 3,
+      "expected": {
+        "download": "success",
+        "index": 4,
+        "rows": [
+          {
+            "topic": "data",
+            "payload": "{\"deviceType\":\"gateway\",\"externalKey\":\"gw-01\",\"time\":\"2026-01-15T14:00:00.000Z\",\"temperature\":21.5,\"humidity\":45.2}",
+            "sourceTime": "2026-01-15T14:00:00.000Z",
+            "deviceType": "gateway",
+            "externalKey": "gw-01"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "name": "missing column",
+      "objectName": "iot-data-4.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAKZ2F0ZXdheSxndy0wMSwyMDI2LTAxLTE1VDE0OjAwOjAwLjAwMFoK",
+      "initialIndex": 4,
+      "expected": { "download": "success", "index": 5, "rows": [], "errors": ["missing column: temperature", "missing column: humidity"] }
+    },
+    {
+      "name": "malformed column value",
+      "objectName": "iot-data-5.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKZ2F0ZXdheSxndy0wMSwyMDI2LTAxLTE1VDE0OjAwOjAwLjAwMFosbm90LWEtbnVtYmVyLDQ1LjIK",
+      "initialIndex": 5,
+      "expected": { "download": "success", "index": 6, "rows": [], "errors": ["invalid number: temperature"] }
+    },
+    {
+      "name": "unsupported device type",
+      "objectName": "iot-data-6.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKcHVtcCxwdW1wLTAxLDIwMjYtMDEtMTVUMTQ6MDA6MDAuMDAwWiwxMC4wLDUwLjAK",
+      "initialIndex": 6,
+      "expected": { "download": "success", "index": 7, "rows": [], "errors": ["unsupported device type: pump"] }
+    },
+    {
+      "name": "numeric timestamp boundary",
+      "objectName": "iot-data-7.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtMDEsMTc2ODQ4NTYwMDAwMDAwMCw3Mi41LDQ1LjIK",
+      "initialIndex": 7,
+      "expected": { "download": "success", "index": 8, "rows": [{ "topic": "hvacs/child-01", "payload": "{\"deviceType\":\"hvacs\",\"externalKey\":\"child-01\",\"time\":\"2026-01-15T14:00:00.000Z\",\"temperature\":72.5,\"humidity\":45.2}", "sourceTime": "2026-01-15T14:00:00.000Z", "deviceType": "hvacs", "externalKey": "child-01" }], "errors": [] }
+    },
+    {
+      "name": "string timestamp boundary",
+      "objectName": "iot-data-8.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtMDEsMjAyNi0wMS0xNVQxNDozMDowMC4wMDBaLDcyLjUsNDUuMgo=",
+      "initialIndex": 8,
+      "expected": { "download": "success", "index": 9, "rows": [{ "topic": "hvacs/child-01", "payload": "{\"deviceType\":\"hvacs\",\"externalKey\":\"child-01\",\"time\":\"2026-01-15T14:30:00.000Z\",\"temperature\":72.5,\"humidity\":45.2}", "sourceTime": "2026-01-15T14:30:00.000Z", "deviceType": "hvacs", "externalKey": "child-01" }], "errors": [] }
+    },
+    {
+      "name": "empty object",
+      "objectName": "iot-data-9.csv",
+      "objectBytesBase64": "",
+      "initialIndex": 9,
+      "expected": { "download": "success", "index": 10, "rows": [], "errors": ["empty object"] }
+    },
+    {
+      "name": "multiple rows",
+      "objectName": "iot-data-10.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKZ2F0ZXdheSxndy0wMSwyMDI2LTAxLTE1VDE0OjAwOjAwLjAwMFosMjEuNSw0NS4yCmh2YWNzLGNoaWxkLTAxLDIwMjYtMDEtMTVUMTQ6MDE6MDAuMDAwWiwyMi4wLDQ0LjkK",
+      "initialIndex": 10,
+      "expected": { "download": "success", "index": 11, "rows": [{ "topic": "data", "payload": "{\"deviceType\":\"gateway\",\"externalKey\":\"gw-01\",\"time\":\"2026-01-15T14:00:00.000Z\",\"temperature\":21.5,\"humidity\":45.2}", "sourceTime": "2026-01-15T14:00:00.000Z", "deviceType": "gateway", "externalKey": "gw-01" }, { "topic": "hvacs/child-01", "payload": "{\"deviceType\":\"hvacs\",\"externalKey\":\"child-01\",\"time\":\"2026-01-15T14:01:00.000Z\",\"temperature\":22,\"humidity\":44.9}", "sourceTime": "2026-01-15T14:01:00.000Z", "deviceType": "hvacs", "externalKey": "child-01" }], "errors": [] }
+    },
+    {
+      "name": "missing object",
+      "objectName": "iot-data-11.csv",
+      "initialIndex": 11,
+      "expected": { "download": "missing", "index": 11, "rows": [], "errors": ["object not found"] }
+    },
+    {
+      "name": "download failure leaves index unchanged",
+      "objectName": "iot-data-12.csv",
+      "download": "error",
+      "initialIndex": 12,
+      "expected": { "download": "error", "index": 12, "rows": [], "errors": ["download failed"] }
+    },
+    {
+      "name": "malformed timestamp",
+      "objectName": "iot-data-13.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtMTEsbm90LWEtdGltZSw3Mi41LDQ1LjIK",
+      "initialIndex": 13,
+      "expected": { "download": "success", "index": 14, "rows": [], "errors": ["invalid timestamp"] }
+    },
+    {
+      "name": "requested object does not match counter",
+      "objectName": "iot-data-999.csv",
+      "objectBytesBase64": "",
+      "initialIndex": 14,
+      "expected": { "download": "invalid-object-name", "index": 14, "rows": [], "errors": ["invalid object name"] }
+    },
+    {
+      "name": "empty numeric cell is rejected",
+      "objectName": "iot-data-15.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtZW1wdHksMTc2ODQ4NTYwMDAwMDAwMCwsNDUuMgo=",
+      "initialIndex": 15,
+      "expected": { "download": "success", "index": 16, "rows": [], "errors": ["invalid number: temperature"] }
+    },
+    {
+      "name": "unsafe numeric timestamp is rejected",
+      "objectName": "iot-data-16.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtdW5zYWZlLDkwMDcxOTkyNTQ3NDA5OTIsNzIuNSw0NS4yCg==",
+      "initialIndex": 16,
+      "expected": { "download": "success", "index": 17, "rows": [], "errors": ["invalid timestamp"] }
+    },
+    {
+      "name": "out-of-range timestamp is rejected",
+      "objectName": "iot-data-17.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtcmFuZ2UsODY0MDAwMDAwMDAwMDAwMDAwMSw3Mi41LDQ1LjIK",
+      "initialIndex": 17,
+      "expected": { "download": "success", "index": 18, "rows": [], "errors": ["invalid timestamp"] }
+    },
+    {
+      "name": "negative timestamp is rejected",
+      "objectName": "iot-data-18.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtbmVnYXRpdmUsLTEsNzIuNSw0NS4yCg==",
+      "initialIndex": 18,
+      "expected": { "download": "success", "index": 19, "rows": [], "errors": ["invalid timestamp"] }
+    },
+    {
+      "name": "malformed CSV row is rejected",
+      "objectName": "iot-data-19.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsImNoaWxkLWJhZCwxNzY4NDg1NjAwMDAwMDAwLDcyLjUsNDUuMgo=",
+      "initialIndex": 19,
+      "expected": { "download": "success", "index": 20, "rows": [], "errors": ["malformed CSV row"] }
+    },
+    {
+      "name": "invalid calendar timestamp is rejected",
+      "objectName": "iot-data-20.csv",
+      "objectBytesBase64": "ZGV2aWNlVHlwZSxleHRlcm5hbEtleSx0aW1lc3RhbXAsdGVtcGVyYXR1cmUsaHVtaWRpdHkKaHZhY3MsY2hpbGQtY2FsZW5kYXIsMjAyNi0wMi0zMFQxMjowMDowMFosNzIuNSw0NS4yCg==",
+      "initialIndex": 20,
+      "expected": { "download": "success", "index": 21, "rows": [], "errors": ["invalid timestamp"] }
+    }
+  ]
+}

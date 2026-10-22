@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "scope": "offline-example",
+  "cases": [
+    {
+      "name": "HVAC example",
+      "input": {
+        "topic": "source/hvacs/example-hvac-01",
+        "qos": 1,
+        "payload": {
+          "time": "2026-01-15T14:00:00.123Z",
+          "temperature": 72.5,
+          "humidity": 45.2,
+          "mode": "cool"
+        }
+      },
+      "expected": {
+        "topic": "hvacs/example-hvac-01",
+        "qos": 1,
+        "payload": "{\"time\":\"2026-01-15T14:00:00.123Z\",\"temperature\":72.5,\"humidity\":45.2,\"mode\":\"cool\"}",
+        "_example": {
+          "sourceTopic": "source/hvacs/example-hvac-01",
+          "targetTopic": "hvacs/example-hvac-01"
+        }
+      }
+    },
+    {
+      "name": "gateway example",
+      "input": {
+        "topic": "source/gateway/example-gateway-01",
+        "payload": {
+          "time": "2026-01-15T14:01:00Z",
+          "value": 17
+        }
+      },
+      "expected": {
+        "topic": "data",
+        "payload": "{\"time\":\"2026-01-15T14:01:00Z\",\"value\":17}",
+        "_example": {
+          "sourceTopic": "source/gateway/example-gateway-01",
+          "targetTopic": "data"
+        }
+      }
+    },
+    {
+      "name": "shared subscription example",
+      "input": {
+        "topic": "$share/example-group/source/hvacs/example-hvac-01",
+        "payload": {
+          "time": "2026-01-15T14:02:00Z",
+          "temperature": 71.9
+        }
+      },
+      "expected": {
+        "topic": "hvacs/example-hvac-01",
+        "payload": "{\"time\":\"2026-01-15T14:02:00Z\",\"temperature\":71.9}",
+        "_example": {
+          "sourceTopic": "$share/example-group/source/hvacs/example-hvac-01",
+          "targetTopic": "hvacs/example-hvac-01"
+        }
+      }
+    },
+    {
+      "name": "unsupported device type",
+      "input": {
+        "topic": "source/pumps/example-pump-01",
+        "payload": {
+          "time": "2026-01-15T14:03:00Z"
+        }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "missing observation time",
+      "input": {
+        "topic": "source/hvacs/example-hvac-01",
+        "payload": { "temperature": 72.5 }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "numeric observation time",
+      "input": {
+        "topic": "source/hvacs/example-hvac-01",
+        "payload": { "time": 1768485600, "temperature": 72.5 }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "invalid observation time",
+      "input": {
+        "topic": "source/hvacs/example-hvac-01",
+        "payload": { "time": "not-a-timestamp" }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "malformed source topic",
+      "input": {
+        "topic": "source/hvacs",
+        "payload": { "time": "2026-01-15T14:04:00Z" }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "empty external key",
+      "input": {
+        "topic": "source/hvacs/",
+        "payload": { "time": "2026-01-15T14:05:00Z" }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "malformed shared subscription",
+      "input": {
+        "topic": "$share//source/hvacs/example-hvac-01",
+        "payload": { "time": "2026-01-15T14:06:00Z" }
+      },
+      "expected": { "output": null }
+    },
+    {
+      "name": "malformed JSON payload",
+      "input": {
+        "topic": "source/hvacs/example-hvac-01",
+        "payload": "{\"time\":"
+      },
+      "expected": { "output": null }
+    }
+  ]
+}
