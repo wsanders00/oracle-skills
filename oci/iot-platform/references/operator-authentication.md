@@ -35,4 +35,4 @@ Do not infer that an operator needs a named user in the target tenancy. Ask whic
 - **Human editor:** signs in through the editor's own SSO/session flow; that does not establish OCI CLI credentials.
 - **IoT Flow Runtime or other deployed runtime:** uses the runtime's configured resource identity and policies. Local operator credentials do not transfer to the running service.
 
-For a CLI workflow, pass the selected `--profile` and `--auth` options consistently to the discovery helper and subsequent `oci` commands when those options apply. For device or data-plane testing, choose and verify that separate authentication path independently.
+For a CLI workflow, pass the selected `--profile`, `--auth`, and target `--region` options consistently to the discovery helper and subsequent `oci` commands when those options apply. For device or data-plane testing, choose and verify that separate authentication path independently.

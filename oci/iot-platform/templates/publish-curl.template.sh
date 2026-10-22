@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set +x  # Disable inherited tracing before expanding any credentials.
 set -euo pipefail
 
 # Required env:
@@ -34,9 +35,24 @@ PAYLOAD="$(cat <<JSON
 JSON
 )"
 
-curl -sS --fail -u "${DEVICE_USER}:${DEVICE_SECRET}" \
-  -H "Content-Type: application/json" \
-  -d "${PAYLOAD}" \
-  "${URL}"
+# curl 7.76+ supports --fail-with-body. Fail closed before sending credentials.
+command -v base64 >/dev/null || { echo "base64 is required" >&2; exit 2; }
+CURL_VERSION="$(curl -q --version)"
+if [[ ! "$CURL_VERSION" =~ ^curl\ ([0-9]+)\.([0-9]+)\. ]]; then
+  echo "Cannot determine curl version; curl 7.76+ is required" >&2
+  exit 2
+fi
+if (( BASH_REMATCH[1] < 7 || (BASH_REMATCH[1] == 7 && BASH_REMATCH[2] < 76) )); then
+  echo "curl 7.76+ is required for --fail-with-body" >&2
+  exit 2
+fi
+BASIC_AUTH="$(printf '%s' "${DEVICE_USER}:${DEVICE_SECRET}" | base64 | tr -d '\r\n')"
+# -q must be first: ignore curlrc settings (including trace and redirects).
+# Header input is stdin; neither plaintext nor encoded credentials enter argv.
+printf 'Authorization: Basic %s\n' "$BASIC_AUTH" | \
+  curl -q -sS --fail-with-body --header @- \
+    -H "Content-Type: application/json" \
+    -d "${PAYLOAD}" \
+    "${URL}"
 
 echo

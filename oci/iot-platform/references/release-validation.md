@@ -4,15 +4,19 @@ Use this checklist before calling the `oci-iot-platform` skill ready to share.
 
 ## Automated Checks
 
-From the repository root, run:
+From the installed skill root (the directory containing `SKILL.md`), run the
+canonical seven-stage offline acceptance script:
 
 ```bash
-bash oci/iot-platform/tests/smoke.sh
+bash tests/acceptance.sh
 ```
 
-```bash
-bash oci/iot-platform/tests/redaction_scan.sh
-```
+It runs, in order: smoke/contracts, operator-helper checks, data-recipe checks,
+offline model-catalog checks, integrated negative/package-boundary regressions,
+local Markdown-link checks, and redaction/provenance scanning. It uses local
+synthetic fixtures and makes no OCI or curl network requests. The package name,
+repository path, and `$oci-iot-platform` invocation retain the documented
+compatibility exception; that exception does not pass a directory-name check.
 
 ## Content Review
 
@@ -58,6 +62,10 @@ selected local inputs:
   optional data-access guidance. When its separate identity, retention, or
   network prerequisites are unknown, report the gap without falling back to
   automatic login, SQLcl, tunnel setup, MCP, or a live read.
+- The synthetic CSR example requires OpenSSL 3.x or newer for `-noenc`; the
+  documented regression was verified with OpenSSL 4.0.3. Older OpenSSL and
+  LibreSSL builds were not tested. Inspect the CSR extensions and expected
+  `CA:FALSE`; this does not verify issuance or an mTLS handshake.
 
 These offline scenarios validate routing only. They do not establish live
 credentials, IAM access, target tenancy, domain availability, network
@@ -88,6 +96,7 @@ Also verify operator-resilience guidance remains public-safe and covers:
 - cleanup ordering that removes relationships, twins, adapters, and models safely
 - optional MCP guidance that recognizes tool families and fallback rules without requiring MCP install or private bootstrap
 - Data API collection guidance for snapshot, raw, historized, rejected, and raw-command records
+- optional `oci_iot` monitoring metrics and the separate permission needed to query them
 
 ## Release Blockers
 
@@ -111,3 +120,8 @@ Do not release if any of these are true:
 - cleanup guidance omits dependency ordering or destructive-operation approval
 - managed Flow Runtime and public sample-package nodes are presented as
   interchangeable without target compatibility evidence
+
+## Sources
+
+- The [acceptance script](../tests/acceptance.sh) defines the seven local stages and their installed-root paths.
+- The package name `oci-iot-platform`, repository path `oci/iot-platform`, and `$oci-iot-platform` invocation retain a compatibility limitation; do not report that as a passed directory-name validation.

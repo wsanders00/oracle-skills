@@ -215,3 +215,22 @@ For teardown or rollback:
 5. Verify each resource reaches `DELETED` or no longer appears in active listings.
 
 Never recommend broad deletion from a name match alone. Read the resource by OCID, confirm dependencies, and ask for explicit approval before destructive operations.
+
+## Credential rotation and model-scoped reads
+
+Digital twin certificate rotation is supported when the replacement stays
+under the same secret or subordinate-CA OCID. Verify the replacement
+credentials and a fresh device connection before retiring the old credentials.
+A root CA OCID is not the twin's `authId`; use the supported certificate or
+secret resource identifier. Treat rotation as a planned change with a fresh
+read and device-side validation.
+
+IAM model conditions can narrow read access to resources associated with a
+model. They do not filter list results, and a read grant does not grant
+create/update/delete or device authentication. Listing may require a separate
+inspect grant and can reveal names outside the model-scoped read grant. Keep
+policy examples aligned with the exact required permission and resource scope.
+
+## Sources
+
+- Oracle [September 29, 2026 IoT release note](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-09292026.htm), [digital twin certificate guidance](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/digital-twin-instance-certificate.htm), and [model-scoped digital-twin access](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/restrict-digital-twin-access.htm), consulted 2026-10-22.

@@ -3,10 +3,19 @@ set -euo pipefail
 
 PROFILE=""
 AUTH_MODE=""
+SELECTED_REGION=""
 IOT_DOMAIN_ID=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --region)
+      if [[ $# -lt 2 || -z "$2" || "$2" == --* ]]; then
+        echo "Missing value for --region" >&2
+        exit 2
+      fi
+      SELECTED_REGION="$2"
+      shift 2
+      ;;
     --profile)
       if [[ $# -lt 2 || -z "$2" || "$2" == --* ]]; then
         echo "Missing value for --profile" >&2
@@ -49,6 +58,10 @@ if [[ -n "$PROFILE" ]]; then
 fi
 if [[ -n "$AUTH_MODE" ]]; then
   OCI_BASE+=(--auth "$AUTH_MODE")
+fi
+
+if [[ -n "$SELECTED_REGION" ]]; then
+  OCI_BASE+=(--region "$SELECTED_REGION")
 fi
 
 DOMAIN_JSON="$("${OCI_BASE[@]}" domain get --iot-domain-id "$IOT_DOMAIN_ID" --output json)"

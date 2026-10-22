@@ -61,7 +61,7 @@ data access, create a tunnel, or launch SQLcl or MCP.
    - work requests
    - HTTPS publish examples
    - read-only managed Flow Runtime discovery
-5. Use [references/mcp-optional-use.md](references/mcp-optional-use.md) only when an OCI IoT MCP server is already available in the user's environment. Keep CLI as the fallback and never require MCP for public workflows.
+5. Use [references/mcp-optional-use.md](references/mcp-optional-use.md) only when an OCI IoT MCP server is already available in the user's environment. Confirm its advertised tools before using optional bounded Flow Runtime reads; keep CLI as the fallback and never require MCP for public workflows.
 6. Use [references/resilience-guidance.md](references/resilience-guidance.md) for:
    - large or ambiguous list operations
    - SDK or CLI command-shape drift

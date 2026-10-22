@@ -190,7 +190,9 @@ if "--write-out" in args or "-w" in args:
         self.assertNotIn("--location", args)
         self.assertNotIn("--retry", args)
         self.assertNotIn("--insecure", args)
-        self.assertTrue(any(a.endswith("/ords/example/20250531/rawData") for a in args))
+        self.assertIn(self.env["IOT_DATA_API_BASE"] + "/20250531/rawData", args)
+        request_url = next(a for a in args if a.startswith("https://"))
+        self.assertEqual(request_url.count("/20250531/"), 1)
         q = args[args.index("--data-urlencode") + 1]
         self.assertTrue(q.startswith("q="))
         parsed = json.loads(q[2:])
@@ -317,7 +319,8 @@ if "--write-out" in args or "-w" in args:
         for base in ("https://unrelated.example/ords/example",
                      "https://user@synthetic.data.iot.us-test-1.oci.oraclecloud.com/ords/example",
                      self.env["IOT_DATA_API_BASE"] + "?q=untrusted",
-                     self.env["IOT_DATA_API_BASE"] + "/20250531"):
+                     self.env["IOT_DATA_API_BASE"] + "/20250531",
+                     self.env["IOT_DATA_API_BASE"] + "/20250531/rawData"):
             with self.subTest(base=base):
                 result = self.run_recipe("COMMON-FETCH", {}, {"IOT_DATA_API_BASE": base})
                 self.assertNotEqual(result.returncode, 0)

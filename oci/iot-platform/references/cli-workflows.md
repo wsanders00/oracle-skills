@@ -32,7 +32,7 @@ bash scripts/derive_domain_context.sh "${OCI_CLI_GLOBAL_ARGS[@]}" \
   --iot-domain-id <iot_domain_ocid>
 ```
 
-The helper accepts `--profile` and `--auth` when needed. Omit `--auth` when relying on the CLI default. Do not assume a named profile is required for instance, resource, or workload identity authentication.
+The helper accepts `--profile`, `--auth`, and `--region` when needed. Supply `--region <oci_region>` when the domain is outside the CLI default region; the selection is forwarded to both domain and domain-group reads. Omit `--auth` when relying on the CLI default. Do not assume a named profile is required for instance, resource, or workload identity authentication.
 For a CLI session/security token, use Oracle's
 [token-based CLI authentication guide](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/clitoken.htm)
 to create or refresh the session, validate it with `oci session validate`, and
@@ -188,6 +188,15 @@ python3 scripts/twin_tools.py last-known \
 
 If the content response has metadata but no current values, treat that as incomplete evidence and check publish/rejected-data paths before claiming the twin is healthy.
 
+## Resource Create Completion
+
+Model, adapter, instance, and relationship creates return resources. Capture the
+returned resource ID. Where supported, `--wait-for-state ACTIVE` polls that
+resource with GET; it is not a work-request waiter. Read resource metadata after
+the waiter, the stored model spec for models, and filtered relationship listings
+for relationships. A successful create response alone does not establish all
+application behavior or device connectivity.
+
 ## Create A Model
 
 Start from the neutral template:
@@ -317,7 +326,7 @@ If no relationship appears, check the reverse direction before creating another 
 
 ## Work Request Inspection
 
-Use work requests for asynchronous failures or long-running operations:
+Use work-request inspection only when the operation documents or returns a work request. Do not infer a work-request ID from a resource-returning create or its ACTIVE waiter:
 
 ```bash
 oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> work-request get \
@@ -363,7 +372,39 @@ For vault-secret-backed basic auth, start from:
 bash templates/publish-curl.template.sh
 ```
 
-For certificate-based publishing, switch to an mTLS client flow instead of `curl -u`.
+The template requires curl 7.76+ (`--fail-with-body`) and a `base64` executable.
+It rejects older curl versions before publishing, preserves HTTP error bodies,
+and returns failure on HTTP or transport errors. Basic Authorization is supplied
+through curl stdin. `curl -q` ignores curlrc trace/redirect settings, and shell
+tracing is disabled before credential expansion. Do not add tracing, credential
+arguments, or redirects to this flow; error bodies may still contain service data.
+
+For certificate-based publishing, use an mTLS client flow. Follow Oracle's
+certificate procedure for the actual subject, key protection, and issuance
+requirements. In OpenSSL, `v3_req` is a configuration section selecting requested
+extensions, not a literal extension name for `-addext`. Select it explicitly
+with `-config` and `-reqexts`, and inspect the CSR before submitting it.
+
+This disposable offline example requests CA:FALSE and was verified with OpenSSL
+4.0.3. Run it in a new temporary directory; its unencrypted synthetic key is only
+for this check. It does not issue a certificate or test an mTLS handshake.
+
+<!-- CSR-SYNTHETIC -->
+```bash
+cat > csr-check.cnf <<'EOF'
+[req]
+prompt = no
+distinguished_name = subject
+[subject]
+CN = synthetic-device.invalid
+[v3_req]
+basicConstraints = critical,CA:FALSE
+EOF
+openssl req -new -newkey rsa:2048 -noenc -keyout synthetic.key \
+  -out synthetic.csr -config csr-check.cnf -reqexts v3_req
+openssl req -in synthetic.csr -noout -text -verify
+```
+<!-- /CSR-SYNTHETIC -->
 
 After publishing, verify the twin content again. For basic validation, `digital-twin-instance get-content` with metadata is enough to prove the publish updated the twin:
 
@@ -375,6 +416,15 @@ oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot --region <oci_region> digital-twin-instance 
 ```
 
 If content did not update, check adapter endpoint path, payload content type, timestamp mapping, and auth mode. Rejected-data, snapshot, historized, or ORDS/Data API checks are optional advanced evidence paths and require separate Data API or `OCI_IOT_ORDS_*` credentials.
+
+## Data API Base And Complete Requests
+
+Keep `IOT_DATA_API_BASE` as the unversioned domain base:
+`https://<domain-group-short-id>.data.iot.<region>.oci.oraclecloud.com/ords/<domain-short-id>`.
+A complete request adds exactly one `/20250531/<collection>` suffix, for example
+`<IOT_DATA_API_BASE>/20250531/rawData`. Do not put the version or collection in
+the base supplied to the [diagnostics recipes](data-diagnostics.md).
+These reads require the separately authorized Data API access path.
 
 ## Invoke A Raw JSON Command
 
@@ -403,3 +453,8 @@ For teardown, read dependencies first, then delete in this order:
 4. models with no active dependent adapters or instances
 
 Ask for explicit approval before destructive operations, and verify each resource reaches `DELETED` or disappears from active listings.
+
+## Sources
+
+- [Oracle digital twin certificates, Step 3](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/digital-twin-instance-certificate.htm)
+- [OpenSSL req options and configuration](https://docs.openssl.org/3.0/man1/openssl-req/)

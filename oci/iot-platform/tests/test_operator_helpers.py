@@ -6,6 +6,8 @@ directory placed first on PATH. The subprocess environment is allowlisted, so
 local OCI profiles and credential variables cannot affect the tests.
 """
 
+import base64
+import importlib.util
 import json
 import os
 import shutil
@@ -63,7 +65,7 @@ args = sys.argv[1:]
 profile = args[args.index("--profile") + 1] if "--profile" in args else None
 auth = args[args.index("--auth") + 1] if "--auth" in args else None
 with open({calls!r}, "a", encoding="utf-8") as f:
-    f.write(json.dumps({{"command": args[0] if args else "", "profile": bool(profile), "auth": auth or "default"}}) + "\\n")
+    f.write(json.dumps({{"command": args[0] if args else "", "profile": bool(profile), "auth": auth or "default", "region": args[args.index("--region") + 1] if "--region" in args else None}}) + "\\n")
 if os.environ.get("MOCK_OCI_FAIL") == "1":
     sys.exit(43)
 if args and args[0] == "iot" and "domain" in args and "domain-group" not in args:
@@ -97,12 +99,16 @@ else:
         calls = str(self.calls)
         return f'''#!/usr/bin/env python3
 import json, os, sys
+if "--version" in sys.argv:
+    print("curl " + os.environ.get("MOCK_CURL_VERSION", "8.7.1") + " synthetic")
+    sys.exit(0)
 with open({calls!r}, "a", encoding="utf-8") as f:
-    f.write(json.dumps({{"command": "curl", "args": sys.argv[1:], "status": int(os.environ.get("MOCK_CURL_HTTP_STATUS", "200")), "transport_fail": os.environ.get("MOCK_CURL_TRANSPORT_FAIL") == "1"}}) + "\\n")
+    f.write(json.dumps({{"command": "curl", "args": sys.argv[1:], "stdin": sys.stdin.read(), "status": int(os.environ.get("MOCK_CURL_HTTP_STATUS", "200")), "transport_fail": os.environ.get("MOCK_CURL_TRANSPORT_FAIL") == "1"}}) + "\\n")
 if os.environ.get("MOCK_CURL_TRANSPORT_FAIL") == "1":
     sys.exit(7)
 status = int(os.environ.get("MOCK_CURL_HTTP_STATUS", "200"))
-if status >= 400 and "--fail" in sys.argv[1:]:
+if status >= 400 and "--fail-with-body" in sys.argv[1:]:
+    print("synthetic HTTP error body")
     sys.exit(22)
 print("mock publish accepted")
 '''
@@ -157,8 +163,107 @@ print("2026-10-01T12:34:56")
         calls = self._calls()
         self._assert_condition(result.returncode == 0, "derive_default_succeeds")
         self._assert_condition(len(calls) == 2, "derive_makes_two_reads")
-        self._assert_condition(all(c["auth"] == "default" and not c["profile"] for c in calls), "derive_default_auth_consistent")
+        self._assert_condition(all(c["auth"] == "default" and not c["profile"] and c["region"] is None for c in calls), "derive_default_auth_consistent")
         self._assert_condition("REGION=us-test-1" in result.stdout and "DOMAIN_SHORT_ID=device-host" in result.stdout, "derive_metadata_extracted")
+
+    def test_derive_region_on_both_calls_and_missing_values(self):
+        result = self._run(["bash", str(DERIVE), "--region", "us-selected-1", "--iot-domain-id", "synthetic-domain"])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual([c["region"] for c in self._calls()], ["us-selected-1"] * 2)
+        self.calls.unlink()
+        for tail in (["--region"], ["--region", ""], ["--region", "--auth"]):
+            with self.subTest(tail=tail):
+                result = self._run(["bash", str(DERIVE), *tail])
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(self._calls(), [])
+
+    def test_iter_records_direct_envelopes_and_order(self):
+        spec = importlib.util.spec_from_file_location("twin_tools", TWIN)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        a, b = {"timestamp": "a", "value": 1}, {"value": 2}
+        for payload, expected in (
+            (a, [a]), ([a, b], [a, b]),
+            ({"data": a}, [a]), ({"items": [a, b]}, [a, b]),
+            ({"data": {"items": {"records": [a, b]}}}, [a, b]),
+            ([{"data": [a]}, {"records": [b]}], [a, b]),
+            ({"data": [], "items": [a], "records": [b]}, [a, b]),
+            ({"value": 3, "data": "scalar"}, [{"value": 3, "data": "scalar"}]),
+            ({"records": [b], "items": [a]}, [b, a]),
+            ({"data": "scalar", "items": [a]}, [{"data": "scalar", "items": [a]}]),
+            ({}, []), ([], []), ({"data": {}}, []),
+            ({"items": []}, []), ({"records": []}, []),
+        ):
+            with self.subTest(payload=payload):
+                self.assertEqual(list(module.iter_records(payload)), expected)
+
+    def test_iter_records_preserves_structured_field_collisions(self):
+        spec = importlib.util.spec_from_file_location("twin_tools", TWIN)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        for key in ("data", "items", "records"):
+            for value in ({"temperature": 23.5}, [{"temperature": 23.5}], {}, []):
+                record = {"deviceId": "synthetic-device", "timestamp": "2026-10-01T00:00:00Z", key: value}
+                for payload in (record, [record], {"data": {"items": [record]}}):
+                    with self.subTest(key=key, value=value, payload=payload):
+                        self.assertEqual(list(module.iter_records(payload)), [record])
+        # Recognition does not depend on a particular device/timestamp schema.
+        for key in ("data", "items", "records"):
+            record = {"customIdentity": "synthetic", key: {"value": 1}}
+            self.assertEqual(list(module.iter_records(record)), [record])
+
+    def test_last_known_and_offline_preserve_structured_record_fields(self):
+        for key in ("data", "items", "records"):
+            record = {"deviceId": "synthetic-device", "timestamp": "2026-10-01T00:00:00Z", key: {"temperature": 23.5}}
+            for payload in (record, {"records": [record]}):
+                with self.subTest(key=key, payload=payload):
+                    path = self._json_input("structured-record.json", payload)
+                    result = self._run([sys.executable, str(TWIN), "last-known", "--input", path,
+                                        "--device-key", "deviceId", "--device-id", "synthetic-device"])
+                    with self.subTest(command="last-known"):
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        self.assertEqual(json.loads(result.stdout)["record"], record)
+                    result = self._run([sys.executable, str(TWIN), "offline", "--input", path,
+                                        "--timestamp-key", "timestamp", "--threshold-minutes", "30",
+                                        "--now", "2026-10-01T01:00:00Z"])
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    data = json.loads(result.stdout)
+                    self.assertEqual(data["offline_count"], 1)
+                    self.assertEqual(data["offline_devices"][0]["device_id"], "synthetic-device")
+
+    def test_records_with_supported_paging_metadata(self):
+        spec = importlib.util.spec_from_file_location("twin_tools", TWIN)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        record = {"deviceId": "synthetic-device", "timestamp": "2026-10-01T00:00:00Z", "data": {"temperature": 23.5}}
+        pages = [
+            {"items": [record], "hasMore": False, "limit": 25, "offset": 0, "count": 1,
+             "links": [{"rel": "self", "href": "https://synthetic.invalid/records"}]},
+            {"data": [record], "opc-next-page": "synthetic-page"},
+            {"data": {"items": [record], "hasMore": False}, "opc_next_page": None},
+            {"records": [record], "count": 1},
+        ]
+        for page in pages:
+            with self.subTest(page=page, command="iteration"):
+                self.assertEqual(list(module.iter_records(page)), [record])
+            path = self._json_input("paged-records.json", page)
+            result = self._run([sys.executable, str(TWIN), "last-known", "--input", path])
+            with self.subTest(page=page, command="last-known"):
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(json.loads(result.stdout)["record"], record)
+            result = self._run([sys.executable, str(TWIN), "offline", "--input", path,
+                                "--timestamp-key", "timestamp", "--threshold-minutes", "30",
+                                "--now", "2026-10-01T01:00:00Z"])
+            with self.subTest(page=page, command="offline"):
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(json.loads(result.stdout)["offline_count"], 1)
+        for page in ({"items": [], "hasMore": False, "count": 0, "links": []},
+                     {"data": [], "opc-next-page": None}):
+            self.assertEqual(list(module.iter_records(page)), [])
+        for record in ({"items": [record], "hasMore": "application-value"},
+                       {"records": [], "count": True},
+                       {"data": {}, "opc-next-page": {"application": "value"}}):
+            self.assertEqual(list(module.iter_records(record)), [record])
 
     def test_derive_metadata_with_actual_jq_when_available(self):
         jq_path = shutil.which("jq")
@@ -329,7 +434,28 @@ print("2026-10-01T12:34:56")
         args = call.get("args", [])
         self._assert_condition(result.returncode == 0 and call != {}, "publish_default_succeeds")
         self._assert_condition(args[-1].endswith("/sampletopic"), "publish_default_reference_path")
-        self._assert_condition("-u" in args and "synthetic-user:synthetic-secret" in args, "publish_basic_auth_supplied")
+        self._assert_condition(call.get("stdin") == "Authorization: Basic " + base64.b64encode(b"synthetic-user:synthetic-secret").decode() + "\n", "publish_basic_auth_supplied")
+
+    def test_publish_stdin_auth_and_no_trace_or_redirects(self):
+        values = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "synthetic-domain", "OCI_REGION": "us-test-1"}
+        result = self._run(["bash", "-x", str(PUBLISH)], values)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = self._calls()[0]["args"]
+        self.assertEqual(args[0], "-q")
+        self.assertIn("@-", args)
+        for flag in ("-u", "--user", "-L", "--location", "--trace", "--verbose"):
+            self.assertNotIn(flag, args)
+        diagnostics = result.stdout + result.stderr + json.dumps(args)
+        for secret in (values["DEVICE_USER"], values["DEVICE_SECRET"], base64.b64encode(b"synthetic-user:synthetic-secret").decode()):
+            self.assertNotIn(secret, diagnostics)
+
+    def test_publish_unsupported_curl_stops_before_publish(self):
+        values = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "synthetic-domain", "OCI_REGION": "us-test-1"}
+        for version in ("7.75.0", "6.99.0", "unknown"):
+            with self.subTest(version=version):
+                result = self._run(["bash", str(PUBLISH)], {**values, "MOCK_CURL_VERSION": version})
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(self._calls(), [])
 
     def test_publish_reference_path_gets_one_leading_slash(self):
         env = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "synthetic-domain", "OCI_REGION": "us-test-1", "REFERENCE_ENDPOINT": "nested/sample"}
@@ -383,7 +509,30 @@ print("2026-10-01T12:34:56")
                 result = self._run(["bash", str(PUBLISH)], {**values, "MOCK_CURL_HTTP_STATUS": status})
                 call = next((item for item in reversed(self._calls()) if item["command"] == "curl"), {})
                 self._assert_condition(result.returncode == expected, f"publish_http_{label}_exit")
-                self._assert_condition("--fail" in call.get("args", []), f"publish_http_{label}_curl_fail_flag")
+                self._assert_condition("--fail-with-body" in call.get("args", []), f"publish_http_{label}_curl_fail_flag")
+                if int(status) >= 400:
+                    self.assertIn("synthetic HTTP error body", result.stdout)
+
+    def test_synthetic_csr_requests_selected_extensions(self):
+        openssl = shutil.which("openssl")
+        self.assertIsNotNone(openssl, "OpenSSL is required for the offline CSR check")
+        doc = (SKILL_ROOT / "references" / "cli-workflows.md").read_text()
+        section = doc.split("<!-- CSR-SYNTHETIC -->", 1)[1].split("<!-- /CSR-SYNTHETIC -->", 1)[0]
+        script = section.split("```bash\n", 1)[1].split("```", 1)[0]
+        # Use the selected executable, not the shell helper's isolated mock PATH.
+        env = {"PATH": str(Path(openssl).parent) + ":/usr/bin:/bin", "LC_ALL": "C"}
+        result = subprocess.run(["bash", "-e", "-c", script], cwd=self.root, env=env,
+                                text=True, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Requested Extensions:", result.stdout)
+        self.assertIn("CA:FALSE", result.stdout)
+        self.assertIn("synthetic-device.invalid", result.stdout)
+        # A section can have another name: it selects the same extension content.
+        renamed = script.replace("v3_req", "selected_extensions")
+        result = subprocess.run(["bash", "-e", "-c", renamed], cwd=self.root, env=env,
+                                text=True, capture_output=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("CA:FALSE", result.stdout)
 
     def test_publish_url_has_expected_https_host(self):
         env = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "synthetic-domain", "OCI_REGION": "us-test-1"}

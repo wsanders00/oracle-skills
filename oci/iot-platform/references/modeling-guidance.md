@@ -26,6 +26,29 @@ Increment the DTMI version when behavior or meaning changes, such as:
 - changing validation constraints
 - changing relationship semantics
 
+For a compatible instance upgrade, use only the exact next minor model version
+(`+.1` within the same model family and major version) and keep existing
+elements and contracts intact; additive changes belong in
+that compatible version. Create an adapter for the new model version, update
+the existing instance, then read back the instance and its content to verify
+the result. OCI's documented path preserves the instance identity. Downgrades
+are unsupported. Keep prior artifacts for investigation, but treat an
+incompatible change as a separately planned forward correction or replacement
+instance; do not reattach an older adapter as rollback.
+
+## Object validation
+
+For OCI Object schemas that use the documented validation extension, place
+`required` beside `fields` and use the existing validation context with the
+`Validated` co-type on the containing content. Omitting `required` keeps all
+declared fields required; `"required": []` makes them all optional. Omit an
+optional value when absent rather than sending JSON `null`. Each Object applies
+its own list to immediate fields, so nested Objects need their own `required`
+list. This describes OCI's supported validation contract, not a general DTDL
+validator. Oracle's April 14, 2026 release also adds point-schema altitude and
+the JQ `has` operation for adapter expressions; use the release documentation
+for their exact context.
+
 ## Telemetry Design
 
 - Use consistent timestamp handling between the device payload and the adapter envelope.
@@ -161,3 +184,7 @@ The structural concepts follow the primary
 [DTDL v3 specification](https://github.com/Azure/opendigitaltwins-dtdl/blob/master/DTDL/v3/DTDL.v3.md)
 (consulted 2026-10-08); supported inputs and limits above are this helper's
 contract, not additional OCI platform requirements.
+
+## Sources
+
+- Oracle [compatible model-version upgrade scenario](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/create-new-model-version.htm), [JSON schema validation](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/reference-json-schema-validation.htm), and [April 14, 2026 release note](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-04142026.htm), consulted 2026-10-22.

@@ -78,19 +78,29 @@ def load_json(path: str) -> Any:
 def iter_records(payload: Any) -> Iterable[Dict[str, Any]]:
     if isinstance(payload, list):
         for item in payload:
-            if isinstance(item, dict):
-                yield item
-        return
-    if isinstance(payload, dict):
-        yield payload
-        for key in ("data", "items", "records"):
-            value = payload.get(key)
-            if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, dict):
-                        yield item
-            elif key == "data" and isinstance(value, dict):
-                yield value
+            yield from iter_records(item)
+    elif isinstance(payload, dict):
+        # An envelope contains supported containers plus optional, typed ORDS/
+        # OCI paging fields. Other siblings (or wrong types) make a real record,
+        # preserving application data/items/records fields without schema guesses.
+        # A record exactly matching this wrapper shape is inherently ambiguous
+        # and follows the envelope convention; arbitrary envelopes are not inferred.
+        containers = ("data", "items", "records")
+        paging_types = {"hasMore": bool, "limit": int, "offset": int,
+                        "count": int, "links": list}
+        is_envelope = any(key in containers for key in payload) and all(
+            (key in containers and isinstance(value, (list, dict)))
+            or (key in paging_types and type(value) is paging_types[key])
+            or (key in ("opc-next-page", "opc_next_page")
+                and (value is None or isinstance(value, str)))
+            for key, value in payload.items()
+        )
+        if is_envelope:
+            for key, value in payload.items():
+                if key in containers:
+                    yield from iter_records(value)
+        elif payload:
+            yield payload
 
 
 def get_key_path(data: Dict[str, Any], path: Optional[str]) -> Any:

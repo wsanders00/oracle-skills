@@ -62,7 +62,7 @@ rg -n -i 'connectivity_type|gateways|INDIRECT|GATEWAY' "$ROOT_DIR/references/mcp
 rg -n 'never use `INDIRECT` as a shortcut' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n 'do not assume `INDIRECT` connectivity' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
 rg -n 'Do not default to `INDIRECT` connectivity' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
-rg -n 'OCI_IOT_AUTH_TYPE=api_key' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
+rg -n 'OCI_MCP_AUTH_TYPE=api_key' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
 rg -n -i 'snapshot|historized|raw-command|rejected' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
 rg -n 'references/platform-surface\.md' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n -i 'domain group|digital twin model|digital twin adapter|digital twin instance|relationship|work request|raw commands|Data API' "$ROOT_DIR/references/platform-surface.md" >/dev/null
@@ -81,6 +81,9 @@ if rg -n 'lastValue' "$ROOT_DIR/templates/adapter.default.template.json" "$ROOT_
   echo "Adapter and publish templates should use the same scalar temperature payload shape." >&2
   exit 1
 fi
+
+rg -n -- '--region' "$ROOT_DIR/scripts/derive_domain_context.sh" >/dev/null
+rg -n 'resource with GET' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
 
 echo "[4/7] bootstrap helper syntax check"
 bash -n "$ROOT_DIR/scripts/derive_domain_context.sh"

@@ -117,7 +117,26 @@ When using this reference:
 4. Include a verification step.
 5. Say whether a CLI/API fallback exists if an optional MCP helper was used.
 
-## Sources and limits
+## Optional database and monitoring routes
+
+For service health and throughput, use the `oci_iot` metrics namespace and the
+documented IoT dimensions. These metrics are emitted automatically; querying
+them requires `read metrics` permission. Metrics describe service telemetry,
+not actual twin content, which still requires a content or data read.
+
+For database-backed analysis, first confirm the domain's direct database
+connectivity, token-based database access, required network/private endpoint,
+schema, and task-specific IAM grants. The official Database Tools scenario
+uses a private token-authenticated connection. Select AI is an APEX-connected
+workflow and requires its database privileges/configuration. Archiving exports
+selected records before retention removes them; follow the official Object
+Storage and Data Pump prerequisites and choose an archive format for the
+collection. Database queue streaming requires direct database connectivity;
+Oracle documents a maximum 24-hour retention period for public queues. These
+are pointers to separate workflows, not permission to enable access, issue SQL,
+or change queue/archive configuration.
+
+## Sources
 
 The IoT Data API contract and collection paths are documented in the
 [IoT Data API reference](https://docs.oracle.com/en-us/iaas/tools/internet-of-things/data-api/index.html)
@@ -137,3 +156,10 @@ These sources do not establish IoT-collection support for `limit`, `offset`,
 proof of those IoT-specific contracts. Do not infer that a response page is a
 complete window, even if a field resembles a continuation flag. Recheck the
 IoT API contract before publishing additional query parameters.
+
+Oracle and curl sources for the Data API recipe constraints were checked on
+2026-10-08. The optional data and monitoring pointers were checked on
+2026-10-22:
+
+- Oracle [connecting to IoT data](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/connecting-to-data.htm), [Database Tools](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/query-iot-database-with-database-tools.htm), [Select AI in APEX](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/select-ai-apex.htm), [Object Storage archive](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/import-export-object-storage.htm), and [normalized database queue streaming](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/stream-normalized-queue.htm).
+- Oracle [IoT metrics reference](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/metrics-reference.htm) and [metrics access](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/view-metrics.htm).

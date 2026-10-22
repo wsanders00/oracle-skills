@@ -398,9 +398,10 @@ print(json.dumps({"collection":"rawCommandData", "returned_items":len(items),
 PY
 ```
 
-## Sources and retrieval date
+## Sources
 
-Checked 2026-10-08:
+Oracle and curl sources below were checked on 2026-10-08 for these recipes.
+Their IoT Data API path and query constraints remain as stated above.
 
 - [IoT Data API reference](https://docs.oracle.com/en-us/iaas/tools/internet-of-things/data-api/index.html): versioned collection paths and sample fields for raw, rejected, historized, snapshot, and raw-command records, including by-ID resources.
 - [Scenario: Connecting IoT Data to ORDS](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/connect-iot-ords.htm): bearer-authenticated `rawData` request with a JSON `q` twin filter; the documented OAuth/password grant is one setup scenario, not a universal token-acquisition recipe.

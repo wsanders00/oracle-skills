@@ -18,6 +18,14 @@ Compartment
           -> data retention and data access configuration
 ```
 
+New domain groups use `DEVELOPMENT` or `PRODUCTION`; the default is
+`DEVELOPMENT`. Existing `STANDARD` and `LIGHTWEIGHT` groups have a dated
+effective deprecation date of April 14, 2027. This date does not imply automatic
+migration. Domain deletion requires its parent group to be `ACTIVE` and its
+active digital-twin resources to be removed first. Before deleting a group,
+delete its domains and wait until those deletions finish. Check resource states
+and operation dependencies before lifecycle changes.
+
 The data path is separate from control-plane management:
 
 ```text
@@ -31,6 +39,8 @@ device, gateway, or external application publish
 Raw commands are a control-plane request that must be verified through a data-plane or device-side final-state signal.
 
 Device connectivity is broader than the HTTPS template bundled with this skill. Oracle documents sending unstructured data over HTTPS, structured data over HTTPS, structured data over MQTTs, custom-format structured data over HTTPS, and receiving unstructured commands with MQTTs responses. Do not describe OCI IoT as a general-purpose MQTT broker; treat MQTTs as a documented device-connect path with its own auth, topic, and response semantics.
+
+For a source example of WebSocket publishing, see Oracle's [Python publish-websockets sample](https://github.com/oracle-samples/oci-iot-samples/tree/main/samples/python/publish-websockets). It is a discovery pointer; this skill does not bundle a WSS template or generalize the sample into a broker contract.
 
 ## Function Families
 
@@ -88,3 +98,10 @@ For every function family:
 - Use Python SDK for programmatic pagination, typed fields, or structured reports.
 - Use optional MCP only when it is already available and helps join context, resolve selectors, poll state, or summarize Data API evidence.
 - Use direct Data API, ORDS, database, or APEX paths only when the user explicitly needs advanced data access.
+
+## Sources
+
+- Oracle [domain-group type release note](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-04142026.htm), [domain deletion](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/delete-domain.htm), and [IoT lifecycle operation dependencies](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/iot-lifecycle-operations.htm), consulted 2026-10-22.
+- Oracle [official IoT samples: WebSocket publishing](https://github.com/oracle-samples/oci-iot-samples/tree/main/samples/python/publish-websockets), consulted 2026-10-22.
+
+For device connection choices, see Oracle's [IoT overview](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/home.htm) and the specific protocol scenario for the target.
