@@ -106,6 +106,56 @@ runpy.run_path(str(helper), run_name="__main__")
         self.assertEqual(result.stderr, "")
         return json.loads(result.stdout)
 
+    def test_minor_versions_are_exact_distinct_roots(self):
+        major = interface(SENSOR)
+        minor = interface(SENSOR + ".1", [telemetry("minor")])
+        source = self.export("versions.json", [major, minor])
+        for identity, name in ((SENSOR, "temperature"), (SENSOR + ".1", "minor")):
+            out = self.catalog(self.run_index([source], "--model", identity))
+            self.assertEqual([r["name"] for r in out["records"]], [name])
+            self.assertEqual(out["issues"], [])
+        self.assertEqual(len(self.catalog(self.run_index([source]))["records"]), 2)
+
+    def test_minor_references_resolve_components_extends_and_schemas(self):
+        parent, child, reading, station = [v + ".1" for v in (PROBE, SENSOR, READING, STATION)]
+        source = self.export("minor.json", [
+            interface(parent, [telemetry("sample", reading)], schemas=[{
+                "@id": reading, "@type": "Object", "fields": [{"name": "value", "schema": "double"}]}]),
+            interface(child, [], extends=[parent]),
+            interface(station, [{"@type": "Component", "name": "probe", "schema": child}])])
+        out = self.catalog(self.run_index([source], "--model", station))
+        self.assertEqual(out["issues"], [])
+        self.assertEqual(out["records"][0]["interface_id"], parent)
+        self.assertEqual(out["records"][0]["component_path"], ["probe"])
+        self.assertEqual(out["records"][0]["schema"]["type"], "Object")
+        missing = self.export("missing.json", interface(station, [telemetry("sample", reading)], extends=[parent]))
+        out = self.catalog(self.run_index([missing]), 2)
+        self.assertTrue(any(i["code"] == "unresolved_schema" for i in out["issues"]))
+        self.assertIsNone(out["records"][0]["schema"])
+
+    def test_minor_identifiers_retain_path_and_length_subset(self):
+        # dtmi: + path + ;1.1 = 128 characters at this boundary.
+        valid = "dtmi:" + "A" * 119 + ";1.1"
+        self.assertEqual(len(valid), 128)
+        self.catalog(self.run_index([self.export("boundary.json", interface(valid))]))
+        for identity in (valid + "1", "dtmi:_System;1.1", "dtmi:example:1Bad;1.1",
+                         "dtmi:example:Bad-Path;1.1", "dtmi:example:Bad;1.1#fragment"):
+            with self.subTest(identity=identity):
+                self.catalog(self.run_index([self.export("bad-path.json", interface(identity))]), 2)
+
+    def test_version_digit_bounds_and_malformed_versions(self):
+        for version in ("1", "999999999", "1.1", "999999999.999999"):
+            with self.subTest(valid=version):
+                source = self.export("valid.json", interface("dtmi:example:V;" + version))
+                self.catalog(self.run_index([source]))
+        for version in ("0", "01", "1000000000", "1.0", "1.01", "1.1000000",
+                        "1.", ".1", "1.1.1", "+1", "-1", "1.+1", "١", "1.١"):
+            with self.subTest(invalid=version):
+                identity = "dtmi:example:V;" + version
+                source = self.export("invalid.json", interface(identity))
+                self.assertNotEqual(self.run_index([source]).returncode, 0)
+                self.assertNotEqual(self.run_index([source], "--model", identity).returncode, 0)
+
     def test_audit_guard_blocks_forbidden_helper_operations(self):
         unselected = self.export("unselected.json", {"synthetic": "unselected"})
         unapproved_output = self.root / "unapproved-output.json"

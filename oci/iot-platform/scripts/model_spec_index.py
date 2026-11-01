@@ -25,7 +25,7 @@ MAX_REFERENCE_HOPS = 16
 MAX_RECORDS = 10_000
 MAX_VISITS = 50_000
 
-DTMI_RE = re.compile(r"^dtmi:[A-Za-z][A-Za-z0-9_]*(?::[A-Za-z][A-Za-z0-9_]*)*;[1-9][0-9]*$")
+DTMI_RE = re.compile(r"^dtmi:[A-Za-z][A-Za-z0-9_]*(?::[A-Za-z][A-Za-z0-9_]*)*;[1-9][0-9]{0,8}(?:\.[1-9][0-9]{0,5})?$")
 DTMI_MAX_LENGTH = 128
 DTDL_V3_CONTEXT = "dtmi:dtdl:context;3"
 PRIMITIVES = {

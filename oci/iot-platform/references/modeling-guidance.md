@@ -82,10 +82,8 @@ For public templates:
 
 Use `scripts/model_spec_index.py` when the user supplies local model specs and
 wants to find telemetry across them. It uses Python 3 and the standard library
-only. It does not acquire specs, load OCI configuration, or start MCP. For live
-acquisition, use the existing authorized model `get-spec` workflow in
-[CLI workflows](cli-workflows.md#create-a-model); extract the raw DTDL definitions
-from the observed response before indexing. CLI response envelopes are not
+only. It does not acquire specs, load OCI configuration, or start MCP. For selected-model
+acquisition, use the explicit-OCID [fetch-to-catalog recipe](cli-workflows.md#selected-model-fetch-to-catalog). CLI response envelopes are not
 supported inputs.
 
 ### Supported inputs
@@ -127,6 +125,12 @@ Multiple interfaces with local component and named-schema references (`station.j
   }
 ]
 ```
+
+The helper supports user-path DTMIs up to 128 characters with a required
+`major` or `major.minor` version: 1–9 ASCII digits for major and 1–6 for
+minor, with neither part starting with zero. Versions remain exact identities;
+`;1` and `;1.1` are distinct. System/unversioned IDs and fragments are outside
+this supported subset; these bounds do not describe all valid DTDL identifiers.
 
 Local DTMI references use only definitions in the selected files, including
 `Interface.schemas`, components, and inherited interfaces. Primitive schemas
