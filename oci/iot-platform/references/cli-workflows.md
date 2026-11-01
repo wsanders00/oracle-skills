@@ -52,6 +52,99 @@ oci "${OCI_CLI_GLOBAL_ARGS[@]}" iot digital-twin-instance invoke-raw-json-comman
 
 If a documented CLI flag is missing locally, use the Python SDK or a narrower CLI fallback and call out the drift.
 
+## Selected model fetch to catalog
+
+Use this Bash recipe from the skill directory for an explicitly selected model
+OCID, region and the existing `OCI_CLI_GLOBAL_ARGS` signer options above. It does
+not discover models. An OCID alone proves neither tenancy nor domain membership;
+use trusted supplied metadata, or a separately authorized model metadata GET when
+membership must be established. The command uses the supported
+[specification GET](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/get-digital-twin-model-specs.htm).
+`--query data --output json` projects the full spec from the CLI response envelope.
+The inline check verifies the projected shape; the catalog owns deeper validation.
+
+Initialize one private directory outside source in the same shell. Each
+`fetch_selected` invocation requests exactly one explicit OCID and stages a fresh
+file. Failed selections never enter the successful path array. Client timeouts
+are not a hard wall-clock or download-size bound; the 1 MiB check is after download.
+
+<!-- recipe: MODEL-FETCH-SETUP -->
+```bash
+umask 077
+MODEL_TASK_DIR=$(mktemp -d "/tmp/iot-model-fetch.XXXXXX") || exit 1
+MODEL_FILES=()
+MODEL_SEQUENCE=0
+fetch_selected() {
+  local selected_id="$1" stage target
+  MODEL_SEQUENCE=$((MODEL_SEQUENCE + 1))
+  stage="$MODEL_TASK_DIR/$MODEL_SEQUENCE.staged"
+  target="$MODEL_TASK_DIR/$MODEL_SEQUENCE.json"
+  if oci "${OCI_CLI_GLOBAL_ARGS[@]}" --region "$OCI_REGION" \
+      --no-retry --connection-timeout 10 --read-timeout 60 \
+      iot digital-twin-model get-spec --digital-twin-model-id "$selected_id" \
+      --query data --output json >"$stage" 2>"$MODEL_TASK_DIR/$MODEL_SEQUENCE.error" &&
+    python3 - "$stage" 2>>"$MODEL_TASK_DIR/$MODEL_SEQUENCE.error" <<'PY'
+import json, pathlib, sys
+try:
+    with pathlib.Path(sys.argv[1]).open("rb") as source:
+        raw = source.read(1024 * 1024 + 1)
+    if not raw or len(raw) > 1024 * 1024:
+        raise ValueError("size")
+    value = json.loads(raw)
+    items = value if isinstance(value, list) else [value]
+    if not items or not all(isinstance(item, dict) and
+        (item.get("@type") == "Interface" or
+         isinstance(item.get("@type"), list) and "Interface" in item["@type"])
+        for item in items):
+        raise ValueError("shape")
+except (ValueError, OSError, RecursionError):
+    sys.exit(1)
+PY
+  then
+    mv "$stage" "$target" || return 1
+    MODEL_FILES+=("$target")
+    printf 'selected=%s status=exported path=%s\n' "$selected_id" "$target"
+  else
+    printf 'selected=%s status=failed\n' "$selected_id"
+  fi
+}
+```
+
+Choose a region and fetch one selected model. For a small explicit set, repeat
+only the `fetch_selected` call with each chosen OCID in this same shell; each
+exported summary maps its successful path back to that selected OCID. Report
+failed and intentionally skipped selections separately from catalog issues.
+
+<!-- recipe: MODEL-FETCH-SELECT -->
+```bash
+OCI_REGION="<oci_region>"
+fetch_selected "<model_ocid>"
+```
+
+Run one catalog command on the successful paths. Optionally add literal
+`--name temp` to search telemetry names. The existing limits are 32 files and
+8 MiB total; hitting a limit is partial coverage, never a complete batch.
+Referenced interfaces are unresolved unless explicitly supplied as additional
+selections. Exit 0 with no matches is not proof of absence in the domain;
+exit 2 requires inspecting partial coverage. Zero exports is acquisition failure
+and stops before the catalog is invoked. Source freshness remains unknown.
+
+<!-- recipe: MODEL-FETCH-CATALOG -->
+```bash
+if [ "${#MODEL_FILES[@]}" -eq 0 ]; then
+  printf 'acquisition failed: zero successful exports\n' >&2
+  exit 1
+fi
+python3 scripts/model_spec_index.py "${MODEL_FILES[@]}"
+```
+
+Consume the catalog and selection/status/path summaries before cleanup. Raw
+exports and service errors stay private in `MODEL_TASK_DIR`; do not paste them
+into reports. Remove only this task-owned directory with
+`rm -r -- "$MODEL_TASK_DIR"` after results are consumed, or explicitly retain it
+when requested and report its private location and cleanup owner. This recipe
+provides selected-input/name search, not complete domain coverage.
+
 ## Read-First Discovery
 
 List the domain:
