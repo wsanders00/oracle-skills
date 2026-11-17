@@ -15,8 +15,8 @@ def parse_args() -> argparse.Namespace:
 
     p_last = subparsers.add_parser("last-known", help="Find latest observation")
     p_last.add_argument("--input", required=True, help="Input JSON file path")
-    p_last.add_argument("--device-key", default=None, help="Key with device ID")
-    p_last.add_argument("--device-id", default=None, help="Filter by device ID")
+    p_last.add_argument("--device-key", default=None, help="Key with device ID; requires --device-id")
+    p_last.add_argument("--device-id", default=None, help="Filter by device ID; requires --device-key")
     p_last.add_argument(
         "--timestamp-key",
         default="timestamp",
@@ -248,6 +248,10 @@ def cmd_telemetry_template(args: argparse.Namespace) -> int:
 def main() -> int:
     args = parse_args()
     if args.command == "last-known":
+        has_key = args.device_key is not None
+        has_id = args.device_id is not None
+        if has_key != has_id or (has_key and (not args.device_key.strip() or not args.device_id.strip())):
+            raise SystemExit("last-known requires both nonblank --device-key and --device-id, or neither")
         return cmd_last_known(args)
     if args.command == "offline":
         return cmd_offline(args)

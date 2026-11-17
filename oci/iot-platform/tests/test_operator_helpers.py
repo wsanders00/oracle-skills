@@ -534,6 +534,97 @@ print("2026-10-01T12:34:56")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("CA:FALSE", result.stdout)
 
+    def test_last_known_requires_complete_nonblank_filter_pair_before_read(self):
+        missing_file = str(self.root / "does-not-exist.json")
+        cases = (
+            (["--device-key", "deviceId"], "missing_id"),
+            (["--device-id", "device-a"], "missing_key"),
+            (["--device-key", "", "--device-id", "device-a"], "blank_key"),
+            (["--device-key", "   ", "--device-id", "device-a"], "whitespace_key"),
+            (["--device-key", "deviceId", "--device-id", ""], "empty_id"),
+            (["--device-key", "deviceId", "--device-id", "   "], "blank_id"),
+        )
+        for options, label in cases:
+            with self.subTest(case=label):
+                result = self._run([sys.executable, str(TWIN), "last-known", "--input", missing_file, *options])
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("Traceback", result.stderr)
+                self.assertIn("--device-key and --device-id", result.stderr)
+
+    def test_last_known_complete_pair_filters_exactly_and_unfiltered_still_works(self):
+        path = self._json_input("filter-pair.json", [
+            {"device": {"id": "a"}, "timestamp": "2026-10-01T10:00:00Z"},
+            {"device": {"id": "b"}, "timestamp": "2026-10-01T12:00:00Z"},
+        ])
+        selected = self._run([sys.executable, str(TWIN), "last-known", "--input", path,
+                              "--device-key", "device.id", "--device-id", "a"])
+        self.assertEqual(selected.returncode, 0, selected.stderr)
+        self.assertEqual(json.loads(selected.stdout)["record"]["device"]["id"], "a")
+        unfiltered = self._run([sys.executable, str(TWIN), "last-known", "--input", path])
+        self.assertEqual(unfiltered.returncode, 0, unfiltered.stderr)
+        self.assertEqual(json.loads(unfiltered.stdout)["record"]["device"]["id"], "b")
+        missing_nested = self._run([sys.executable, str(TWIN), "last-known", "--input", path,
+                                    "--device-key", "missing.id", "--device-id", "a"])
+        self.assertEqual(missing_nested.returncode, 1)
+        self.assertIn("No record matched", missing_nested.stdout)
+
+    def test_publish_host_fields_are_ascii_dns_labels_and_reject_injection_before_curl(self):
+        base = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "synthetic-domain", "OCI_REGION": "us-test-1"}
+        cases = (("DOMAIN_SHORT_ID", "-bad", "domain_leading_hyphen"),
+                 ("DOMAIN_SHORT_ID", "bad.", "domain_dot"),
+                 ("DOMAIN_SHORT_ID", "bad/path", "domain_slash"),
+                 ("DOMAIN_SHORT_ID", "bad\\host", "domain_backslash"),
+                 ("DOMAIN_SHORT_ID", "bad%2ehost", "domain_percent"),
+                 ("DOMAIN_SHORT_ID", "bad@host", "domain_at"),
+                 ("DOMAIN_SHORT_ID", "bad?host", "domain_query"),
+                 ("DOMAIN_SHORT_ID", "bad#host", "domain_fragment"),
+                 ("DOMAIN_SHORT_ID", "bad:443", "domain_port"),
+                 ("DOMAIN_SHORT_ID", "bad host", "domain_whitespace"),
+                 ("DOMAIN_SHORT_ID", "bad\nhost", "domain_control"),
+                 ("DOMAIN_SHORT_ID", "bad-", "domain_trailing_hyphen"),
+                 ("DOMAIN_SHORT_ID", "é", "domain_nonascii"),
+                 ("OCI_REGION", "bad_region", "region_underscore"),
+                 ("OCI_REGION", "a" * 64, "region_too_long"))
+        for key, value, label in cases:
+            with self.subTest(case=label):
+                result = self._run(["bash", str(PUBLISH)], {**base, key: value})
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse(any(c["command"] == "curl" for c in self._calls()))
+                self.assertNotIn("synthetic-secret", result.stdout + result.stderr)
+
+    def test_publish_valid_hyphenated_labels_and_path_glob_are_one_safe_request(self):
+        base = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "domain-a", "OCI_REGION": "us-test-1", "REFERENCE_ENDPOINT": "nested/a[1]*?"}
+        result = self._run(["bash", str(PUBLISH)], base)
+        calls = [c for c in self._calls() if c["command"] == "curl"]
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(calls, [])
+        safe = self._run(["bash", str(PUBLISH)], {**base, "REFERENCE_ENDPOINT": "nested/a[1]*"})
+        calls = [c for c in self._calls() if c["command"] == "curl"]
+        self.assertEqual(safe.returncode, 0, safe.stderr)
+        self.assertEqual(len(calls), 1)
+        call = calls[0]
+        args = call["args"]
+        self.assertEqual(args[-1], "https://domain-a.device.iot.us-test-1.oci.oraclecloud.com/nested/a[1]*")
+        self.assertIn("--globoff", args)
+        self.assertIn("--proto", args)
+        self.assertIn("=https", args)
+        self.assertEqual(args[args.index("--connect-timeout") + 1], "10")
+        self.assertEqual(args[args.index("--max-time") + 1], "30")
+        self.assertEqual(call["stdin"], "Authorization: Basic " + base64.b64encode(b"synthetic-user:synthetic-secret").decode() + "\n")
+        # DNS label length boundaries remain valid and are used verbatim.
+        boundary = self._run(["bash", str(PUBLISH)], {**base, "DOMAIN_SHORT_ID": "a" * 63, "OCI_REGION": "x", "REFERENCE_ENDPOINT": "path"})
+        boundary_call = [c for c in self._calls() if c["command"] == "curl"][1]
+        self.assertEqual(boundary.returncode, 0, boundary.stderr)
+        self.assertEqual(boundary_call["args"][-1], f"https://{'a' * 63}.device.iot.x.oci.oraclecloud.com/path")
+
+    def test_publish_rejects_endpoint_query_fragment_control_and_whitespace(self):
+        base = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "domain-a", "OCI_REGION": "us-test-1"}
+        for endpoint in ("path?query", "path#fragment", "path\nheader", "path with-space", "https://host/path"):
+            with self.subTest(endpoint=endpoint):
+                result = self._run(["bash", str(PUBLISH)], {**base, "REFERENCE_ENDPOINT": endpoint})
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse(any(c["command"] == "curl" for c in self._calls()))
+
     def test_publish_url_has_expected_https_host(self):
         env = {"DEVICE_USER": "synthetic-user", "DEVICE_SECRET": "synthetic-secret", "DOMAIN_SHORT_ID": "synthetic-domain", "OCI_REGION": "us-test-1"}
         self._run(["bash", str(PUBLISH)], env)

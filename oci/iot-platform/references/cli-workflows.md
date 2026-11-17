@@ -276,8 +276,13 @@ Normalize exported JSON locally when helpful:
 ```bash
 python3 scripts/twin_tools.py last-known \
   --input twin-content.json \
+  --device-key deviceId --device-id <device_id> \
   --timestamp-key _metadata.timeLastHeard
 ```
+
+Use both `--device-key` and `--device-id` to select one device; both values
+must be nonblank. Omit both to retain the all-record behavior. A partial or
+blank filter is rejected before the input file is read.
 
 If the content response has metadata but no current values, treat that as incomplete evidence and check publish/rejected-data paths before claiming the twin is healthy.
 
@@ -466,9 +471,19 @@ bash templates/publish-curl.template.sh
 ```
 
 The template requires curl 7.76+ (`--fail-with-body`) and a `base64` executable.
-It rejects older curl versions before publishing, preserves HTTP error bodies,
-and returns failure on HTTP or transport errors. Basic Authorization is supplied
-through curl stdin. `curl -q` ignores curlrc trace/redirect settings, and shell
+It validates the domain short ID and region as ASCII DNS labels, then constructs
+the commercial-realm HTTPS host. Take both values from the selected domain's
+authoritative metadata: syntax validation does not establish domain ownership
+or authorize use of its credentials. The reference endpoint is a path on that
+origin; query strings, fragments, URL inputs, whitespace and control characters
+are rejected, and curl URL globbing is disabled.
+
+It preserves HTTP error bodies and returns failure on HTTP or transport errors.
+Basic Authorization is supplied through curl stdin. `curl -q` ignores curlrc
+settings, TLS verification remains enabled, HTTPS-only transport is enforced,
+and the request has 10-second connection and 30-second total timeouts. Redirects
+and retries are not enabled. A timeout can leave delivery unknown; observe the
+device/service state before considering any separately authorized retry. Shell
 tracing is disabled before credential expansion. Do not add tracing, credential
 arguments, or redirects to this flow; error bodies may still contain service data.
 
