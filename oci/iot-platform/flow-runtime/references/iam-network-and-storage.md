@@ -28,6 +28,19 @@ embed API keys, config files, tokens, OCIDs, or private keys in flow JSON.
 Device MQTT credentials are a third identity boundary and must not be reused
 as OCI REST credentials.
 
+## Same-domain database privilege delegation
+
+Database object grants are separate from IAM. The [official delegation scenario](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/grant-flow-runtime-privileges.htm)
+uses the domain workspace user, owning the procedure or holding grant authority,
+to grant only required EXECUTE access to the specific Flow Runtime database user
+in the **same IoT domain**. Use the actual case-sensitive identifiers; the runtime
+database user is distinct from an AQ subscriber. Confirm workspace/session
+identity, inspect the resulting object grant and verify intended flow access.
+Revoke the grant and verify its removal when no longer required. APEX SQL
+Workshop or an existing authorized database connection can be used; Database
+Tools is optional. Follow the source's chosen-client prerequisites; this skill
+does not supply executable grant SQL or authorize database changes.
+
 ## Private-subnet reachability
 
 Choose a private subnet with routes and NSG rules for every required endpoint.

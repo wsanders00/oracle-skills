@@ -2,6 +2,31 @@
 
 Use this checklist before calling the `oci-iot-platform` skill ready to share.
 
+## Prerequisites and checked versions
+
+Select tools for the workflow being used; the offline helpers do not need an OCI
+SDK or Node-RED package installation.
+
+| Workflow | Local tools |
+| --- | --- |
+| Offline twin/model helpers | Python 3, standard library only |
+| Domain bootstrap | Bash, OCI CLI and jq |
+| HTTPS publish template | Bash, curl 7.76+ and base64 |
+| Data diagnostics request | Bash, Python 3 and curl 8.4+ |
+| Offline acceptance | Bash, Python 3, Node.js and ripgrep; curl/base64 for helper checks and OpenSSL 3+ for the synthetic CSR check |
+
+The November 17 offline baseline passed with Bash 3.2.57, Python 3.14.10 and
+Node.js 26.13.1. Those are tested versions, not newly asserted minimums. Publish
+checks use mock curl; live auth and service compatibility are separate evidence.
+The optional CSR recipe needs OpenSSL 3+ (`-noenc`); ensure the intended executable
+is on PATH rather than assuming the operating system's LibreSSL supports it.
+
+November 17 source comparison found CLI 3.96.3's IoT generated/extended commands
+unchanged from 3.95.1 and SDK 2.192.0's IoT subtree unchanged from 2.187.2. This
+supports those command/model contracts, not every global dependency or auth mode.
+Use the installed CLI's help for actual capability selection. MCP remains optional
+and its implementation-specific settings must match the connected server.
+
 ## Automated Checks
 
 From the installed skill root (the directory containing `SKILL.md`), run the

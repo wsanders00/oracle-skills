@@ -18,6 +18,14 @@ Flow Runtime. Source IDs and claim ownership are recorded in the package-local
 
 ## OCI IoT
 
+The managed catalogue, November 10 release, limits overview and database
+privilege scenario were rechecked on 2026-11-17. Other source dates retain their
+own recorded scope; this refresh does not establish live target compatibility.
+
+- [Managed Flow Runtime node reference](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm)
+- [November 10 Flow Runtime release](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-11102026.htm)
+- [Same-domain database privilege delegation](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/grant-flow-runtime-privileges.htm)
+
 - [OCI IoT Platform overview](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/overview.htm)
 - [IoT Flow Runtimes](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtimes.htm)
 - [Using the IoT Flow Runtime Editor](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm)
@@ -94,3 +102,5 @@ are discovery-only families at this version. Their full behavior is outside
 this skill's fixtures; package dependencies are not skill dependencies.
 
 - [September 2026 IoT release](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-09292026.htm)
+
+Sample releases `0.8.0` and `0.8.1` are marked prerelease in the [release list](https://github.com/oracle-samples/node-red-nodes/releases). This skill retains its pinned `0.8.0` contracts; adopting or testing `0.8.1` behavior is deferred.

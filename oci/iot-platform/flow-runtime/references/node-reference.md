@@ -22,11 +22,11 @@ they do not replace that mapping.
 | Target contract established | Design with the supported fields and separately approve integration tests | Applicable contract, live result still unverified |
 | Sample name/version matches; implementation contract unverified | Keep sample details conditional and continue managed-node discovery | No sample equivalence |
 
-For example, a managed palette may register `oci-config` and
-`iot-send-command` while documentation uses an `iot-config`/OCI Config role.
-Keep the observed identity and configuration parent; do not rename it or choose
-sample credentials because a type name matches a package reference. Confirm
-the selected node's actual authentication options.
+The current official reference names `iot-config` (IoT Device) for device MQTT
+and `oci-config` (OCI Config) for OCI signing. Telemetry/Subscribe select the
+former; Send Command/Get Content/Update Relationship select the latter. Preserve
+the selected target's observed type and configuration parent. Sample names may
+match while implementation details still require affirmative target evidence.
 
 ## Local and managed acceptance
 

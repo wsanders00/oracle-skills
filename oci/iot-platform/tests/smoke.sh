@@ -62,7 +62,24 @@ rg -n -i 'connectivity_type|gateways|INDIRECT|GATEWAY' "$ROOT_DIR/references/mcp
 rg -n 'never use `INDIRECT` as a shortcut' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n 'do not assume `INDIRECT` connectivity' "$ROOT_DIR/references/resilience-guidance.md" >/dev/null
 rg -n 'Do not default to `INDIRECT` connectivity' "$ROOT_DIR/references/cli-workflows.md" >/dev/null
-rg -n 'OCI_MCP_AUTH_TYPE=api_key' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
+rg -n 'OCI_IOT_AUTH_TYPE=api_key' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
+# These public/fork contracts must stay distinct; the generic CLI mention above
+# cannot establish which implementation exposes the optional runtime tools.
+python3 - "$ROOT_DIR/references/mcp-optional-use.md" <<'PY_MCP'
+import re, sys
+from pathlib import Path
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+auth = text.split("## Auth Mode Pinning\n", 1)[1].split("\n## ", 1)[0]
+example = re.search(r"```bash\n(.*?)\n```", auth, re.S).group(1)
+assert "OCI_IOT_AUTH_TYPE=api_key" in example and "OCI_MCP_AUTH_TYPE=" not in example
+assert "cdea374d50c230c221fe4ea306fcd953b3977ef9" in auth
+fork = auth.split("8efe88db7db9beaeea4145fc6ab49d2efa4efb54", 1)[1]
+assert "OCI_MCP_AUTH_TYPE" in fork and "OCI_IOT_AUTH_TYPE" in fork and "alias" in fork
+runtime = text.split("## Optional Flow Runtime Reads\n", 1)[1].split("\n## ", 1)[0]
+assert re.search(r"absent.*public main", runtime)
+assert re.search(r"CLI/SDK\s+fallback", runtime)
+assert "advertised schema" in runtime
+PY_MCP
 rg -n -i 'snapshot|historized|raw-command|rejected' "$ROOT_DIR/references/mcp-optional-use.md" >/dev/null
 rg -n 'references/platform-surface\.md' "$ROOT_DIR/SKILL.md" >/dev/null
 rg -n -i 'domain group|digital twin model|digital twin adapter|digital twin instance|relationship|work request|raw commands|Data API' "$ROOT_DIR/references/platform-surface.md" >/dev/null

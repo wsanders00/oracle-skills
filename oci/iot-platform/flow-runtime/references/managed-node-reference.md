@@ -56,10 +56,10 @@ are separate compatibility evidence.
 
 ## Managed documented inventory
 
-The labels below are documented palette labels/canonical roles, not a portable
-list of exact registered types. Map each role to the inspected target. Message
-fields, queue names, SQL, and credentials are placeholders; they are not a
-portable universal schema.
+The rows identify official documented types and roles. Selected-target
+availability and detailed fields still require palette and help inspection.
+Message fields, queue names, SQL, and credentials are placeholders, not a
+universal implementation schema.
 
 | Documented role / palette label | Class | Workflow role (target fields require evidence) | Auth context | Transaction/ack/error boundary |
 | --- | --- | --- | --- | --- |
@@ -69,10 +69,11 @@ portable universal schema.
 | `enqueue` | managed documented | `msg` → queue submission result/continuation | Database connection and configured transactional event queue | Enqueue participates in selected transaction; distinguish accepted, rollback, and error |
 | `dequeue` | managed documented | queue read → message or empty result | Database connection and configured queue | Empty is a valid no-work result; do not treat it as a failed dequeue |
 | `sql` | managed documented | SQL request in `msg` → rows/result/error | Database connection | SQL side effects depend on transaction ownership; define commit/rollback explicitly |
-| `iot-config` / OCI Config | managed documented | config node consumed by OCI IoT nodes | Config file, instance principal, resource principal, or API key according to target | Configuration/test-connection failure is distinct from downstream service response |
-| `telemetry` | managed documented | validated flow message → OCI IoT telemetry request/result | linked OCI Config; resource principal when supported | Transport acceptance is not normalization, history, or presentation evidence |
-| `subscribe` | managed documented | subscription source → incoming `msg` | linked OCI Config and selected source | Subscription/reconnect/ack semantics are endpoint-specific; inspect target |
-| `send command` | managed documented | command request → response/status result | linked OCI Config and command policy | Preserve command correlation; accepted request is not device completion |
+| `iot-config` / IoT Device | managed documented | device MQTT configuration | Device Basic or certificate authentication, MQTTS port 8883 | Separate from OCI request signing |
+| `oci-config` / OCI Config | managed documented | shared OCI signer | Prefer Flow Runtime Resource Principal with least required IAM permissions | Operator/editor credentials are separate |
+| `iot-telemetry` | managed documented | telemetry publication | `iot-config` device MQTT | Acceptance is not normalization/history |
+| `iot-subscribe` | managed documented | device command subscription | `iot-config` device MQTT | Receipt is not application acknowledgement |
+| `iot-send-command`, `iot-get-content`, `iot-update-relationship` | managed documented | OCI IoT REST operations | `oci-config` signer and operation policy | Accepted command is not device completion |
 
 Use [managed-node inventory](../assets/nodes/managed-node-inventory.json) as a
 self-describing offline contract. It records input/output examples, required
@@ -97,18 +98,29 @@ credential family into a flow export.
 
 ## Official scenarios and sample-package gates
 
-Object Storage and Notifications have documented roles in Oracle's scenarios:
-Object Storage supplies discrete batch objects; Notifications publishes an
-alert message. These are **official-scenario** roles until the target palette
-inspection confirms usable nodes. A scenario diagram does not establish
-installation, version, permissions, bucket/topic access, or delivery.
+The current [official managed catalogue](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm)
+documents `oci-object-storage` and `oci-notification` with `oci-config`, as well
+as Queue, native Streaming, Kafka, Functions, Monitoring/Logging, API Request
+and ORDS. The [matrix](node-capability-matrix.md) records concise configuration
+parents and authentication families; the inventory records documented enabled
+state separately from unknown selected-target availability. ORDS uses OAuth;
+Kafka uses its own TLS SASL/SCRAM identity. Neither is OCI request signing.
 
-The pinned public sample package contains additional Object Storage,
-Notifications, Logging, ORDS, digital-twin content, relationship, Database/AQ,
-and OCI node contracts. Classify each as **sample-package** unless the selected
-runtime evidence establishes the actual node identity and selected contract.
-Availability does not change the provenance of sample-package details. The pinned revision is
-exact-source evidence, not a managed-service or target-availability guarantee.
+Certificate and Vault Secret retrieval nodes are installed but **disabled by
+default** because they put sensitive material into messages. Credential references
+do not require enabling retrieval. Keep resolved secrets/certificates out of
+Debug, logs and persistent context. Fusion SCM is a permitted managed add-on,
+not a default dependency; inspect the offered module list. Its SCM Server uses
+Fusion OAuth; the local Smart Operations transformer needs no server connection.
+
+Older runtimes can require a service-supported software update to obtain the
+current packages. Review the [November 10 service announcement](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-11102026.htm)
+and target palette/help first; an update is a separately scoped operation.
+Do not run standalone sample installation commands in the managed runtime.
+
+Pinned sample `0.8.0` details remain exact-source implementation evidence.
+Matching managed and sample node names/authentication parents does not establish
+full field, default or output equivalence; verify the selected target contract.
 
 Use [compatibility gates](../assets/nodes/compatibility-gates.json) before a
 dependent workflow. A gate records target runtime/version/region, palette

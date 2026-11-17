@@ -49,9 +49,10 @@
     {
       "caseId": "object-storage-scenario-role",
       "nodeOrRole": "Object Storage download",
-      "classification": "official-scenario",
+      "classification": "managed-documented",
       "sourceClaimId": "FR-SCENARIO-NODES-001",
       "sourceIds": [
+        "O1",
         "C11"
       ],
       "role": "retrieve discrete batch/archive objects before offline transformation",
@@ -62,14 +63,18 @@
         "resource principal",
         "network reachability",
         "device-host publication"
-      ]
+      ],
+      "exactNodeType": "oci-object-storage",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api"
     },
     {
       "caseId": "notifications-scenario-role",
       "nodeOrRole": "OCI Notifications publication",
-      "classification": "official-scenario",
+      "classification": "managed-documented",
       "sourceClaimId": "FR-SCENARIO-NODES-001",
       "sourceIds": [
+        "O1",
         "C12"
       ],
       "role": "publish formatted alert title/body to a Notifications topic",
@@ -80,7 +85,10 @@
         "resource principal",
         "publication acceptance",
         "subscriber confirmation"
-      ]
+      ],
+      "exactNodeType": "oci-notification",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api"
     },
     {
       "caseId": "sample-package-gated",

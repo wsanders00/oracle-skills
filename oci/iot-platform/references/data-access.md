@@ -62,13 +62,13 @@ Typical Data API base URL shape:
 https://<domain_group_short_id>.data.iot.<region>.oci.oraclecloud.com/ords/<domain_short_id>
 ```
 
-Common collection paths:
+Append these versioned collection paths to that base (exactly one `/20250531/` segment):
 
-- `/snapshotData` for latest normalized twin snapshots
-- `/rawData` for accepted raw ingestion records
-- `/historizedData` for historized records when retention is enabled
-- `/rejectedData` for rejected ingest details
-- `/rawCommandData` for raw-command request and response records
+- `/20250531/snapshotData` for latest normalized twin snapshots
+- `/20250531/rawData` for accepted raw ingestion records
+- `/20250531/historizedData` for historized records when retention is enabled
+- `/20250531/rejectedData` for rejected ingest details
+- `/20250531/rawCommandData` for raw-command request and response records
 
 Optional MCP servers may provide wrappers for these collections, token minting, and latest-state summaries. Use them only when already available and still treat returned bearer tokens as secrets.
 

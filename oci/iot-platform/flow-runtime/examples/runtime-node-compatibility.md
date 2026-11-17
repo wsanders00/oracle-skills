@@ -32,7 +32,8 @@ route before selecting implementation details:
 The [compatibility-gate fixture](../assets/nodes/compatibility-gates.json)
 contains self-describing records for Object Storage, Notifications, and a
 sample-package node. The [managed inventory](../assets/nodes/managed-node-inventory.json)
-contains the documented Database/AQ and OCI IoT roles.
+contains current documented Database/AQ, OCI IoT and OCI service types, with
+authentication parents and enabled/disabled/add-on distinctions.
 
 Source anchors: `O1`, `O7`, `S4`, `C11`, and `C12` in the package [source
 guide](../references/sources.md). Consult the [managed editor](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm)

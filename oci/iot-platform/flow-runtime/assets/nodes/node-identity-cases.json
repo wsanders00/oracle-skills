@@ -69,16 +69,16 @@
   "cases": [
     {
       "caseId": "managed-iot-config-context",
-      "request": "Classify the managed editor's documented OCI Config role label",
+      "request": "Select managed device MQTT configuration",
       "surfaceContext": "managed-editor",
       "name": "iot-config",
       "expected": {
         "decision": "classify-source-role",
         "classification": "managed-documented",
         "documentedNodeLabel": "iot-config",
-        "paletteLabel": "OCI Config",
+        "paletteLabel": "IoT Device",
         "sourceOwner": "O1",
-        "authenticationFamily": "oci-configuration",
+        "authenticationFamily": "device-mqtts",
         "targetSelection": "requires-selected-target-observation"
       }
     },
@@ -129,13 +129,12 @@
       "name": "iot-config",
       "expected": {
         "decision": "clarify",
-        "reason": "ambiguous-name",
+        "reason": "source-surface-required",
         "candidateIdentities": [
           "managed-iot-config",
           "sample-device-iot-config"
         ],
         "authenticationFamilies": [
-          "oci-configuration",
           "device-mqtts"
         ],
         "sourceOwners": [
@@ -201,10 +200,10 @@
       "name": "Object Storage download",
       "expected": {
         "decision": "select-but-gate",
-        "classification": "official-scenario",
-        "sourceOwner": "C11",
-        "exactPaletteIdentity": "not-established",
-        "targetGate": "scenario-role-and-target-palette",
+        "classification": "managed-documented",
+        "sourceOwner": "O1",
+        "exactPaletteIdentity": "oci-object-storage",
+        "targetGate": "managed-palette-and-service-policy",
         "offlineAllowed": true
       }
     },
@@ -215,10 +214,10 @@
       "name": "OCI Notifications publication",
       "expected": {
         "decision": "select-but-gate",
-        "classification": "official-scenario",
-        "sourceOwner": "C12",
-        "exactPaletteIdentity": "not-established",
-        "targetGate": "scenario-role-and-target-palette",
+        "classification": "managed-documented",
+        "sourceOwner": "O1",
+        "exactPaletteIdentity": "oci-notification",
+        "targetGate": "managed-palette-and-service-policy",
         "publicationIsNotSubscriberDelivery": true,
         "offlineAllowed": true
       }
@@ -266,10 +265,11 @@
       "surfaceContext": null,
       "name": "Fusion SCM",
       "expected": {
-        "decision": "route-elsewhere",
-        "classification": "routed-elsewhere",
-        "sourceOwner": "none",
-        "reason": "outside-skill-boundary"
+        "decision": "discover-permitted-add-on",
+        "classification": "managed-documented",
+        "sourceOwner": "O1",
+        "reason": "permitted-add-on-not-default-dependency",
+        "availability": "unknown-until-module-inspection"
       }
     },
     {
@@ -283,10 +283,204 @@
         "sourceOwner": "none",
         "reason": "self-hosted-or-unverified-module"
       }
+    },
+    {
+      "caseId": "managed-iot-telemetry-valid",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-telemetry",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "managed-documented",
+        "configurationParent": "iot-config",
+        "authenticationFamily": "device-mqtts",
+        "availability": "unknown-until-palette-inspection"
+      }
+    },
+    {
+      "caseId": "managed-iot-telemetry-wrong-parent",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-telemetry",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "reject",
+        "reason": "configuration-parent-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-telemetry-wrong-auth",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-telemetry",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-subscribe-valid",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-subscribe",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "managed-documented",
+        "configurationParent": "iot-config",
+        "authenticationFamily": "device-mqtts",
+        "availability": "unknown-until-palette-inspection"
+      }
+    },
+    {
+      "caseId": "managed-iot-subscribe-wrong-parent",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-subscribe",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "reject",
+        "reason": "configuration-parent-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-subscribe-wrong-auth",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-subscribe",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-send-command-valid",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-send-command",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "managed-documented",
+        "configurationParent": "oci-config",
+        "authenticationFamily": "oci-api",
+        "availability": "unknown-until-palette-inspection"
+      }
+    },
+    {
+      "caseId": "managed-iot-send-command-wrong-parent",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-send-command",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "reject",
+        "reason": "configuration-parent-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-send-command-wrong-auth",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-send-command",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-get-content-valid",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-get-content",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "managed-documented",
+        "configurationParent": "oci-config",
+        "authenticationFamily": "oci-api",
+        "availability": "unknown-until-palette-inspection"
+      }
+    },
+    {
+      "caseId": "managed-iot-get-content-wrong-parent",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-get-content",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "reject",
+        "reason": "configuration-parent-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-get-content-wrong-auth",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-get-content",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-update-relationship-valid",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-update-relationship",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "select-but-gate",
+        "classification": "managed-documented",
+        "configurationParent": "oci-config",
+        "authenticationFamily": "oci-api",
+        "availability": "unknown-until-palette-inspection"
+      }
+    },
+    {
+      "caseId": "managed-iot-update-relationship-wrong-parent",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-update-relationship",
+      "configurationParent": "iot-config",
+      "authenticationFamily": "oci-api",
+      "expected": {
+        "decision": "reject",
+        "reason": "configuration-parent-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-iot-update-relationship-wrong-auth",
+      "surfaceContext": "managed-authentication",
+      "name": "iot-update-relationship",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "device-mqtts",
+      "expected": {
+        "decision": "reject",
+        "reason": "authentication-family-mismatch"
+      }
+    },
+    {
+      "caseId": "managed-oci-config-context",
+      "name": "oci-config",
+      "surfaceContext": "managed-editor",
+      "expected": {
+        "decision": "classify-source-role",
+        "classification": "managed-documented",
+        "documentedNodeLabel": "oci-config",
+        "paletteLabel": "OCI Config",
+        "sourceOwner": "O1",
+        "authenticationFamily": "oci-api",
+        "targetSelection": "requires-selected-target-observation"
+      }
     }
   ],
   "offlineProof": [
-    "Explicit context resolves managed iot-config, sample device iot-config, and sample oci-config without merging identities.",
+    "Managed and sample iot-config both use device MQTT; source context and target applicability remain separate.",
     "Every case carries one classification and one source owner, including routed-out requests.",
     "The recorded immutable revision permits exact-revision source evidence while the absent target palette inspection keeps sample nodes compatibility-gated and rejects mutable-main substitution.",
     "Target selection uses exact observed module and node type independently from source-role labels. Target contract evidence must bind implementation fields, outputs, authentication, module identity, and provenance; it can plan only a bounded managed test, never live acceptance or authorization."
@@ -301,7 +495,7 @@
     {
       "caseId": "managed-target-uses-exact-observed-config-type",
       "request": "Select the managed OCI API config from the selected target",
-      "sourceRoleCaseId": "managed-iot-config-context",
+      "sourceRoleCaseId": "managed-oci-config-context",
       "target": {
         "product": "managed-flow-runtime",
         "runtimeVersion": "5.0.1",

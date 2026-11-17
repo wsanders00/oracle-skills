@@ -414,10 +414,11 @@
   "sources": [
     {
       "id": "O1",
-      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm",
+      "uri": "https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm",
       "kind": "public-documentation",
-      "observed_date": "2026-09-16",
-      "immutable_ref": null
+      "observed_date": "2026-11-17",
+      "immutable_ref": null,
+      "heading_or_fragment": "Shared Configuration Nodes; OCI IoT Nodes; OCI Services Nodes"
     },
     {
       "id": "O2",
@@ -880,7 +881,7 @@
         "O7",
         "S4"
       ],
-      "heading_or_fragment": "managed iot-config versus pinned sample oci-config and iot-config",
+      "heading_or_fragment": "managed and sample device MQTT versus OCI signer configuration",
       "observed_date": "2026-09-16",
       "sensitivity_class": "target_specific",
       "recheck_rule": "recheck public sources at implementation, promotion, and at least every 90 days; inspect the selected runtime, version, and palette before live use"
@@ -1344,7 +1345,7 @@
         "FR-NODE-IDENTITY-001"
       ],
       "forbidden_claims": [
-        "managed OCI Config and sample device MQTTS config are interchangeable",
+        "device MQTT configuration is OCI signer configuration",
         "source pin proves target availability"
       ],
       "source_claim_ids": [
@@ -1357,7 +1358,7 @@
         "reason": "ambiguous-name",
         "target_availability": "unproven"
       },
-      "stop_or_handoff": "clarify managed OCI API versus pinned sample device MQTTS context; require target palette inspection before live use"
+      "stop_or_handoff": "clarify managed versus pinned sample source surface; both iot-config identities are device MQTT; inspect target palette"
     },
     {
       "id": "FT09",
@@ -1483,7 +1484,7 @@
     },
     {
       "id": "FT14",
-      "request": "Build a Fusion SCM or arbitrary community-node workflow",
+      "request": "Implement a full Fusion SCM workflow or arbitrary community-node workflow",
       "route": "route-node-out-of-scope",
       "expected_modules": [
         "ref-managed-node-reference",
@@ -1501,7 +1502,7 @@
       ],
       "offline_live_classification": "refuse",
       "operation_class": "offline",
-      "stop_or_handoff": "state the scope boundary and route to separate Fusion SCM or self-hosted Node-RED guidance"
+      "stop_or_handoff": "recognize Fusion SCM as a permitted managed add-on, not a default dependency; route full Fusion workflow or arbitrary modules separately"
     },
     {
       "id": "FT15",
@@ -1568,7 +1569,8 @@
     ],
     "separate_from_existing_counts": {
       "inherited_negative_regressions": 84,
-      "integrated_boundary_cases": 11
+      "integrated_boundary_cases": 11,
+      "managed_source_regressions": 5
     },
     "contract": "Source-role classification is independent of target selection. Target selection binds exact runtime provenance, palette node type, module identity/version, and affirmative contract evidence for fields, outputs, authentication, and provenance. Verified evidence can plan a bounded managed test only; it cannot assert live compatibility, acceptance, or authorization."
   },

@@ -69,6 +69,16 @@ The bundled offline example is intentionally weaker than a Flow Runtime: it
 contains only core Node-RED nodes and has no IAM, persistence, service
 lifecycle, broker, or OCI connection.
 
+## Current limits and package discovery
+
+Check the current [domain/group resource limits](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/overview.htm)
+and tenancy quotas before capacity planning; scope and adjustable limits belong
+to the service documentation rather than a copied quota table. The
+[November 10 release](https://docs.oracle.com/en-us/iaas/releasenotes/internet-of-things/update-11102026.htm)
+and [managed catalogue](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm)
+identify current package families. Older runtimes may need a separately approved
+software update; inspect version, offered modules and node help first.
+
 ## Do not overclaim
 
 Do not infer a target region, limit, managed Node-RED version, scale behavior,

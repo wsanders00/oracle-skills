@@ -138,9 +138,9 @@ for (const path of files) {
 // patterns alone. This verifier is the trust root and is intentionally not
 // self-hashed.
 const executableIntegrity = new Map([
-  ["scripts/verify-runtime.mjs", "76af7c4b07a0679b17dcf6b33d7fdabb07cd312975ea7ed33aced839f0156848"],
+  ["scripts/verify-runtime.mjs", "c7ea6fc8555d8ee46fde50d974f83fd7a783c50b19fa8b058519801e694fd54b"],
   ["scripts/verify-workflows.mjs", "6169e24aaae9aa702bb58b41c235243ee4e8e1aa839e654f5f73530626422273"],
-  ["scripts/verify-node-capabilities.mjs", "0086fefc93bccd8369cfc5691cf1b857b0ab4b33ce6d79c7ba605ad8be3e5f56"],
+  ["scripts/verify-node-capabilities.mjs", "6d48f53ce0fcd8f4b69526167699b6a5c0ad1d727641451a5b7a72f4f856f990"],
   ["assets/node-red/oci-iot-ingress-core.json", "fe51bd106564a35829bd4691c31f79c432189122f2c688b875ce080e82e773b4"]
 ]);
 for (const [name, expectedSha256] of executableIntegrity) {
@@ -557,6 +557,250 @@ for (const pattern of forbiddenCodePatterns) assert.doesNotMatch(canonicalFuncti
 const forbiddenFunctionPatterns = [new RegExp("\\bimp" + `ort${jsTrivia}\\(`, "i")];
 for (const pattern of forbiddenFunctionPatterns) assert.doesNotMatch(canonicalFunctionCode, pattern, `flow function contains a forbidden dynamic import: ${pattern}`);
 
+// Independently reviewed official managed reference, 2026-11-17, Shared Configuration
+// and service tables. Kept independent of identity decision/fixture expectations.
+const officialManagedMap = [
+  [
+    "db-connection",
+    null,
+    "oracle-database",
+    "enabled"
+  ],
+  [
+    "begin-transaction",
+    "db-connection",
+    "oracle-database",
+    "enabled"
+  ],
+  [
+    "end-transaction",
+    "db-connection",
+    "oracle-database",
+    "enabled"
+  ],
+  [
+    "enqueue",
+    "db-connection",
+    "oracle-database",
+    "enabled"
+  ],
+  [
+    "dequeue",
+    "db-connection",
+    "oracle-database",
+    "enabled"
+  ],
+  [
+    "sql",
+    "db-connection",
+    "oracle-database",
+    "enabled"
+  ],
+  [
+    "iot-config",
+    null,
+    "device-mqtts",
+    "enabled"
+  ],
+  [
+    "oci-config",
+    null,
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "iot-telemetry",
+    "iot-config",
+    "device-mqtts",
+    "enabled"
+  ],
+  [
+    "iot-subscribe",
+    "iot-config",
+    "device-mqtts",
+    "enabled"
+  ],
+  [
+    "iot-send-command",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "iot-get-content",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "iot-update-relationship",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-object-storage",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-notification",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-api-request",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-functions-invoke",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-monitoring-publish",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-monitoring-query",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-logging",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-log-analytics",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-queue-config",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-queue-out",
+    "oci-queue-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-queue-in",
+    "oci-queue-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-queue-ack",
+    "oci-queue-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-streaming-config",
+    "oci-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-streaming-in",
+    "oci-streaming-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-streaming-out",
+    "oci-streaming-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-streaming-commit",
+    "oci-streaming-config",
+    "oci-api",
+    "enabled"
+  ],
+  [
+    "oci-kafka-config",
+    null,
+    "kafka-sasl",
+    "enabled"
+  ],
+  [
+    "oci-kafka-producer",
+    "oci-kafka-config",
+    "kafka-sasl",
+    "enabled"
+  ],
+  [
+    "oci-kafka-consumer",
+    "oci-kafka-config",
+    "kafka-sasl",
+    "enabled"
+  ],
+  [
+    "oci-kafka-commit",
+    "oci-kafka-config",
+    "kafka-sasl",
+    "enabled"
+  ],
+  [
+    "ords-config",
+    null,
+    "oauth",
+    "enabled"
+  ],
+  [
+    "oci-ords-request",
+    "ords-config",
+    "oauth",
+    "enabled"
+  ],
+  [
+    "oci-ords-poll",
+    "ords-config",
+    "oauth",
+    "enabled"
+  ],
+  [
+    "oci-certificate",
+    "oci-config",
+    "oci-api",
+    "disabled-by-default"
+  ],
+  [
+    "oci-vault-secret",
+    "oci-config",
+    "oci-api",
+    "disabled-by-default"
+  ],
+  [
+    "scm-server",
+    null,
+    "fusion-oauth",
+    "permitted-add-on"
+  ]
+];
+const currentManagedInventory = JSON.parse(await readFile(resolve(packageRoot, "assets/nodes/managed-node-inventory.json"), "utf8"));
+for (const [type, parent, auth, availability] of officialManagedMap) {
+  const node = currentManagedInventory.nodes.find((item) => item.canonicalLabel === type);
+  assert.deepEqual([node?.configurationParent, node?.authenticationFamily, node?.availability, node?.targetAvailability], [parent, auth, availability, "unknown-until-palette-inspection"], `official managed parent/auth/availability mismatch: ${type}`);
+}
+
 // Load executable focused checks only after every package file and flow
 // function has passed the byte, import, and network-capability preflight.
 await import("./verify-runtime.mjs");
@@ -577,7 +821,7 @@ const identityCasesById = new Map(identityCasesFixture.cases.map((item) => [item
 const nodeCapabilityMatrix = texts.get(resolve(packageRoot, "references/node-capability-matrix.md")) ?? "";
 assert.match(
   nodeCapabilityMatrix,
-  /\| Managed editor \| `iot-config` \| `OCI Config` \|[^\n]+OCI configuration[^\n]+`managed-documented`[^\n]+`O1`/,
+  /\| Managed editor \| `iot-config` \| `IoT Device` \|[^\n]+device-mqtts[^\n]+`managed-documented`[^\n]+`O1`/,
   "hardcoded managed iot-config source-owned matrix record failed"
 );
 assert.match(
@@ -595,7 +839,7 @@ for (const type of ["oci-object-storage", "oci-notification", "ords-config", "oc
 }
 assert.deepEqual(
   identityCasesById.get("bare-iot-config-requires-clarification")?.expected,
-  { decision: "clarify", reason: "ambiguous-name", candidateIdentities: ["managed-iot-config", "sample-device-iot-config"], authenticationFamilies: ["oci-configuration", "device-mqtts"], sourceOwners: ["O1", "S4"] },
+  { decision: "clarify", reason: "source-surface-required", candidateIdentities: ["managed-iot-config", "sample-device-iot-config"], authenticationFamilies: ["device-mqtts"], sourceOwners: ["O1", "S4"] },
   "hardcoded iot-config collision contract failed"
 );
 assert.deepEqual(
@@ -604,6 +848,13 @@ assert.deepEqual(
   "hardcoded device and OCI authentication-family separation failed"
 );
 
+// Independent auth boundaries also cover synchronized decision/fixture corruption.
+assert.equal(identityCasesById.get("managed-iot-config-context")?.expected?.authenticationFamily, "device-mqtts", "official managed device authentication boundary failed");
+assert.equal(identityCasesById.get("managed-oci-config-context")?.expected?.authenticationFamily, "oci-api", "official managed signer authentication boundary failed");
+for (const type of ["iot-telemetry", "iot-subscribe", "iot-send-command", "iot-get-content", "iot-update-relationship"]) {
+  assert.deepEqual(identityCasesById.get(`managed-${type}-wrong-parent`)?.expected, { decision: "reject", reason: "configuration-parent-mismatch" }, "official managed wrong-parent rejection failed");
+  assert.deepEqual(identityCasesById.get(`managed-${type}-wrong-auth`)?.expected, { decision: "reject", reason: "authentication-family-mismatch" }, "official managed wrong-auth rejection failed");
+}
 const databaseCasesFixture = JSON.parse(await readFile(resolve(packageRoot, "assets/nodes/database-aq-contract-cases.json"), "utf8"));
 const databaseCasesById = new Map(databaseCasesFixture.cases.map((item) => [item.caseId, item]));
 assert.deepEqual(databaseCasesById.get("transaction-commit")?.expected, { state: "committed", durable: true, closed: true }, "hardcoded transaction commit durability contract failed");
@@ -636,6 +887,8 @@ assert.equal(databaseCasesById.get("sql-editor-concatenated-plsql-regex-heuristi
 
 const iotCasesFixture = JSON.parse(await readFile(resolve(packageRoot, "assets/nodes/iot-node-contract-cases.json"), "utf8"));
 const iotCasesById = new Map(iotCasesFixture.cases.map((item) => [item.caseId, item]));
+assert.deepEqual(iotCasesFixture.contract.authenticationFamilies.managedIotConfig, { nodeType: "iot-config", paletteLabel: "IoT Device", classification: "managed-documented", authFamily: "device-mqtts", childRoles: ["iot-telemetry", "iot-subscribe"], deviceMqttSession: true, sourceIds: ["O1"] }, "official managed MQTT contract fixture mismatch");
+assert.deepEqual(iotCasesById.get("managed-iot-config-selects-device-mqtts")?.expected, { classification: "managed-documented", authFamily: "device-mqtts", deviceMqttSession: true, childRoles: ["iot-telemetry", "iot-subscribe"] }, "official managed MQTT decision fixture mismatch");
 assert.deepEqual(iotCasesById.get("subscription-does-not-auto-ack-command")?.expected, { valid: true, acknowledgement: "none", route: "explicit-response-node-required" }, "hardcoded subscription acknowledgement contract failed");
 assert.deepEqual(iotCasesById.get("ords-unbounded-poll-is-rejected")?.expected, { valid: false, route: "reject", reason: "poll timeout must be finite" }, "hardcoded bounded ORDS polling rejection failed");
 assert.equal(iotCasesById.get("notifications-publish-accepted-not-delivered")?.expected?.subscriberDelivery, "unknown", "hardcoded Notifications publication/delivery boundary failed");

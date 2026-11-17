@@ -53,18 +53,27 @@ Agent-oriented wrappers:
 
 ## Auth Mode Pinning
 
-Inspect the connected server's advertised tools and configured auth mode; these
-names and behaviors describe the accepted server implementation, not a promise
-that every MCP server exposes them. For the accepted implementation, prefer the
-canonical `OCI_MCP_AUTH_TYPE`; deprecated `OCI_IOT_AUTH_TYPE` remains a
-lower-precedence compatibility alias. If both are set, the canonical variable
-wins. For an API-key profile:
+Inspect the connected server's advertised tools and configuration contract.
+For public `oracle/mcp` revision
+`cdea374d50c230c221fe4ea306fcd953b3977ef9` (checked November 17, 2026),
+`OCI_IOT_AUTH_TYPE` selects the authentication mode. For an API-key profile,
+set these environment entries when configuring that server:
 
 ```bash
 OCI_CONFIG_PROFILE=<customer_api_key_profile>
-OCI_MCP_AUTH_TYPE=api_key
-OCI_REGION=<oci_region>
+OCI_IOT_AUTH_TYPE=api_key
 ```
+
+The selected profile supplies its region for this API-key example. Confirm the
+server's supported region configuration; do not assume a CLI environment variable
+changes the server's SDK configuration. If auth type is omitted, this public
+revision uses `auto`, preferring a usable profile security token before API key.
+
+The historical fork implementation at `8efe88db7db9beaeea4145fc6ab49d2efa4efb54`
+uses canonical `OCI_MCP_AUTH_TYPE` with `OCI_IOT_AUTH_TYPE` as a lower-precedence
+alias. That is a version-specific fork contract, not the public-main example.
+Do not silently rename variables or reconfigure an installed server; first
+identify its implementation and use its documented settings.
 
 If MCP calls fail with `401 NotAuthenticated`, verify the operator-selected
 profile, region, and auth mode through the environment owner. Do not inspect
@@ -74,6 +83,12 @@ every deployment.
 
 ## Optional Flow Runtime Reads
 
+These are implementation extensions from the historical fork cited below. They
+are absent from the inspected public main at `cdea374d`; public-main users should
+use the CLI/SDK fallback. A matching tool name alone does not establish the same
+schema or response contract: inspect the connected server's advertised schema
+before applying the details below.
+
 When advertised, `list_iot_flow_runtimes_page` requires `compartment_id` and
 accepts optional domain/runtime/display-name/lifecycle filters, `page`, a
 bounded `limit` from 1 through 100, sorting, and request ID. Each call reads one
@@ -82,7 +97,7 @@ empty. Continue only as far as the task needs; the tool does not scan all pages
 automatically. `get_iot_flow_runtime` and `get_iot_flow_runtime_flows` take a
 runtime OCID and optional request ID.
 
-The accepted server returns `{"ok": true, "data": ...}` or
+The cited fork implementation returns `{"ok": true, "data": ...}` or
 `{"ok": false, "error": ...}` envelopes. List data includes items and page
 metadata. Each GET has its own response ETag: the flows ETag belongs to the
 flows read and is distinct from runtime metadata ETag and any Node-RED revision.
@@ -137,8 +152,10 @@ When using MCP, tell the user:
 
 ## Sources
 
-- Accepted OCI IoT MCP source at `8efe88db7db9beaeea4145fc6ab49d2efa4efb54`:
-  its `README.md` Flow Runtime inspection and configuration sections and
-  `server.py` tool definitions. These implementation-specific names are
-  optional and must be confirmed in the connected tool catalog.
+- Public main [authentication source](https://github.com/oracle/mcp/blob/cdea374d50c230c221fe4ea306fcd953b3977ef9/src/oci-iot-mcp-server/oracle/oci_iot_mcp_server/auth.py),
+  [configuration README](https://github.com/oracle/mcp/blob/cdea374d50c230c221fe4ea306fcd953b3977ef9/src/oci-iot-mcp-server/README.md),
+  and [tool definitions](https://github.com/oracle/mcp/blob/cdea374d50c230c221fe4ea306fcd953b3977ef9/src/oci-iot-mcp-server/oracle/oci_iot_mcp_server/server.py), checked November 17, 2026.
+- Historical fork [configuration and Flow Runtime inspection](https://github.com/wsanders00/mcp/blob/8efe88db7db9beaeea4145fc6ab49d2efa4efb54/src/oci-iot-mcp-server/README.md)
+  and [tool definitions](https://github.com/wsanders00/mcp/blob/8efe88db7db9beaeea4145fc6ab49d2efa4efb54/src/oci-iot-mcp-server/oracle/oci_iot_mcp_server/server.py).
+  Confirm these optional implementation contracts in the connected tool catalog.
 - Oracle [managed editor and backup guidance](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm).

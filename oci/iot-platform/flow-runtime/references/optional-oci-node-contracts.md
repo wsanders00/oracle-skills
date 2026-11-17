@@ -1,8 +1,10 @@
 # Optional OCI node contracts (pinned sample package)
 
 Use this reference when a flow names one of the optional OCI service or ORDS
-nodes below. These are **sample-package** contracts, not managed Flow Runtime
-palette guarantees. The source is Oracle's `oci-nodes` package release `0.8.0`
+nodes below. The detailed behavior below is a **sample-package** contract. The current
+[managed catalogue](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm)
+also documents these service families and their parents; selected-target
+availability and detailed implementation equivalence still require evidence. The source is Oracle's `oci-nodes` package release `0.8.0`
 at commit `cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb` (source IDs `O7`/`S4`).
 The package pin makes the recorded behavior attributable to one immutable
 revision; it does not establish that a selected Flow Runtime permits the

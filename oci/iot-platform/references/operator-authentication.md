@@ -12,7 +12,12 @@ Choose authentication for the person or process running the OCI CLI from its exe
 | OKE workload | OKE workload identity where configured; otherwise the identity method supported by that workload | Follow the cluster and workload identity setup for the environment. Do not assume a local workstation profile is available inside a pod. |
 | Service acting on behalf of a signed-in OCI user | Instance OBO user only where supported and configured | This is a specific delegated identity flow, not a generic substitute for a user profile. |
 
-OCI CLI documents `api_key`, `instance_obo_user`, `instance_principal`, `oke_workload_identity`, `resource_principal`, and `security_token` as `--auth` choices. API key config authentication is the CLI default. Use only a mode supported by the installed CLI and the execution environment; this list does not claim every mode has been validated with every IoT command. See the [OCI CLI global options](https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/oci.html) and [CLI environment variables](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/clienvironmentvariables.htm).
+OCI CLI documents `api_key`, `instance_obo_user`, `instance_principal`, `oke_workload_identity`, `pkcs11`, `resource_principal`, and `security_token` as `--auth` choices. API key config authentication is the CLI default. Use only a mode supported by the installed CLI and the execution environment; this list does not claim every mode has been validated with every IoT command. See the [OCI CLI global options](https://docs.oracle.com/en-us/iaas/tools/oci-cli/latest/oci_cli_docs/oci.html) and [CLI environment variables](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/clienvironmentvariables.htm).
+
+`pkcs11` is a specialized choice requiring an already configured PKCS#11 provider
+and key access supported by the installed CLI. It is not a replacement for ordinary
+profile/session setup and has not been validated here against IoT operations.
+This option list was checked against the public CLI reference on November 17, 2026.
 
 ## Profiles And Target Tenancy
 

@@ -1,56 +1,103 @@
 {
   "fixtureId": "managed-node-inventory-v1",
   "scope": "offline-example",
-  "description": "Documented managed workflow roles, not exact registered target types or verified message-field contracts. Map roles to the selected runtime inventory and node help before authoring.",
+  "description": "Current official managed catalogue identities and authentication parents; target availability is independently unknown. Sample implementation details remain pinned separately.",
   "sourceClaimId": "FR-NODES-001",
   "nodes": [
     {
       "nodeId": "managed-db-connection",
       "canonicalLabel": "db-connection",
-      "paletteLabel": "Database connection",
+      "paletteLabel": "DB Connection",
       "classification": "managed-documented",
       "input": "configuration",
       "output": "shared database connection context",
-      "authentication": "configured Oracle Database connection",
+      "authentication": "oracle-database",
       "transaction": "owned by downstream begin/end transaction contract",
       "acknowledgement": "none implied",
       "retry": "target/driver-specific; must be selected",
       "error": "connection/configuration error path",
-      "source": { "sourceIds": ["O1"], "heading": "Oracle Database Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["shape and classification only"],
-      "cannotProve": ["database reachability", "credential validity", "connection pool behavior"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "shape and classification only"
+      ],
+      "cannotProve": [
+        "database reachability",
+        "credential validity",
+        "connection pool behavior"
+      ],
+      "configurationParent": null,
+      "authenticationFamily": "oracle-database",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-begin-transaction",
-      "canonicalLabel": "begin transaction",
+      "canonicalLabel": "begin-transaction",
       "paletteLabel": "begin transaction",
       "classification": "managed-documented",
       "input": "msg",
       "output": "same msg plus transaction context",
-      "authentication": "db-connection",
+      "authentication": "oracle-database via db-connection",
       "transaction": "acquires connection and begins transaction",
       "acknowledgement": "downstream work is not committed yet",
       "retry": "do not retry without selected idempotency rule",
       "error": "begin/connection error",
-      "source": { "sourceIds": ["O1"], "heading": "Oracle Database Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["ownership state can be modeled"],
-      "cannotProve": ["database transaction behavior"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Oracle Database Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "ownership state can be modeled"
+      ],
+      "cannotProve": [
+        "database transaction behavior"
+      ],
+      "configurationParent": "db-connection",
+      "authenticationFamily": "oracle-database",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-end-transaction",
-      "canonicalLabel": "end transaction",
+      "canonicalLabel": "end-transaction",
       "paletteLabel": "end transaction",
       "classification": "managed-documented",
       "input": "msg plus transaction context",
       "output": "same msg after commit or rollback",
-      "authentication": "db-connection",
+      "authentication": "oracle-database via db-connection",
       "transaction": "commits or rolls back and releases connection",
       "acknowledgement": "commit is not device or subscriber delivery acknowledgement",
       "retry": "commit failure requires selected recovery",
       "error": "commit/rollback/release error",
-      "source": { "sourceIds": ["O1"], "heading": "Oracle Database Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["commit/rollback transition table"],
-      "cannotProve": ["database commit durability"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Oracle Database Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "commit/rollback transition table"
+      ],
+      "cannotProve": [
+        "database commit durability"
+      ],
+      "configurationParent": "db-connection",
+      "authenticationFamily": "oracle-database",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-enqueue",
@@ -59,14 +106,30 @@
       "classification": "managed-documented",
       "input": "msg to configured transactional event queue",
       "output": "continuation/result",
-      "authentication": "db-connection",
+      "authentication": "oracle-database via db-connection",
       "transaction": "participates in selected database transaction",
       "acknowledgement": "queue acceptance is not consumer processing",
       "retry": "bounded and idempotency-aware",
       "error": "enqueue/database error path",
-      "source": { "sourceIds": ["O1"], "heading": "Oracle Database Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["message contract and commit ownership"],
-      "cannotProve": ["queue durability", "consumer delivery"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Oracle Database Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "message contract and commit ownership"
+      ],
+      "cannotProve": [
+        "queue durability",
+        "consumer delivery"
+      ],
+      "configurationParent": "db-connection",
+      "authenticationFamily": "oracle-database",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-dequeue",
@@ -75,14 +138,31 @@
       "classification": "managed-documented",
       "input": "configured queue read",
       "output": "message or empty result",
-      "authentication": "db-connection",
+      "authentication": "oracle-database via db-connection",
       "transaction": "queue visibility/ack policy is target-specific",
       "acknowledgement": "empty result means no work unless target says otherwise",
       "retry": "bounded; do not spin on empty result",
       "error": "dequeue/database error path",
-      "source": { "sourceIds": ["O1"], "heading": "Oracle Database Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["empty and non-empty branches"],
-      "cannotProve": ["queue visibility", "expiry", "acknowledgement"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Oracle Database Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "empty and non-empty branches"
+      ],
+      "cannotProve": [
+        "queue visibility",
+        "expiry",
+        "acknowledgement"
+      ],
+      "configurationParent": "db-connection",
+      "authenticationFamily": "oracle-database",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-sql",
@@ -91,78 +171,1088 @@
       "classification": "managed-documented",
       "input": "SQL request and parameters in msg/config",
       "output": "rows/result or error",
-      "authentication": "db-connection",
+      "authentication": "oracle-database via db-connection",
       "transaction": "side effects require explicit transaction owner",
       "acknowledgement": "query result is not downstream delivery",
       "retry": "statement-specific and bounded",
       "error": "SQL/database error path",
-      "source": { "sourceIds": ["O1"], "heading": "Oracle Database Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["result/error routing"],
-      "cannotProve": ["SQL execution", "commit semantics"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Oracle Database Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "result/error routing"
+      ],
+      "cannotProve": [
+        "SQL execution",
+        "commit semantics"
+      ],
+      "configurationParent": "db-connection",
+      "authenticationFamily": "oracle-database",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-iot-config",
       "canonicalLabel": "iot-config",
-      "paletteLabel": "OCI Config",
+      "paletteLabel": "IoT Device",
       "classification": "managed-documented",
       "input": "configuration",
       "output": "shared OCI Config for child OCI nodes",
-      "authentication": "config file, instance principal, resource principal, or API key per target",
+      "authentication": "device-mqtts",
       "transaction": "not applicable",
       "acknowledgement": "test connection is configuration evidence only",
       "retry": "target SDK/service-specific",
       "error": "authentication/configuration error",
-      "source": { "sourceIds": ["O1"], "heading": "OCI Config Options", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["identity separation"],
-      "cannotProve": ["resource-principal policy", "OCI endpoint access"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "identity separation"
+      ],
+      "cannotProve": [
+        "resource-principal policy",
+        "OCI endpoint access"
+      ],
+      "configurationParent": null,
+      "authenticationFamily": "device-mqtts",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
+    },
+    {
+      "nodeId": "managed-oci-config",
+      "canonicalLabel": "oci-config",
+      "paletteLabel": "OCI Config",
+      "classification": "managed-documented",
+      "configurationParent": null,
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "configuration",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
     },
     {
       "nodeId": "managed-telemetry",
-      "canonicalLabel": "telemetry",
+      "canonicalLabel": "iot-telemetry",
       "paletteLabel": "telemetry",
       "classification": "managed-documented",
       "input": "validated telemetry msg",
       "output": "OCI IoT request/result",
-      "authentication": "linked OCI Config",
+      "authentication": "device-mqtts via iot-config",
       "transaction": "not database transaction unless flow explicitly adds one",
       "acknowledgement": "service acceptance is not normalization/history",
       "retry": "bounded and endpoint/idempotency-aware",
       "error": "transport or node error path",
-      "source": { "sourceIds": ["O1"], "heading": "OCI Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["validation and correlation"],
-      "cannotProve": ["device-host acceptance", "adapter normalization", "history"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI IoT Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "validation and correlation"
+      ],
+      "cannotProve": [
+        "device-host acceptance",
+        "adapter normalization",
+        "history"
+      ],
+      "configurationParent": "iot-config",
+      "authenticationFamily": "device-mqtts",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-subscribe",
-      "canonicalLabel": "subscribe",
+      "canonicalLabel": "iot-subscribe",
       "paletteLabel": "subscribe",
       "classification": "managed-documented",
       "input": "configured OCI IoT source",
       "output": "incoming msg",
-      "authentication": "linked OCI Config",
+      "authentication": "device-mqtts via iot-config",
       "transaction": "not applicable",
       "acknowledgement": "subscription/reconnect semantics depend on endpoint",
       "retry": "bounded reconnect policy must be selected",
       "error": "subscription/source error path",
-      "source": { "sourceIds": ["O1"], "heading": "OCI Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["input shape and empty/error branches"],
-      "cannotProve": ["subscription delivery", "reconnect behavior"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI IoT Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "input shape and empty/error branches"
+      ],
+      "cannotProve": [
+        "subscription delivery",
+        "reconnect behavior"
+      ],
+      "configurationParent": "iot-config",
+      "authenticationFamily": "device-mqtts",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
     },
     {
       "nodeId": "managed-send-command",
-      "canonicalLabel": "send command",
+      "canonicalLabel": "iot-send-command",
       "paletteLabel": "send command",
       "classification": "managed-documented",
       "input": "command request with correlation",
       "output": "request/status response",
-      "authentication": "linked OCI Config and command policy",
+      "authentication": "oci-api via oci-config",
       "transaction": "not database transaction unless explicitly composed",
       "acknowledgement": "accepted request is not device completion",
       "retry": "bounded; reconcile uncertain acceptance first",
       "error": "refused, timeout, bad response, or node error path",
-      "source": { "sourceIds": ["O1"], "heading": "OCI Nodes", "observed": "2026-09-15", "freshness": "target-specific; inspect runtime version" },
-      "offlineEvidence": ["correlation and bounded status states"],
-      "cannotProve": ["command invoke policy", "device response", "completion"]
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI IoT Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      },
+      "offlineEvidence": [
+        "correlation and bounded status states"
+      ],
+      "cannotProve": [
+        "command invoke policy",
+        "device response",
+        "completion"
+      ],
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection"
+    },
+    {
+      "nodeId": "managed-get-content",
+      "canonicalLabel": "iot-get-content",
+      "paletteLabel": "get content",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI IoT Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-update-relationship",
+      "canonicalLabel": "iot-update-relationship",
+      "paletteLabel": "update relationship",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI IoT Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-object-storage",
+      "canonicalLabel": "oci-object-storage",
+      "paletteLabel": "object storage",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-notification",
+      "canonicalLabel": "oci-notification",
+      "paletteLabel": "notification",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Messaging Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-api-request",
+      "canonicalLabel": "oci-api-request",
+      "paletteLabel": "api request",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-functions-invoke",
+      "canonicalLabel": "oci-functions-invoke",
+      "paletteLabel": "functions invoke",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-monitoring-publish",
+      "canonicalLabel": "oci-monitoring-publish",
+      "paletteLabel": "monitoring publish",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Observability Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-monitoring-query",
+      "canonicalLabel": "oci-monitoring-query",
+      "paletteLabel": "monitoring query",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Observability Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-logging",
+      "canonicalLabel": "oci-logging",
+      "paletteLabel": "logging",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Observability Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-log-analytics",
+      "canonicalLabel": "oci-log-analytics",
+      "paletteLabel": "log analytics",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Observability Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-queue-config",
+      "canonicalLabel": "oci-queue-config",
+      "paletteLabel": "Queue Config",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "configuration",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-queue-out",
+      "canonicalLabel": "oci-queue-out",
+      "paletteLabel": "queue out",
+      "classification": "managed-documented",
+      "configurationParent": "oci-queue-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-queue-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Messaging Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-queue-in",
+      "canonicalLabel": "oci-queue-in",
+      "paletteLabel": "queue in",
+      "classification": "managed-documented",
+      "configurationParent": "oci-queue-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-queue-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Messaging Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-queue-ack",
+      "canonicalLabel": "oci-queue-ack",
+      "paletteLabel": "queue ack",
+      "classification": "managed-documented",
+      "configurationParent": "oci-queue-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-queue-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Messaging Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-streaming-config",
+      "canonicalLabel": "oci-streaming-config",
+      "paletteLabel": "Streaming Config",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "configuration",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-streaming-in",
+      "canonicalLabel": "oci-streaming-in",
+      "paletteLabel": "streaming in",
+      "classification": "managed-documented",
+      "configurationParent": "oci-streaming-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-streaming-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Streaming Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-streaming-out",
+      "canonicalLabel": "oci-streaming-out",
+      "paletteLabel": "streaming out",
+      "classification": "managed-documented",
+      "configurationParent": "oci-streaming-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-streaming-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Streaming Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-streaming-commit",
+      "canonicalLabel": "oci-streaming-commit",
+      "paletteLabel": "streaming commit",
+      "classification": "managed-documented",
+      "configurationParent": "oci-streaming-config",
+      "authenticationFamily": "oci-api",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-streaming-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Streaming Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-kafka-config",
+      "canonicalLabel": "oci-kafka-config",
+      "paletteLabel": "Kafka Config",
+      "classification": "managed-documented",
+      "configurationParent": null,
+      "authenticationFamily": "kafka-sasl",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "configuration",
+      "output": "documented capability; inspect target help",
+      "authentication": "kafka-sasl",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-kafka-producer",
+      "canonicalLabel": "oci-kafka-producer",
+      "paletteLabel": "kafka producer",
+      "classification": "managed-documented",
+      "configurationParent": "oci-kafka-config",
+      "authenticationFamily": "kafka-sasl",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "kafka-sasl via oci-kafka-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Streaming Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-kafka-consumer",
+      "canonicalLabel": "oci-kafka-consumer",
+      "paletteLabel": "kafka consumer",
+      "classification": "managed-documented",
+      "configurationParent": "oci-kafka-config",
+      "authenticationFamily": "kafka-sasl",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "kafka-sasl via oci-kafka-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Streaming Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-kafka-commit",
+      "canonicalLabel": "oci-kafka-commit",
+      "paletteLabel": "kafka commit",
+      "classification": "managed-documented",
+      "configurationParent": "oci-kafka-config",
+      "authenticationFamily": "kafka-sasl",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "kafka-sasl via oci-kafka-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Streaming Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-ords-config",
+      "canonicalLabel": "ords-config",
+      "paletteLabel": "ORDS Config",
+      "classification": "managed-documented",
+      "configurationParent": null,
+      "authenticationFamily": "oauth",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "configuration",
+      "output": "documented capability; inspect target help",
+      "authentication": "oauth",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-ords-request",
+      "canonicalLabel": "oci-ords-request",
+      "paletteLabel": "ords request",
+      "classification": "managed-documented",
+      "configurationParent": "ords-config",
+      "authenticationFamily": "oauth",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oauth via ords-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-ords-poll",
+      "canonicalLabel": "oci-ords-poll",
+      "paletteLabel": "ords poll",
+      "classification": "managed-documented",
+      "configurationParent": "ords-config",
+      "authenticationFamily": "oauth",
+      "availability": "enabled",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oauth via ords-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-certificate",
+      "canonicalLabel": "oci-certificate",
+      "paletteLabel": "certificate",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "disabled-by-default",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-oci-vault-secret",
+      "canonicalLabel": "oci-vault-secret",
+      "paletteLabel": "vault secret",
+      "classification": "managed-documented",
+      "configurationParent": "oci-config",
+      "authenticationFamily": "oci-api",
+      "availability": "disabled-by-default",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "selected node message or source",
+      "output": "documented capability; inspect target help",
+      "authentication": "oci-api via oci-config",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "OCI Services Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
+    },
+    {
+      "nodeId": "managed-scm-server",
+      "canonicalLabel": "scm-server",
+      "paletteLabel": "SCM Server",
+      "classification": "managed-documented",
+      "configurationParent": null,
+      "authenticationFamily": "fusion-oauth",
+      "availability": "permitted-add-on",
+      "targetAvailability": "unknown-until-palette-inspection",
+      "input": "configuration",
+      "output": "documented capability; inspect target help",
+      "authentication": "fusion-oauth",
+      "transaction": "service-specific; database rollback does not reverse service effects",
+      "acknowledgement": "acceptance is not downstream completion",
+      "retry": "bounded; reconcile uncertain writes before retry",
+      "error": "scoped Catch/configuration error path",
+      "offlineEvidence": [
+        "documented identity, parent and authentication only"
+      ],
+      "cannotProve": [
+        "target installation, enabled state or compatibility",
+        "IAM, credentials or service result"
+      ],
+      "source": {
+        "sourceIds": [
+          "O1"
+        ],
+        "heading": "Shared Configuration Nodes",
+        "observed": "2026-11-17",
+        "freshness": "inspect selected runtime version, palette and help"
+      }
     }
   ]
 }

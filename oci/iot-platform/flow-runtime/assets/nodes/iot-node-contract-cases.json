@@ -50,11 +50,11 @@
     "authenticationFamilies": {
       "managedIotConfig": {
         "nodeType": "iot-config",
-        "paletteLabel": "OCI Config",
+        "paletteLabel": "IoT Device",
         "classification": "managed-documented",
-        "authFamily": "oci-api",
-        "childRoles": ["telemetry", "subscribe", "send command"],
-        "deviceMqttSession": false,
+        "authFamily": "device-mqtts",
+        "childRoles": ["iot-telemetry", "iot-subscribe"],
+        "deviceMqttSession": true,
         "sourceIds": ["O1"]
       },
       "sampleDeviceIotConfig": {
@@ -159,14 +159,14 @@
       "family": "identity",
       "sourceIds": ["O1", "S4"],
       "input": {"request": "use iot-config"},
-      "expected": {"route": "clarify", "reason": "iot-config may mean managed OCI Config or sample device MQTTS config"}
+      "expected": {"route": "clarify", "reason": "iot-config source surface is required; managed and sample both use device MQTT"}
     },
     {
-      "caseId": "managed-iot-config-selects-oci-api",
+      "caseId": "managed-iot-config-selects-device-mqtts",
       "family": "identity",
       "sourceIds": ["O1"],
-      "input": {"surface": "managed-editor", "paletteLabel": "OCI Config", "nodeType": "iot-config"},
-      "expected": {"classification": "managed-documented", "authFamily": "oci-api", "deviceMqttSession": false, "childRoles": ["telemetry", "subscribe", "send command"]}
+      "input": {"surface": "managed-editor", "paletteLabel": "IoT Device", "nodeType": "iot-config"},
+      "expected": {"classification": "managed-documented", "authFamily": "device-mqtts", "deviceMqttSession": true, "childRoles": ["iot-telemetry", "iot-subscribe"]}
     },
     {
       "caseId": "sample-iot-config-selects-device-mqtts",
@@ -580,7 +580,7 @@
     }
   ],
   "invariants": [
-    "managed OCI Config, sample device MQTTS config, and sample OCI API config are distinct source-owned identities",
+    "managed and sample device MQTT use iot-config; OCI signer uses oci-config; source ownership remains separate",
     "device MQTT credentials are never OCI API credentials and an OCI API config never proves an MQTTS session",
     "telemetry uses configured-topic precedence, microsecond auto-timestamps when time is null/missing, and configured QoS fallback for invalid runtime overrides",
     "telemetry transport acceptance is separate from normalization, history, and device processing",

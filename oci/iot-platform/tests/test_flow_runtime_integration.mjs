@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -17,6 +18,7 @@ const validatorRel = "flow-runtime/scripts/verify-portable.mjs";
 const scratch = await mkdtemp(join(tmpdir(), "oci-iot-integrated-portability-"));
 let negativeRegressionCount = 0;
 let integratedCaseCount = 0;
+let managedSourceRegressionCount = 0;
 let managedTargetRegressionCount = 0;
 let refreshRegressionCount = 0;
 
@@ -34,8 +36,9 @@ const packagePath = (target, path) => path === "SKILL.md"
   ? resolve(target, "flow-runtime/references/flow-runtime.md")
   : path.startsWith("flow-runtime/") ? resolve(target, path) : resolve(target, "flow-runtime", path);
 
-const expectFailure = async (name, mutate, expectedPattern) => {
-  negativeRegressionCount += 1;
+const expectFailure = async (name, mutate, expectedPattern, managedSource = false) => {
+  if (managedSource) managedSourceRegressionCount += 1;
+  else negativeRegressionCount += 1;
   const target = await makeCopy(name);
   await mutate(target);
   let failure;
@@ -45,6 +48,10 @@ const expectFailure = async (name, mutate, expectedPattern) => {
     failure = `${error.stdout ?? ""}\n${error.stderr ?? ""}`;
   }
   assert.ok(failure, `${name}: portable validator unexpectedly passed`);
+  if (name === "self-masked-managed-device-authentication") {
+    assert.match(failure, expectedPattern, `${name}: independent managed source anchor did not reject corruption`);
+    return;
+  }
   const expectedOrIntegrity = new RegExp(`(?:${expectedPattern.source})|(?:executable integrity mismatch)`, expectedPattern.flags.replace(/[gy]/g, ""));
   assert.match(failure, expectedOrIntegrity, `${name}: validator failed for the wrong reason`);
 };
@@ -807,21 +814,22 @@ try {
     await writeFile(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
   }, /hardcoded bounded ORDS polling rejection failed/);
 
-  await expectFailure("self-masked-node-identity-collision", async (target) => {
+  await expectFailure("self-masked-managed-device-authentication", async (target) => {
     const verifierPath = packagePath(target, "scripts/verify-node-capabilities.mjs");
     const verifier = await readFile(verifierPath, "utf8");
-    const original = 'return { decision: "clarify", reason: "ambiguous-name", candidateIdentities: ["managed-iot-config", "sample-device-iot-config"], authenticationFamilies: ["oci-configuration", "device-mqtts"], sourceOwners: ["O1", "S4"] };';
-    const replacement = 'return { decision: "select", reason: "guessed", candidateIdentities: ["managed-iot-config"], authenticationFamilies: ["oci-configuration"], sourceOwners: ["O1"] };';
-    const mutated = verifier.replace(original, replacement);
-    assert.notEqual(mutated, verifier, "identity corruption probe did not alter the focused verifier");
+    const original = 'paletteLabel: "IoT Device", sourceOwner: "O1", authenticationFamily: "device-mqtts"';
+    const mutated = verifier.replace(original, 'paletteLabel: "IoT Device", sourceOwner: "O1", authenticationFamily: "oci-api"');
+    assert.notEqual(mutated, verifier, "managed auth corruption probe did not alter the decision");
     await writeFile(verifierPath, mutated, "utf8");
+    const trustRootPath = packagePath(target, "scripts/verify-portable.mjs");
+    const oldHash = createHash("sha256").update(verifier).digest("hex");
+    const newHash = createHash("sha256").update(mutated).digest("hex");
+    await writeFile(trustRootPath, (await readFile(trustRootPath, "utf8")).replace(oldHash, newHash), "utf8");
     const fixturePath = packagePath(target, "assets/nodes/node-identity-cases.json");
     const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
-    fixture.cases.find((item) => item.caseId === "bare-iot-config-requires-clarification").expected = {
-      decision: "select", reason: "guessed", candidateIdentities: ["managed-iot-config"], authenticationFamilies: ["oci-configuration"], sourceOwners: ["O1"]
-    };
+    fixture.cases.find((item) => item.caseId === "managed-iot-config-context").expected.authenticationFamily = "oci-api";
     await writeFile(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
-  }, /hardcoded iot-config collision contract failed/);
+  }, /official managed device authentication boundary failed/);
 
   await expectFailure("self-masked-database-durability", async (target) => {
     const verifierPath = packagePath(target, "scripts/verify-node-capabilities.mjs");
@@ -850,6 +858,21 @@ try {
     fixture.cases.find((item) => item.caseId === "notifications-publish-accepted-not-delivered").expected.subscriberDelivery = "delivered";
     await writeFile(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, "utf8");
   }, /hardcoded Notifications publication\/delivery boundary failed/);
+
+  for (const [name, change] of [
+    ["managed-telemetry-cross-wired-parent", (node) => { node.configurationParent = "oci-config"; }],
+    ["managed-telemetry-cross-wired-auth", (node) => { node.authenticationFamily = "oci-api"; }],
+    ["uninspected-availability-promotion", (node) => { node.targetAvailability = "available"; }],
+    ["disabled-sensitive-retrieval-promotion", (node) => { node.availability = "enabled"; }],
+    ["fusion-default-dependency-promotion", (node) => { node.availability = "enabled"; }]
+  ]) {
+    await expectFailure(name, async (target) => {
+      const path = packagePath(target, "assets/nodes/managed-node-inventory.json");
+      const inventory = JSON.parse(await readFile(path, "utf8"));
+      change(inventory.nodes.find((node) => node.canonicalLabel === (name.startsWith("disabled") ? "oci-vault-secret" : name.startsWith("fusion") ? "scm-server" : "iot-telemetry")));
+      await writeFile(path, `${JSON.stringify(inventory, null, 2)}\n`, "utf8");
+    }, /official managed parent\/auth\/availability mismatch/, true);
+  }
 
   const expectIntegratedFailure = async (name, mutate, expectedPattern) => {
     integratedCaseCount += 1;
@@ -942,6 +965,8 @@ try {
   assert.equal(integratedCaseCount, 11, "integrated case inventory changed without an explicit count update");
   assert.equal(managedTargetRegressionCount, 2, "managed target-selection regression inventory changed without an explicit count update");
   assert.equal(refreshRegressionCount, 7, "sample refresh negative inventory changed");
+  assert.equal(managedSourceRegressionCount, 5, "managed source regression inventory changed");
+  console.log(`verified ${managedSourceRegressionCount} managed source authentication/availability regressions`);
   console.log(`verified ${refreshRegressionCount} v0.8.0 negative contract regressions`);
   console.log(`verified relocated installable skill, ${negativeRegressionCount} inherited regressions, ${integratedCaseCount} integrated boundary cases, and ${managedTargetRegressionCount} managed-target promotion regressions`);
 } finally {

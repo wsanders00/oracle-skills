@@ -29,7 +29,7 @@ route first.
 
 | Source ID | Immutable/source locator | Anchor used by this matrix |
 | --- | --- | --- |
-| `O1` | [managed Flow Runtime editor](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/node-red.htm) | Oracle Database Nodes; OCI Config Options; OCI Nodes |
+| `O1` | [managed Flow Runtime editor](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm) | Shared Configuration Nodes; OCI IoT Nodes; OCI Services Nodes |
 | `O7` | [pinned Oracle sample-package revision](https://github.com/oracle-samples/node-red-nodes/tree/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb) | package node identities and configuration families; release `0.8.0` |
 | `S4` | [pinned package node reference](https://github.com/oracle-samples/node-red-nodes/blob/cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb/docs/node-reference.md) plus the pinned `oci-nodes/package.json` and node JS/HTML files | exact package node type names, palette labels, configuration parents, fields, outputs, and device/cloud split |
 | `C11` | [batch Object Storage scenario](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/ingest-batch-data-flow-runtime.htm) | sequential object download and device-host ingestion role |
@@ -57,16 +57,49 @@ copy these role labels as a universal runtime registration map. Sample rows
 identify types from the pinned package and retain that source ownership even
 when similarly named nodes are observed in a managed target.
 
-The `iot-config` collision is intentional and must remain visible. A bare
-request for `iot-config` is incomplete; use explicit managed-editor context or
-sample-package/device context to resolve it.
+Managed and sample `iot-config` both configure device MQTT. Resolve the source surface and target applicability without inventing a device-versus-signer distinction between those two records. `oci-config` is the separate OCI signer.
 
 | Source surface | Documented role / package node type | Palette label or role | Source configuration parent (verify target) | Authentication family | Classification | Source owner | Claim ID | Target gate |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Managed editor | `iot-config` | `OCI Config` | none (config parent) | OCI configuration: config file, instance principal, resource principal, or API key as supported by target | `managed-documented` | `O1` | `FR-NODES-001` | Inspect target runtime/version/region and managed palette; separately verify IAM and endpoint access |
-| Managed editor | `telemetry` | `telemetry` | managed `iot-config` | OCI configuration from linked managed config | `managed-documented` | `O1` | `FR-IOT-NODES-001` | Confirm target palette, linked config, topic/payload contract, and live policy |
-| Managed editor | `subscribe` | `subscribe` | managed `iot-config` | OCI configuration from linked managed config | `managed-documented` | `O1` | `FR-IOT-NODES-001` | Confirm source, wildcard/QoS behavior, reconnect policy, and target access |
-| Managed editor | `send command` | `send command` | managed `iot-config` | OCI configuration plus command policy | `managed-documented` | `O1` | `FR-IOT-NODES-001` | Confirm command endpoint/status contract, target access, and device-completion evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Managed editor | `db-connection` | `DB Connection` | none (config parent) | oracle-database | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `begin-transaction` | `begin transaction` | `db-connection` | oracle-database | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `end-transaction` | `end transaction` | `db-connection` | oracle-database | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `enqueue` | `enqueue` | `db-connection` | oracle-database | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `dequeue` | `dequeue` | `db-connection` | oracle-database | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `sql` | `sql` | `db-connection` | oracle-database | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `iot-config` | `IoT Device` | none (config parent) | device-mqtts | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-config` | `OCI Config` | none (config parent) | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `iot-telemetry` | `telemetry` | `iot-config` | device-mqtts | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `iot-subscribe` | `subscribe` | `iot-config` | device-mqtts | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `iot-send-command` | `send command` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `iot-get-content` | `get content` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `iot-update-relationship` | `update relationship` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-object-storage` | `object storage` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-notification` | `notification` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-api-request` | `api request` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-functions-invoke` | `functions invoke` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-monitoring-publish` | `monitoring publish` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-monitoring-query` | `monitoring query` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-logging` | `logging` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-log-analytics` | `log analytics` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-queue-config` | `Queue Config` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-queue-out` | `queue out` | `oci-queue-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-queue-in` | `queue in` | `oci-queue-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-queue-ack` | `queue ack` | `oci-queue-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-streaming-config` | `Streaming Config` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-streaming-in` | `streaming in` | `oci-streaming-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-streaming-out` | `streaming out` | `oci-streaming-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-streaming-commit` | `streaming commit` | `oci-streaming-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-kafka-config` | `Kafka Config` | none (config parent) | kafka-sasl | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-kafka-producer` | `kafka producer` | `oci-kafka-config` | kafka-sasl | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-kafka-consumer` | `kafka consumer` | `oci-kafka-config` | kafka-sasl | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-kafka-commit` | `kafka commit` | `oci-kafka-config` | kafka-sasl | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `ords-config` | `ORDS Config` | none (config parent) | oauth | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-ords-request` | `ords request` | `ords-config` | oauth | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-ords-poll` | `ords poll` | `ords-config` | oauth | `managed-documented` | `O1` | `FR-NODES-001` | enabled; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-certificate` | `certificate` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | disabled-by-default; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `oci-vault-secret` | `vault secret` | `oci-config` | oci-api | `managed-documented` | `O1` | `FR-NODES-001` | disabled-by-default; inspect selected target version, palette/help, identity and permissions |
+| Managed editor | `scm-server` | `SCM Server` | none (config parent) | fusion-oauth | `managed-documented` | `O1` | `FR-NODES-001` | permitted-add-on; inspect selected target version, palette/help, identity and permissions |
 | Sample package | `iot-config` | sample device MQTT config (pinned `S4`, release `0.8.0`) | none (device-MQTTS config parent) | Device credentials/certificate and MQTTS session; not OCI API authentication | `sample-package` | `S4` | `FR-NODES-001` | Pinned source is exact-revision evidence; inspect permitted module/version and target palette |
 | Sample package | `iot-telemetry` | sample device telemetry (pinned `S4`, release `0.8.0`) | sample `iot-config` | Device MQTTS credentials/session | `sample-package` | `S4` | `FR-NODES-001` | Same target-palette gate; transport acceptance is not normalization/history |
 | Sample package | `iot-subscribe` | sample device subscription (pinned `S4`, release `0.8.0`) | sample `iot-config` | Device MQTTS credentials/session | `sample-package` | `S4` | `FR-NODES-001` | Same target-palette gate; receipt is not command acknowledgement |
@@ -97,26 +130,21 @@ sample-package/device context to resolve it.
 
 ## Selection rules
 
-1. Resolve by source context first. “Managed editor `OCI Config`” selects the
-   managed `iot-config`; “sample device MQTTS” selects sample `iot-config`;
-   “sample OCI REST/SDK” selects `oci-config`. If context is absent, ask for
-   clarification rather than choosing by spelling.
-2. Keep device-MQTTS credentials/certificates and OCI API authentication as
-   different authentication families. Neither authenticates the other.
-3. Treat `managed-documented` as a managed-role classification, not proof of
-   target availability. Treat `official-scenario` as a workflow role, not a
-   palette guarantee. Treat pinned `sample-package` behavior as normative only
-   for that exact revision and keep live use compatibility-gated until the
-   target palette/version gate passes.
-4. Preserve the configuration parent in a flow design. A child node linked to
-   managed `iot-config` must not be silently relinked to sample `oci-config` or
-   sample device `iot-config`.
+1. Resolve source context and target identity. Managed `iot-config` is IoT Device;
+   managed `oci-config` is OCI Config. Sample names have the same auth split,
+   but matching names do not prove full implementation equivalence.
+2. Device MQTT, OCI signer, ORDS OAuth, Kafka SASL and Fusion OAuth are separate
+   identities. Operator/editor access does not supply a runtime identity.
+3. A documented node is not evidence of availability on an uninspected target.
+   Keep pinned sample fields conditional until target applicability is established.
+4. Preserve each configuration parent; reject device nodes wired to `oci-config`
+   and signer nodes wired to `iot-config` before designing live operations.
 5. Keep transport/service acceptance separate from downstream evidence:
    telemetry acceptance is not normalization/history; subscription receipt is
    not command acknowledgement; command request acceptance is not device
    completion; Notification publication is not subscriber delivery.
-6. Route Fusion SCM, self-hosted Node-RED administration, and arbitrary
-   community modules outside this skill. Do not fill an identity gap by
+6. Fusion SCM is a permitted managed add-on, not a default installed dependency;
+   route full Fusion workflows, self-hosted administration and arbitrary modules separately. Do not fill an identity gap by
    importing a generic or legacy node contract.
 
 ## Evidence and target gate

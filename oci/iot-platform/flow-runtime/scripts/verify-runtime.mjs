@@ -380,7 +380,7 @@ for (const testCase of delivery.cases.filter(({ expected }) => expected.retry ==
 // Managed inventory records are explicit palette classifications and message /
 // auth / transaction boundaries, while compatibility-gated roles stay offline
 // until the target runtime and palette are inspected.
-const requiredManagedLabels = new Set(["db-connection", "begin transaction", "end transaction", "enqueue", "dequeue", "sql", "iot-config", "telemetry", "subscribe", "send command"]);
+const requiredManagedLabels = new Set(["db-connection", "begin-transaction", "end-transaction", "enqueue", "dequeue", "sql", "iot-config", "oci-config", "iot-telemetry", "iot-subscribe", "iot-send-command", "iot-get-content", "iot-update-relationship", "oci-object-storage", "oci-notification", "oci-api-request", "oci-functions-invoke", "oci-monitoring-publish", "oci-monitoring-query", "oci-logging", "oci-log-analytics", "oci-queue-config", "oci-queue-out", "oci-queue-in", "oci-queue-ack", "oci-streaming-config", "oci-streaming-in", "oci-streaming-out", "oci-streaming-commit", "oci-kafka-config", "oci-kafka-producer", "oci-kafka-consumer", "oci-kafka-commit", "ords-config", "oci-ords-request", "oci-ords-poll", "oci-certificate", "oci-vault-secret", "scm-server"]);
 assert.equal(nodes.sourceClaimId, "FR-NODES-001");
 assert.ok(Array.isArray(nodes.nodes) && nodes.nodes.length === requiredManagedLabels.size, "managed inventory count changed unexpectedly");
 const nodeIds = new Set();
@@ -396,12 +396,13 @@ for (const node of nodes.nodes) {
 }
 assert.deepEqual(new Set(nodes.nodes.map(({ canonicalLabel }) => canonicalLabel)), requiredManagedLabels, "managed node inventory must cover every documented role exactly once");
 const byLabel = new Map(nodes.nodes.map((node) => [node.canonicalLabel, node]));
-assert.match(byLabel.get("begin transaction").transaction, /begins transaction/i);
-assert.match(byLabel.get("end transaction").transaction, /commit|rollback/i);
+assert.match(byLabel.get("begin-transaction").transaction, /begins transaction/i);
+assert.match(byLabel.get("end-transaction").transaction, /commit|rollback/i);
 assert.match(byLabel.get("dequeue").output, /empty/i);
-assert.match(byLabel.get("send command").acknowledgement, /not device completion/i);
-assert.match(byLabel.get("telemetry").acknowledgement, /not normalization/i);
-assert.match(byLabel.get("iot-config").authentication, /resource principal/i);
+assert.match(byLabel.get("iot-send-command").acknowledgement, /not device completion/i);
+assert.match(byLabel.get("iot-telemetry").acknowledgement, /not normalization/i);
+assert.equal(byLabel.get("iot-config").authenticationFamily, "device-mqtts");
+assert.equal(byLabel.get("oci-config").authenticationFamily, "oci-api");
 
 const requiredGateFields = new Set(gates.requiredGateFields);
 assert.deepEqual([...requiredGateFields].sort(), ["authContext", "liveApproval", "moduleVersion", "networkRoute", "paletteLabel", "region", "targetRuntimeVersion"].sort());

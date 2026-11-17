@@ -30,12 +30,13 @@ Matching type names or versions alone does not satisfy that check.
 
 ## Source ownership and classification
 
-The managed Flow Runtime editor documentation (source `O1`) owns the four
-managed palette roles: `iot-config` (palette label **OCI Config**),
-`telemetry`, `subscribe`, and `send command`. Oracle's published workflow
-pages own the scenario roles: Object Storage in `C11` and Notifications in
-`C12`. The public Oracle node reference (`S4`) is a separate package source;
-it is not evidence that a package node is installed in a managed runtime.
+The [official managed node reference](https://docs.oracle.com/en-us/iaas/Content/internet-of-things/flow-runtime-node-reference.htm)
+(source `O1`) documents `iot-config` as IoT Device (device MQTT) and `oci-config`
+as OCI Config (OCI signer). `iot-telemetry` and `iot-subscribe` use IoT Device;
+`iot-send-command`, `iot-get-content` and `iot-update-relationship` use OCI Config.
+It also documents Object Storage, Notifications, ORDS and Logging families.
+Scenarios `C11`/`C12` establish workflow roles; `S4` separately owns pinned sample
+implementation details. Documentation does not establish target installation.
 
 The source manifest pins the Oracle sample package to release `0.8.0`, commit
 `cfcf58aa1a6b0139c23336c7ea5c75f81a4b45cb`, and the node-reference file at
@@ -47,10 +48,8 @@ service guarantee.
 
 | Surface | Exact identity | Classification | Authentication boundary | Source owner and gate |
 | --- | --- | --- | --- | --- |
-| Managed editor | `iot-config` / **OCI Config** | managed-documented | OCI configuration (for example, the target's supported config-file, instance-principal, resource-principal, or API-key mode) | `O1`; inspect target palette/version and policy |
-| Managed editor | `telemetry` | managed-documented | linked managed OCI Config | `O1`; inspect target palette/version and endpoint policy |
-| Managed editor | `subscribe` | managed-documented | linked managed OCI Config | `O1`; inspect target palette/version and source permissions |
-| Managed editor | `send command` | managed-documented | linked managed OCI Config and command policy | `O1`; inspect target palette/version and response contract |
+| Managed editor | `iot-config` / **IoT Device**, `iot-telemetry`, `iot-subscribe` | managed-documented | device MQTT authentication | `O1`; inspect target palette/version and device access |
+| Managed editor | `oci-config` / **OCI Config**, `iot-send-command`, `iot-get-content`, `iot-update-relationship` | managed-documented | OCI signing and operation policy | `O1`; inspect target palette/version and IAM |
 | Oracle sample package | `iot-config` | sample-package | device-side MQTTS credentials/certificate and TLS session | `S4` at pinned `0.8.0` commit; target palette gate required |
 | Oracle sample package | `iot-telemetry` | sample-package | device-side MQTTS session | `S4` at pinned `0.8.0` commit; target palette gate required |
 | Oracle sample package | `iot-subscribe` | sample-package | device-side MQTTS session | `S4` at pinned `0.8.0` commit; target palette gate required |
@@ -60,11 +59,10 @@ service guarantee.
 | Oracle scenario | Notifications publication role | official-scenario | runtime resource principal and Notifications policy | `C12`; topic existence and subscriber delivery are live-only |
 | Optional package role | ORDS, digital-twin content/relationship, Logging, or Log Analytics | sample-package / compatibility-gated | selected package auth configuration | `S4`; immutable revision and target palette inspection required |
 
-The name `iot-config` alone is ambiguous. Ask whether the request means
-managed **OCI Config** or sample-package **device MQTTS** configuration. Never
-use OCI API credentials as device credentials, and never use a device MQTTS
-certificate or password as OCI API authentication. The sample `oci-config` is
-the cloud/API family; it is not an alias for either meaning of `iot-config`.
+Managed and sample `iot-config` both configure device MQTT. Clarify the source
+surface before applying implementation details. Never substitute OCI signer
+credentials for device credentials, or device credentials for OCI signing.
+ORDS OAuth and Kafka SASL are additional separate identity boundaries.
 
 These contracts support `FR-IOT-TRANSPORT-001`,
 `FR-SCENARIO-NODE-CONTRACTS-001`, `FR-IOT-EXTENSIONS-001`, and
@@ -73,7 +71,8 @@ remains owned by `FR-NODES-001`.
 
 ## Device MQTTS transport
 
-Use this section only when the selected source is the device-side package
+The managed reference establishes device MQTT for the following family; apply
+the detailed sample rules only after target applicability is verified. The device
 family (`iot-config`, `iot-telemetry`, or `iot-subscribe`). A device session
 has a separate credential/certificate boundary, a TLS transport boundary, and
 a client identity boundary:
@@ -96,8 +95,8 @@ a client identity boundary:
   be validated before transport. QoS acceptance is a protocol/service stage,
   not proof of device application processing.
 
-The managed `telemetry` and `subscribe` roles are not evidence of an MQTTS
-client session. Conversely, a successful local/device MQTT session does not
+The managed `iot-telemetry` and `iot-subscribe` are documented MQTT nodes.
+A successful local/device MQTT session does not
 prove OCI API authorization, adapter normalization, or history persistence.
 
 ## Telemetry publication
@@ -375,12 +374,12 @@ offline readiness only.
 
 | Request shape | Route |
 | --- | --- |
-| “Use `iot-config`” with no further context | Ask whether managed OCI Config or sample device MQTTS config is intended |
+| “Use `iot-config`” with no further context | Resolve managed versus sample source context; both iot-config types use device MQTT |
 | Publish telemetry | Select the supported publisher in the managed target; use verified fields and separate service acceptance from normalization/history; consult package details only when applicable |
 | Subscribe to commands | Validate wildcard/QoS and parsed-versus-string output; design explicit command-response publication |
 | Send a command and know whether it completed | Use managed send-command plus its documented status/correlation contract; keep accepted request separate from completion |
 | Poll command status | Use the selected official SQL flow contract or an explicitly gated ORDS extension; do not merge them |
-| Download/upload Object Storage or publish Notifications | Route to the official-scenario role and require the target palette/live policy gate |
+| Download/upload Object Storage or publish Notifications | Use managed documented oci-object-storage/oci-notification; inspect target palette and service policy |
 | Read content/update a relationship or call ORDS | Use only the optional compatibility-gated extension contract |
 | “Show runtime logs” vs “send flow logs to OCI” | Route the former to Flow Runtime system-console logging and the latter to a flow-originated logging role |
-| Fusion SCM, self-hosted Node-RED, or arbitrary community module | Route outside this skill; do not broaden the contract |
+| Fusion SCM, self-hosted Node-RED, or arbitrary community module | Discover Fusion as a permitted add-on without assuming installation; route full Fusion or arbitrary-module work separately |

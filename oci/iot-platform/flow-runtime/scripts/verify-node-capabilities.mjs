@@ -90,20 +90,28 @@ for (const [fixture, id] of [
   assert.ok(Array.isArray(fixture.cannotProve) && fixture.cannotProve.length > 0, `${id}: cannotProve is required`);
 }
 
+const managedInventory = await loadJson("assets/nodes/managed-node-inventory.json");
 const identityDecision = (item) => {
+  if (item.surfaceContext === "managed-authentication") {
+    const contract = managedInventory.nodes.find((node) => node.canonicalLabel === item.name);
+    if (item.configurationParent !== contract.configurationParent) return { decision: "reject", reason: "configuration-parent-mismatch" };
+    if (item.authenticationFamily !== contract.authenticationFamily) return { decision: "reject", reason: "authentication-family-mismatch" };
+    return { decision: "select-but-gate", classification: "managed-documented", configurationParent: contract.configurationParent, authenticationFamily: contract.authenticationFamily, availability: "unknown-until-palette-inspection" };
+  }
   const { name, surfaceContext } = item;
-  if (name === "iot-config" && surfaceContext === "managed-editor") return { decision: "classify-source-role", classification: "managed-documented", documentedNodeLabel: "iot-config", paletteLabel: "OCI Config", sourceOwner: "O1", authenticationFamily: "oci-configuration", targetSelection: "requires-selected-target-observation" };
+  if (name === "iot-config" && surfaceContext === "managed-editor") return { decision: "classify-source-role", classification: "managed-documented", documentedNodeLabel: "iot-config", paletteLabel: "IoT Device", sourceOwner: "O1", authenticationFamily: "device-mqtts", targetSelection: "requires-selected-target-observation" };
   if (name === "iot-config" && surfaceContext === "sample-package-device-mqtt" && /treated as OCI Config/i.test(item.request)) return { decision: "reject", reason: "authentication-family-mismatch", classification: "sample-package", authenticationFamily: "device-mqtts", mustNotBe: "managed-documented", sourceOwner: "S4", sourceIds: ["O7", "S4"] };
   if (name === "iot-config" && surfaceContext === "sample-package-device-mqtt") return { decision: "select-but-gate", classification: "sample-package", canonicalName: "iot-config", paletteLabel: "sample device MQTT config", sourceOwner: "S4", sourceIds: ["O7", "S4"], authenticationFamily: "device-mqtts", configurationParent: null, targetGate: "immutable-package-and-target-palette" };
   if (name === "oci-config" && surfaceContext === "sample-package-oci-rest" && /telemetry device session/i.test(item.request)) return { decision: "reject", reason: "authentication-family-mismatch", classification: "sample-package", authenticationFamily: "oci-api", mustNotAuthenticate: "device-mqtts", sourceOwner: "S4", sourceIds: ["O7", "S4"] };
   if (name === "oci-config" && surfaceContext === "sample-package-oci-rest") return { decision: "select-but-gate", classification: "sample-package", canonicalName: "oci-config", paletteLabel: "sample OCI config", sourceOwner: "S4", sourceIds: ["O7", "S4"], authenticationFamily: "oci-api", configurationParent: null, targetGate: "immutable-package-and-target-palette" };
-  if (name === "iot-config" && surfaceContext === null) return { decision: "clarify", reason: "ambiguous-name", candidateIdentities: ["managed-iot-config", "sample-device-iot-config"], authenticationFamilies: ["oci-configuration", "device-mqtts"], sourceOwners: ["O1", "S4"] };
+  if (name === "iot-config" && surfaceContext === null) return { decision: "clarify", reason: "source-surface-required", candidateIdentities: ["managed-iot-config", "sample-device-iot-config"], authenticationFamilies: ["device-mqtts"], sourceOwners: ["O1", "S4"] };
+  if (name === "oci-config" && surfaceContext === "managed-editor") return { decision: "classify-source-role", classification: "managed-documented", documentedNodeLabel: "oci-config", paletteLabel: "OCI Config", sourceOwner: "O1", authenticationFamily: "oci-api", targetSelection: "requires-selected-target-observation" };
   if (name === "sql") return { decision: "select", classification: "managed-documented", sourceOwner: "O1", configurationParent: "managed-db-connection", authenticationFamily: "oracle-database", targetGate: "managed-palette-and-database-contract" };
-  if (name === "Object Storage download") return { decision: "select-but-gate", classification: "official-scenario", sourceOwner: "C11", exactPaletteIdentity: "not-established", targetGate: "scenario-role-and-target-palette", offlineAllowed: true };
-  if (name === "OCI Notifications publication") return { decision: "select-but-gate", classification: "official-scenario", sourceOwner: "C12", exactPaletteIdentity: "not-established", targetGate: "scenario-role-and-target-palette", publicationIsNotSubscriberDelivery: true, offlineAllowed: true };
+  if (name === "Object Storage download") return { decision: "select-but-gate", classification: "managed-documented", sourceOwner: "O1", exactPaletteIdentity: "oci-object-storage", targetGate: "managed-palette-and-service-policy", offlineAllowed: true };
+  if (name === "OCI Notifications publication") return { decision: "select-but-gate", classification: "managed-documented", sourceOwner: "O1", exactPaletteIdentity: "oci-notification", targetGate: "managed-palette-and-service-policy", publicationIsNotSubscriberDelivery: true, offlineAllowed: true };
   if (name === "iot-subscribe") return { decision: "reject-normative-use", classification: "sample-package", sourceOwner: "S4", sourceIds: ["O7", "S4"], reason: "immutable-reference-required", immutableRevision: sampleRevision, selectedRevision: "main", mutableMainSatisfiesGate: false, targetGate: "pinned-source-target-gated" };
   if (name === "mqtt in") return { decision: "reject-claim", classification: "generic-core", sourceOwner: "N2", sourceIds: ["N2", "M1"], reason: "generic-semantics-do-not-prove-oci-device-session", authenticationFamily: "generic-broker" };
-  if (name === "Fusion SCM") return { decision: "route-elsewhere", classification: "routed-elsewhere", sourceOwner: "none", reason: "outside-skill-boundary" };
+  if (name === "Fusion SCM") return { decision: "discover-permitted-add-on", classification: "managed-documented", sourceOwner: "O1", reason: "permitted-add-on-not-default-dependency", availability: "unknown-until-module-inspection" };
   return { decision: "route-elsewhere", classification: "routed-elsewhere", sourceOwner: "none", reason: "self-hosted-or-unverified-module" };
 };
 
@@ -313,8 +321,8 @@ const relationshipKey = (value) => {
 const iotDecision = (item) => {
   const input = item.input;
   if (item.family === "identity") {
-    if (!input.surface) return { route: "clarify", reason: "iot-config may mean managed OCI Config or sample device MQTTS config" };
-    if (input.surface === "managed-editor") return { classification: "managed-documented", authFamily: "oci-api", deviceMqttSession: false, childRoles: ["telemetry", "subscribe", "send command"] };
+    if (!input.surface) return { route: "clarify", reason: "iot-config source surface is required; managed and sample both use device MQTT" };
+    if (input.surface === "managed-editor") return { classification: "managed-documented", authFamily: "device-mqtts", deviceMqttSession: true, childRoles: ["iot-telemetry", "iot-subscribe"] };
     if (input.nodeType === "iot-config") return { classification: "sample-package", authFamily: "device-mqtts", deviceMqttSession: true, targetGate: "target-palette-inspection" };
     return { classification: "sample-package", authFamily: "oci-api", deviceMqttSession: false, targetGate: "target-palette-inspection" };
   }
